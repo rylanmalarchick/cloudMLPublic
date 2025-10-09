@@ -1,0 +1,58 @@
+# Pre-commit configuration for automated code quality checks
+# Run with: pre-commit install && pre-commit run --all-files
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+      - id: check-merge-conflict
+      - id: debug-statements
+
+  - repo: https://github.com/psf/black
+    rev: 23.3.0
+    hooks:
+      - id: black
+        language_version: python3
+        args: [--line-length=88]
+
+  - repo: https://github.com/charliermarsh/ruff-pre-commit
+    rev: v0.0.270
+    hooks:
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix]
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.3.0
+    hooks:
+      - id: mypy
+        additional_dependencies: [types-PyYAML, types-requests]
+        args: [--ignore-missing-imports, --no-error-summary]
+
+  - repo: local
+    hooks:
+      - id: python-check-blanket-noqa
+        name: Check for blanket noqa
+        entry: python -c "import sys; sys.exit(1 if any('# noqa' in line and ':' not in line for line in open(sys.argv[1]).readlines()) else 0)"
+        language: system
+        files: \.py$
+
+      - id: python-no-eval
+        name: Check for eval usage
+        entry: python -c "import ast, sys; [sys.exit(1) for filename in sys.argv[1:] for node in ast.walk(ast.parse(open(filename).read())) if isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id == 'eval']"
+        language: system
+        files: \.py$
+
+ci:
+  autofix_commit_msg: |
+    [pre-commit.ci] auto fixes from pre-commit.com hooks
+
+    for more information, see https://pre-commit.ci
+  autofix_prs: true
+  autoupdate_commit_msg: '[pre-commit.ci] pre-commit autoupdate'
+  autoupdate_schedule: weekly
+  skip: []
+  submodules: false
