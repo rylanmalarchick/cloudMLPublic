@@ -44,7 +44,7 @@ def save_model_and_scaler(model, scaler, path):
 def load_model_and_scaler(path, device):
     """Loads the model state and scaler object from a file."""
     # This import is here to avoid circular dependencies
-    from .pytorchmodel import MultimodalRegressionModel, get_model_config
+    from .pytorchmodel import get_model_class, get_model_config
 
     checkpoint = torch.load(path, map_location=device, weights_only=False)
     scaler = checkpoint.get("scaler", None)  # Use .get for backward compatibility
@@ -54,7 +54,10 @@ def load_model_and_scaler(path, device):
     # A more robust way to get model config might be needed if it changes
     # For now, we use a dummy config based on the expected data shape
     dummy_config = get_model_config(image_shape=(3, 440, 440), temporal_frames=3)
-    model = MultimodalRegressionModel(dummy_config).to(device)
+    model_class = get_model_class(
+        dummy_config.get("architecture", {}).get("name", "transformer")
+    )
+    model = model_class(dummy_config).to(device)
     model.load_state_dict(checkpoint["model_state_dict"])
 
     return model, scaler

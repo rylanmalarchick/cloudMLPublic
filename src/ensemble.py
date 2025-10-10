@@ -8,7 +8,7 @@ from tqdm import tqdm
 import yaml
 from sklearn.preprocessing import StandardScaler
 
-from .pytorchmodel import MultimodalRegressionModel, get_model_config
+from .pytorchmodel import get_model_class, get_model_config
 from .hdf5_dataset import HDF5CloudDataset
 from torch.utils.data import DataLoader
 from .main_utils import load_all_flights_metadata_for_scalers
@@ -92,7 +92,10 @@ def predict(args):
     models = []
     model_config = get_model_config(image_shape=(3, 440, 440), temporal_frames=3)
     for path in model_paths:
-        model = MultimodalRegressionModel(model_config)
+        model_class = get_model_class(
+            model_config.get("architecture", {}).get("name", "transformer")
+        )
+        model = model_class(model_config)
 
         # --- THIS IS THE CRITICAL FIX ---
         # The error log tells us to set weights_only=False to load untrusted files.

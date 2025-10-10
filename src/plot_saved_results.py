@@ -48,9 +48,13 @@ def main():
     # Instantiate model and load state
     model = torch.nn.Module()  # placeholder for correct model class
     # Replace with your model class import if needed
-    from src.pytorchmodel import MultimodalRegressionModel
+    from src.pytorchmodel import get_model_class, get_model_config
 
-    model = MultimodalRegressionModel(ckpt["image_shape"]).to(device)
+    # Use model selection based on checkpoint or default
+    arch_name = ckpt.get("architecture", {}).get("name", "transformer")
+    model_config = get_model_config(ckpt["image_shape"], ckpt.get("temporal_frames", 3))
+    model_class = get_model_class(arch_name)
+    model = model_class(model_config).to(device)
     model.load_state_dict(ckpt["model_state_dict"])
     model.eval()
 

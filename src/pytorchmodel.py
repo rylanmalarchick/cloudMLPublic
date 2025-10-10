@@ -407,6 +407,61 @@ class SSMModel(MultimodalRegressionModel):
         return torch.nan_to_num(cloud_height, 0.0), None
 
 
+class SimpleCNNModel(nn.Module):
+    """A simple CNN baseline without attention or complex features for ablation."""
+
+    def __init__(self, model_config):
+        super(SimpleCNNModel, self).__init__()
+        self.config = model_config
+        self.cnn_layers = self._build_simple_cnn()
+        self.dense_layers = self._build_dense_layers()
+        self.output = nn.Linear(self.config["dense_layers"][-1]["size"], 1)
+        self._initialize_weights()
+
+    def _build_simple_cnn(self):
+        layers = nn.ModuleList()
+        in_channels = 1
+        for layer_config in self.config["cnn_layers"]:
+            layers.append(
+                nn.Conv2d(
+                    in_channels, layer_config["out_channels"], **layer_config["params"]
+                )
+            )
+            layers.append(nn.ReLU())
+            if "pool" in layer_config:
+                layers.append(nn.MaxPool2d(**layer_config["pool"]))
+            in_channels = layer_config["out_channels"]
+        layers.append(nn.AdaptiveAvgPool2d((1, 1)))
+        return layers
+
+    def _build_dense_layers(self):
+        layers = nn.ModuleList()
+        in_features = self.config["cnn_layers"][-1]["out_channels"]
+        for layer_config in self.config["dense_layers"]:
+            layers.append(nn.Linear(in_features, layer_config["size"]))
+            layers.append(nn.ReLU())
+            in_features = layer_config["size"]
+        return layers
+
+    def _initialize_weights(self):
+        for m in self.modules():
+            if isinstance(m, nn.Linear):
+                nn.init.xavier_normal_(m.weight)
+            elif isinstance(m, nn.Conv2d):
+                nn.init.kaiming_normal_(m.weight)
+
+    def forward(self, image_input, param1_input, param2_input):
+        # Simple CNN: average over temporal frames, ignore scalars for baseline
+        x = torch.mean(image_input, dim=1)  # Average temporal frames
+        for layer in self.cnn_layers:
+            x = layer(x)
+        x = x.flatten(1)
+        for layer in self.dense_layers:
+            x = layer(x)
+        cloud_height = self.output(x)
+        return cloud_height, None
+
+
 class CustomLoss(nn.Module):
     """A custom loss function with multiple modes."""
 
@@ -470,6 +525,20 @@ class CustomLoss(nn.Module):
             return loss
 
         raise ValueError(f"Unknown loss_type: {self.loss_type}")
+
+
+def get_model_class(architecture_name):
+    """Returns the model class based on architecture name."""
+    if architecture_name == "transformer":
+        return MultimodalRegressionModel
+    elif architecture_name == "gnn":
+        return GNNModel
+    elif architecture_name == "ssm":
+        return SSMModel
+    elif architecture_name == "cnn":
+        return SimpleCNNModel
+    else:
+        raise ValueError(f"Unknown architecture: {architecture_name}")
 
 
 def get_model_config(image_shape, temporal_frames, scalar_features=3):

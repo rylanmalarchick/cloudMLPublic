@@ -8,7 +8,7 @@ import json
 from torch.utils.data import DataLoader, WeightedRandomSampler
 
 from .main_utils import prepare_streaming_data
-from .pytorchmodel import get_model_config, MultimodalRegressionModel
+from .pytorchmodel import get_model_config, get_model_class
 from .train_model import train_model
 from .evaluate_model import evaluate_model_and_get_metrics
 from .visualization import plot_results
@@ -73,7 +73,10 @@ def run_pretraining(
     model_config = get_model_config(dataset.image_shape, config["temporal_frames"])
     model_config["use_spatial_attention"] = config.get("use_spatial_attention", True)
     model_config["use_temporal_attention"] = config.get("use_temporal_attention", True)
-    model = MultimodalRegressionModel(model_config).to(device)
+    model_class = get_model_class(
+        config.get("architecture", {}).get("name", "transformer")
+    )
+    model = model_class(model_config).to(device)
     optimizer = torch.optim.AdamW(
         model.parameters(), lr=config["lr"], weight_decay=config["wd"]
     )
@@ -185,7 +188,10 @@ def run_final_training_and_evaluation(
     )
     model_config["use_spatial_attention"] = config.get("use_spatial_attention", True)
     model_config["use_temporal_attention"] = config.get("use_temporal_attention", True)
-    model = MultimodalRegressionModel(model_config).to(device)
+    model_class = get_model_class(
+        config.get("architecture", {}).get("name", "transformer")
+    )
+    model = model_class(model_config).to(device)
 
     if pre_ckpt:
         print(f"Initialized model from {pre_ckpt}")
@@ -384,7 +390,10 @@ def run_loo_evaluation(config, all_flight_configs, scaler_info, hpc_settings):
         model_config["use_temporal_attention"] = config.get(
             "use_temporal_attention", True
         )
-        model = MultimodalRegressionModel(model_config).to(device)
+        model_class = get_model_class(
+            config.get("architecture", {}).get("name", "transformer")
+        )
+        model = model_class(model_config).to(device)
         optimizer = torch.optim.AdamW(
             model.parameters(),
             lr=config["lr"],
