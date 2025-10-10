@@ -32,9 +32,11 @@ The training and evaluation pipeline is managed by `src/pipeline.py` and consist
 
 - **Data Preprocessing:** Scripts for preparing and normalizing satellite imagery data, including flat-field correction and CLAHE enhancement.
 - **Model Training:** Train a deep learning model with spatial and temporal attention mechanisms, supporting pre-training and fine-tuning.
-- **Evaluation:** Evaluate model performance using standard metrics (MAE, MSE, R²) and leave-one-out cross-validation for robustness.
+- **Evaluation:** Evaluate model performance using comprehensive metrics (MAE, MSE, RMSE, MAPE, R², error quantiles) and leave-one-out cross-validation for robustness.
 - **Visualization:** Generate plots, attention maps, and error analyses to interpret model behavior.
 - **Calibration and Uncertainty:** Includes conformal prediction for uncertainty quantification and model calibration scripts.
+- **Ablation Studies:** Automated command-line overrides for testing angles, attention, loss, augmentation, and architectures.
+- **Result Aggregation:** Scripts to combine metrics across runs into summary CSVs for comparison.
 
 ## Challenges and Technical Insights
 
@@ -132,6 +134,7 @@ Once obtained, place the data in the directory specified by `data_directory` in 
 │   ├── complexity_weights.yaml
 │   ├── ablation_*.yaml
 ├── scripts/
+│   ├── aggregate_results.py
 │   ├── calibrate_model.py
 │   ├── pretrain_ssl.py
 ├── src/
@@ -157,10 +160,9 @@ Once obtained, place the data in the directory specified by `data_directory` in 
 
 -   **`main.py`**: Entry point for running the model.
 -   **`configs/`**: Configuration files for experiments, including ablation setups.
--   **`scripts/`**: Additional scripts for calibration and pre-training.
+-   **`scripts/`**: Additional scripts for calibration, pre-training, and result aggregation.
 -   **`src/`**: Source code for data processing, model architecture, training, and evaluation pipelines.
 -   **`.gitignore`**: Git ignore file to exclude clutter.
--   **`.pre-commit-config.yaml`**: Pre-commit hooks configuration.
 -   **`.pre-commit-config.yaml`**: Pre-commit hooks configuration for code quality (linting, formatting).
 
 ## Contributing
