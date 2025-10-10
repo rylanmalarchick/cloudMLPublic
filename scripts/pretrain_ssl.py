@@ -75,7 +75,7 @@ def main():
 
     for epoch in range(args.epochs):
         total_loss = 0
-        pbar = tqdm(dataloader, desc=f"Epoch {epoch+1}/{args.epochs}")
+        pbar = tqdm(dataloader, desc=f"Epoch {epoch + 1}/{args.epochs}")
 
         for images in pbar:
             images = images.to(device)
@@ -93,7 +93,7 @@ def main():
             pbar.set_postfix({"loss": f"{loss.item():.4f}"})
 
         avg_loss = total_loss / len(dataloader)
-        print(f"Epoch {epoch+1}/{args.epochs}, Average Loss: {avg_loss:.6f}")
+        print(f"Epoch {epoch + 1}/{args.epochs}, Average Loss: {avg_loss:.6f}")
 
     print(f"Saving encoder weights to {args.output}")
     torch.save(model.encoder.state_dict(), args.output)
