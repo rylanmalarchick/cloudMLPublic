@@ -169,17 +169,6 @@ Once obtained, place the data in the directory specified by `data_directory` in 
 
 Contributions are welcome! Please open an issue or submit a pull request for bug fixes, feature requests, or improvements.
 
-## Future Conference Targets
-
-This work is being prepared for submission to top ML conferences focusing on challenging data and real-world applications. Potential targets (ranked by fit):
-
-1. **NeurIPS 2025** (Dec 9-15, 2025): Premier for deep learning, robust ML, and real-world data challenges. Strong alignment with multimodal remote sensing and self-supervised learning.
-2. **ICML 2025** (July 13-19, 2025): Top ML conference with tracks on robustness, domain adaptation, and distribution shifts.
-3. **CVPR 2025** (June 2025): Excellent for vision/multimodal work, with remote sensing workshops.
-4. **ICMLA 2025** (Mid-2025): Broad ML applications, interdisciplinary research on challenging datasets.
-5. **ICMLDE 2025** (Aug 29, 2025): Focuses on robust ML for engineering domains and complex data.
-6. **SPIE Applications of ML 2025** (July 2025): Practical ML for noisy/complex data, industry-academia forum.
-
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
