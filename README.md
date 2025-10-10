@@ -122,15 +122,18 @@ Once obtained, place the data in the directory specified by `data_directory` in 
 
 ```
 ├── README.md
-├── config.yaml
-├── bestComboConfig.yaml
-├── complexity_weights.yaml
-├── calibrate_model.py
-├── pretrain_ssl.py
 ├── main.py
 ├── requirements.txt
 ├── .gitignore
 ├── .pre-commit-config.yaml
+├── configs/
+│   ├── config.yaml
+│   ├── bestComboConfig.yaml
+│   ├── complexity_weights.yaml
+│   ├── ablation_*.yaml
+├── scripts/
+│   ├── calibrate_model.py
+│   ├── pretrain_ssl.py
 ├── src/
 │   ├── __init__.py
 │   ├── caching.py
@@ -152,14 +155,12 @@ Once obtained, place the data in the directory specified by `data_directory` in 
 │   ├── visualization.py
 ```
 
--   **`config.yaml`**: Main configuration file for experiments.
--   **`bestComboConfig.yaml`**: Configuration file with optimized hyperparameters.
--   **`complexity_weights.yaml`**: Weights for scene complexity calculations.
--   **`calibrate_model.py`**: Script for model calibration.
--   **`pretrain_ssl.py`**: Script for self-supervised pre-training.
 -   **`main.py`**: Entry point for running the model.
+-   **`configs/`**: Configuration files for experiments, including ablation setups.
+-   **`scripts/`**: Additional scripts for calibration and pre-training.
 -   **`src/`**: Source code for data processing, model architecture, training, and evaluation pipelines.
 -   **`.gitignore`**: Git ignore file to exclude clutter.
+-   **`.pre-commit-config.yaml`**: Pre-commit hooks configuration.
 -   **`.pre-commit-config.yaml`**: Pre-commit hooks configuration for code quality (linting, formatting).
 
 ## Contributing
