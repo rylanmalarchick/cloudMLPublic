@@ -4,6 +4,7 @@ import os
 import torch
 import pandas as pd
 import h5py  # Added for navigation data loading
+import json
 from torch.utils.data import DataLoader, WeightedRandomSampler
 
 from .main_utils import prepare_streaming_data
@@ -221,8 +222,17 @@ def run_final_training_and_evaluation(
         final_model, val_loader, device, y_scaler, return_preds=True
     )
     print(
-        f"Results: Loss={metrics['loss']:.4f}, MAE={metrics['mae']:.4f}, MSE={metrics['mse']:.4f}"
+        f"Results: Loss={metrics['loss']:.4f}, MAE={metrics['mae']:.4f}, MSE={metrics['mse']:.4f}, RMSE={metrics.get('rmse', 'N/A'):.4f}, R²={metrics['r2']:.4f}"
     )
+
+    # Save metrics summary to JSON
+    metrics_summary = {
+        k: v for k, v in metrics.items() if not isinstance(v, np.ndarray)
+    }  # Exclude arrays
+    metrics_json_path = os.path.join(log_dir, "csv", f"metrics_{final_save_name}.json")
+    with open(metrics_json_path, "w") as f:
+        json.dump(metrics_summary, f, indent=4)
+    print(f"→ Saved metrics summary to {metrics_json_path}")
 
     # Save predictions to CSV
     predictions_df = pd.DataFrame(
@@ -306,7 +316,7 @@ def run_loo_evaluation(config, all_flight_configs, scaler_info, hpc_settings):
     for i, hold_out_flight in enumerate(all_flight_configs):
         hold_out_name = hold_out_flight["name"]
         print(
-            f"\n--- LOO: Hold-out {hold_out_name} ({i+1}/{len(all_flight_configs)}) ---"
+            f"\n--- LOO: Hold-out {hold_out_name} ({i + 1}/{len(all_flight_configs)}) ---"
         )
 
         train_configs = [f for f in all_flight_configs if f["name"] != hold_out_name]
@@ -408,6 +418,18 @@ def run_loo_evaluation(config, all_flight_configs, scaler_info, hpc_settings):
         print(
             f"Hold-out {hold_out_name} Results: MAE={metrics['mae']:.3f}, MSE={metrics['mse']:.3f}"
         )
+
+        # Save per-fold metrics to JSON
+        fold_metrics_summary = {
+            k: v for k, v in metrics.items() if not isinstance(v, np.ndarray)
+        }
+        os.makedirs("results", exist_ok=True)
+        fold_json_path = os.path.join(
+            "results", f"loo_fold_{hold_out_name}_metrics.json"
+        )
+        with open(fold_json_path, "w") as f:
+            json.dump(fold_metrics_summary, f, indent=4)
+        print(f"→ Saved fold metrics to {fold_json_path}")
 
         loo_results.append(
             {

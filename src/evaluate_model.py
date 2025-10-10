@@ -12,17 +12,40 @@ from .pytorchmodel import CustomLoss
 
 def calculate_metrics(y_true, y_pred):
     """
-    Calculates MAE, MSE, and R-squared from true and predicted values.
+    Calculates comprehensive metrics: MAE, MSE, RMSE, MAPE, R-squared, and error statistics.
     """
-    mae = np.mean(np.abs(y_true - y_pred))
-    mse = np.mean((y_true - y_pred) ** 2)
+    errors = y_true - y_pred
+    mae = np.mean(np.abs(errors))
+    mse = np.mean(errors**2)
+    rmse = np.sqrt(mse)
+    mape = (
+        np.mean(np.abs(errors / y_true)) * 100 if np.all(y_true != 0) else np.nan
+    )  # Avoid division by zero
 
     # Calculate R^2 relative to the 1:1 line
     ss_res = np.sum((y_pred - y_true) ** 2)
     ss_tot = np.sum((y_true - np.mean(y_true)) ** 2)
     r2 = 1 - (ss_res / ss_tot) if ss_tot > 0 else 0.0
 
-    return {"mae": mae, "mse": mse, "r2": r2}
+    # Additional error statistics
+    mean_error = np.mean(errors)
+    std_error = np.std(errors)
+    error_quantiles = np.percentile(errors, [25, 50, 75, 90, 95])
+
+    return {
+        "mae": mae,
+        "mse": mse,
+        "rmse": rmse,
+        "mape": mape,
+        "r2": r2,
+        "mean_error": mean_error,
+        "std_error": std_error,
+        "error_25th_percentile": error_quantiles[0],
+        "error_median": error_quantiles[1],
+        "error_75th_percentile": error_quantiles[2],
+        "error_90th_percentile": error_quantiles[3],
+        "error_95th_percentile": error_quantiles[4],
+    }
 
 
 def load_calibration_term(calibration_file="calibration_term.txt"):
@@ -138,6 +161,14 @@ def evaluate_model_and_get_metrics(
 
     metrics = calculate_metrics(y_true_final, y_pred_final)
     metrics["loss"] = avg_loss
+
+    # Add sample size and basic summary
+    metrics["num_samples"] = len(y_true_final)
+    metrics["prediction_range"] = [
+        float(np.min(y_pred_final)),
+        float(np.max(y_pred_final)),
+    ]
+    metrics["true_range"] = [float(np.min(y_true_final)), float(np.max(y_true_final))]
 
     if return_preds:
         metrics["y_true"] = y_true_final
