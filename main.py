@@ -13,6 +13,13 @@ from src.pipeline import (
     run_loo_evaluation,
 )
 
+# Set random seed for reproducibility
+import torch
+import random
+
+torch.manual_seed(42)
+random.seed(42)
+
 
 def main():
     parser = argparse.ArgumentParser(description="Cloud-ML Model Training")
