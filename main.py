@@ -126,6 +126,21 @@ def main():
             }
         )
 
+    # Sanity check: Ensure data shapes are consistent
+    sample_data = prepare_streaming_data(
+        datasets_info[0],
+        swath_slice=tuple(config["swath_slice"]),
+        temporal_frames=config["temporal_frames"],
+        filter_type=config["filter_type"],
+        cbh_min=config.get("cbh_min"),
+        cbh_max=config.get("cbh_max"),
+    )
+    print(
+        f"Sample data shape: {sample_data.image_shape}, Y_scaler initialized: {hasattr(sample_data, 'y_scaler')}"
+    )
+    assert sample_data.image_shape[0] == 1, "Expected grayscale images (1 channel)"
+    assert len(datasets_info) > 0, "No datasets loaded"
+
     print("\n--- Fitting Global Scalers ---")
     global_sza_data, global_saa_data, global_y_data = (
         load_all_flights_metadata_for_scalers(

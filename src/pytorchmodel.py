@@ -5,7 +5,26 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch_geometric.nn import GATConv, global_mean_pool
 from torch_geometric.data import Data, Batch
-from mamba_ssm import Mamba
+try:
+
+# Conditional import try:
+        for Mamba-SSM
+try:
+    try:
+        from mamba_ssm import Mamba
+        MAMBA_AVAILABLE = True
+    except ImportError:
+        MAMBA_AVAILABLE = False
+        print("Mamba-SSM not available; SSMModel will not be used.")
+except ImportError:
+    Mamba = None
+
+    MAMBA_AVAILABLE =        MAMBA_AVAILABLE = True True
+except ImportError:
+    MAMBA_AVAILABLE = False
+    except ImportError:
+        MAMBA_AVAILABLE
+    print("Warning: Mamba-SSM not available = False. SSMModel will use a fallback.")
 
 
 # ... (all your other classes like SpatialAttention, TemporalAttention, FiLLMLayer remain the same) ...
@@ -336,6 +355,8 @@ class GNNModel(MultimodalRegressionModel):
 
 class SSMModel(MultimodalRegressionModel):
     def __init__(self, model_config):
+        if not MAMBA_AVAILABLE:
+            raise ImportError("Mamba-SSM not available; cannot use SSMModel.")
         super(SSMModel, self).__init__(model_config)
 
         # Override temporal attention with Mamba SSM
@@ -345,6 +366,14 @@ class SSMModel(MultimodalRegressionModel):
             d_conv=4,
             expand=2,
         )
+        else:
+            # Fallback: Use a simple LSTM or mean pooling
+            self.mamba = nn.LSTM(
+                input_size=self.cnn_output_size,
+                hidden_size=self.cnn_output_size,
+                num_layers=2,
+                batch_first=True,
+            )
 
         # Remove temporal attention if it exists from parent
         if hasattr(self, "temporal_attention"):
@@ -394,11 +423,15 @@ class SSMModel(MultimodalRegressionModel):
         # Reshape for Mamba
         temporal_input = torch.stack(frame_features, dim=1)
 
-        # Pass through Mamba
-        mamba_out = self.mamba(temporal_input)
-
-        # Pool the output from Mamba's sequence
-        x = mamba_out.mean(dim=1)
+        if MAMBA_AVAILABLE:
+            # Pass through Mamba
+            mamba_out = self.mamba(temporal_input)
+            # Pool the output from Mamba's sequence
+            x = mamba_out.mean(dim=1)
+        else:
+            # Fallback: Use LSTM
+            lstm_out, _ = self.mamba(temporal_input)
+            x = lstm_out.mean(dim=1)
 
         for layer in self.dense_layers:
             x = layer(x)
@@ -534,6 +567,8 @@ def get_model_class(architecture_name):
     elif architecture_name == "gnn":
         return GNNModel
     elif architecture_name == "ssm":
+        if not MAMBA_AVAILABLE:
+            raise ImportError("Mamba-SSM not available; use another architecture.")
         return SSMModel
     elif architecture_name == "cnn":
         return SimpleCNNModel
