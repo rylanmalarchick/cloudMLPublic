@@ -213,9 +213,7 @@ results/
 # Sensitive files
 keyss.txt
 
-# Configs - preserve base config
-configs/*
-!configs/base_config.yaml
+
 
 # System files
 .DS_Store
