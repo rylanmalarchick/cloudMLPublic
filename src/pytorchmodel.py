@@ -6,25 +6,12 @@ import torch.nn.functional as F
 from torch_geometric.nn import GATConv, global_mean_pool
 from torch_geometric.data import Data, Batch
 try:
-
-# Conditional import try:
-        for Mamba-SSM
-try:
-    try:
-        from mamba_ssm import Mamba
-        MAMBA_AVAILABLE = True
-    except ImportError:
-        MAMBA_AVAILABLE = False
-        print("Mamba-SSM not available; SSMModel will not be used.")
+    from mamba_ssm import Mamba
+    MAMBA_AVAILABLE = True
 except ImportError:
     Mamba = None
-
-    MAMBA_AVAILABLE =        MAMBA_AVAILABLE = True True
-except ImportError:
     MAMBA_AVAILABLE = False
-    except ImportError:
-        MAMBA_AVAILABLE
-    print("Warning: Mamba-SSM not available = False. SSMModel will use a fallback.")
+    print("Mamba-SSM not available; SSMModel will use a fallback.")
 
 
 # ... (all your other classes like SpatialAttention, TemporalAttention, FiLLMLayer remain the same) ...
