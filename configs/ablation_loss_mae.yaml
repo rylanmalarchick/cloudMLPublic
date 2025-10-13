@@ -1,0 +1,43 @@
+# --- File Paths ---
+data_directory: "/content/drive/MyDrive/CloudML/data/"
+output_directory: "/content/drive/MyDrive/CloudML/plots/"
+
+# --- Experiment Parameters ---
+pretrain_flight: "30Oct24, 10Feb25"
+overweight_flight: "30Oct24, 10Feb25"
+overweight_factor: 1.8
+validation_flight: "04Nov24, 12Feb25"
+
+# --- Training Parameters ---
+lr: 0.001
+wd: 0.05
+epochs: 80
+optimizer: "AdamW"
+scheduler: "ReduceLROnPlateau"
+temporal_frames: 6
+loss_type: "mae"
+loss_alpha: 0.8
+early_stopping_patience: 10
+filter_type: "basic"
+early_stopping_min_delta: 0.00025
+huber_delta: 1.0
+gamma: 1.5
+under_weight: 1.0
+loo: true
+loo_epochs: 20
+batch_size: 16
+warmup_steps: 2000
+hard_mining_k: 0.35
+hard_mining_factor: 1.5
+swath_slice: [40, 480]
+hpc_mode: false
+use_conformal_prediction: true
+prediction_clip_range: [0.1, 2.0]
+conformal_confidence: 0.9
+angles_mode: "both" # All angles (SZA and SAA)
+augment: true
+include_validation_in_train: true
+
+# --- Model Architecture ---
+architecture:
+  name: "transformer"
