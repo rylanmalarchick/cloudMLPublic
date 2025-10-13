@@ -6,7 +6,11 @@ import os
 
 import yaml
 from sklearn.preprocessing import StandardScaler
-from src.main_utils import load_all_flights_metadata_for_scalers, setup_environment
+from src.main_utils import (
+    load_all_flights_metadata_for_scalers,
+    setup_environment,
+    prepare_streaming_data,
+)
 from src.pipeline import (
     run_final_training_and_evaluation,
     run_pretraining,
