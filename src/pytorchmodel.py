@@ -5,8 +5,10 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch_geometric.nn import GATConv, global_mean_pool
 from torch_geometric.data import Data, Batch
+
 try:
     from mamba_ssm import Mamba
+
     MAMBA_AVAILABLE = True
 except ImportError:
     Mamba = None
@@ -342,17 +344,16 @@ class GNNModel(MultimodalRegressionModel):
 
 class SSMModel(MultimodalRegressionModel):
     def __init__(self, model_config):
-        if not MAMBA_AVAILABLE:
-            raise ImportError("Mamba-SSM not available; cannot use SSMModel.")
         super(SSMModel, self).__init__(model_config)
 
         # Override temporal attention with Mamba SSM
-        self.mamba = Mamba(
-            d_model=self.cnn_output_size,
-            d_state=16,
-            d_conv=4,
-            expand=2,
-        )
+        if MAMBA_AVAILABLE:
+            self.mamba = Mamba(
+                d_model=self.cnn_output_size,
+                d_state=16,
+                d_conv=4,
+                expand=2,
+            )
         else:
             # Fallback: Use a simple LSTM or mean pooling
             self.mamba = nn.LSTM(
@@ -554,8 +555,6 @@ def get_model_class(architecture_name):
     elif architecture_name == "gnn":
         return GNNModel
     elif architecture_name == "ssm":
-        if not MAMBA_AVAILABLE:
-            raise ImportError("Mamba-SSM not available; use another architecture.")
         return SSMModel
     elif architecture_name == "cnn":
         return SimpleCNNModel
