@@ -6,21 +6,46 @@
 
 ## Quick Start
 
+### Which Config Should I Use?
+
+| Config | Model Size | torch.compile | Stability | Speed | Memory | Best For |
+|--------|------------|---------------|-----------|-------|--------|----------|
+| **colab_optimized_full.yaml** | Full (64/128/256) | Yes (default mode) | Good | Fast | 9-10GB | **Recommended - best performance** |
+| **colab_full_stable.yaml** | Full (64/128/256) | No | **Excellent** | Normal | 8-9GB | **Use if compile causes errors** |
+| **colab_optimized.yaml** | Small (32/64/128) | No | Excellent | Normal | 7-8GB | Fallback if OOM |
+
 ### Option 1: Full Model with Optimizations (RECOMMENDED)
 
 ```bash
-# Uses full 64/128/256 channel model with optimizations
+# Uses full 64/128/256 channel model with torch.compile + gradient checkpointing
 python main.py --config configs/colab_optimized_full.yaml
 ```
 
 **Specs:**
 - Model: Full capacity (64/128/256 channels)
 - Memory: ~9-10GB
-- Speed: **20-30% faster** than memory-optimized
+- Speed: **15-25% faster** than memory-optimized
 - Batch size: 20
+- Compile mode: 'default' (safe with gradient checkpointing)
 - **Best for:** Production runs, paper results
 
-### Option 2: Memory-Optimized Model (SAFE FALLBACK)
+**Note:** Updated to use `torch_compile_mode: "default"` to avoid CUDA graph memory pointer issues.
+
+### Option 2: Full Model - Maximum Stability (NEW)
+
+```bash
+# Full model WITHOUT torch.compile (most stable)
+python main.py --config configs/colab_full_stable.yaml
+```
+
+**Specs:**
+- Model: Full capacity (64/128/256 channels)
+- Memory: ~8-9GB
+- Speed: Standard (no compile speedup)
+- Batch size: 16
+- **Best for:** When torch.compile causes "static input data pointer changed" errors
+
+### Option 3: Memory-Optimized Model (SAFE FALLBACK)
 
 ```bash
 # Uses smaller 32/64/128 channel model
@@ -150,6 +175,40 @@ torch_compile_mode: "reduce-overhead"  # Best for small batches
 ---
 
 ## Troubleshooting
+
+### "RuntimeError: static input data pointer changed" (CUDA graph issue)
+
+**Symptom:** Training crashes during epoch 2+ with error about data pointers changing.
+
+**Root cause:** `torch.compile` with `mode='reduce-overhead'` uses CUDA graphs that require stable memory addresses. Gradient checkpointing can move tensors during recomputation, causing conflicts.
+
+**Solutions (in priority order):**
+
+1. **Use 'default' compile mode** (already updated in `colab_optimized_full.yaml`):
+   ```yaml
+   torch_compile: true
+   torch_compile_mode: "default"  # Instead of "reduce-overhead"
+   ```
+   This still gives 15-25% speedup but is compatible with gradient checkpointing.
+
+2. **Use the stable config** (NO torch.compile):
+   ```bash
+   --config configs/colab_full_stable.yaml
+   ```
+   This disables torch.compile entirely for maximum stability. Slightly slower but guaranteed to work.
+
+3. **Disable gradient checkpointing** (not recommended - uses more memory):
+   ```yaml
+   gradient_checkpointing: false
+   torch_compile: true
+   torch_compile_mode: "reduce-overhead"  # Can use this mode without checkpointing
+   ```
+   But you'll need to reduce batch_size to 12-16 to avoid OOM.
+
+**Which config to use:**
+- `colab_optimized_full.yaml` - Full model with 'default' compile mode (recommended)
+- `colab_full_stable.yaml` - Full model without torch.compile (most stable)
+- `colab_optimized.yaml` - Smaller model if memory is tight
 
 ### "Still getting OOM with colab_optimized_full.yaml"
 

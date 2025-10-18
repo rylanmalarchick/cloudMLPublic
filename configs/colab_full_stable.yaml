@@ -1,8 +1,8 @@
-# --- GPU-Optimized Config for Google Colab T4 (FULL MODEL) ---
+# --- GPU-Optimized Config for Google Colab T4 (FULL MODEL - STABLE) ---
 # This config uses the FULL model (64/128/256 channels) with:
 # - Gradient checkpointing (saves ~30-40% memory)
-# - torch.compile() (20-30% speedup + 10-15% memory reduction)
-# - Optimized batch_size for T4 with these features enabled
+# - NO torch.compile (for maximum stability)
+# - Conservative batch_size for T4
 
 # --- File Paths ---
 data_directory: "/content/drive/MyDrive/CloudML/data/"
@@ -31,7 +31,7 @@ gamma: 1.5
 under_weight: 1.0
 loo: false
 loo_epochs: 30
-batch_size: 20 # Can use larger batch with gradient checkpointing + compile
+batch_size: 16 # Conservative batch size without torch.compile
 warmup_steps: 2000
 hard_mining_k: 0.35
 hard_mining_factor: 1.5
@@ -41,8 +41,7 @@ hpc_mode: true
 # --- Memory & Performance Optimization ---
 memory_optimized: false # Use FULL model (64/128/256 channels)
 gradient_checkpointing: true # Saves ~30-40% memory during backprop
-torch_compile: true # 20-30% speedup + 10-15% memory reduction
-torch_compile_mode: "default" # 'default' mode is safer with gradient checkpointing (avoids CUDA graph pointer issues)
+torch_compile: false # DISABLED for maximum stability (no CUDA graph issues)
 
 # --- Data Loading Optimization ---
 num_workers: 2 # Matched to Colab's 2 CPU cores
@@ -87,36 +86,39 @@ flights:
     iFileName: "12Feb25/GLOVE2025_IRAI_L1B_Rev-_20250212.h5"
     cFileName: "12Feb25/CPL_L2_V1-02_01kmLay_259016_12feb25.hdf5"
     nFileName: "12Feb25/CRS_20250212_nav.hdf"
+
 # --- Notes ---
-# FULL MODEL with Advanced Optimizations
+# FULL MODEL with STABLE Configuration (NO torch.compile)
 #
-# Memory breakdown with optimizations:
+# This config prioritizes STABILITY over maximum performance.
+# Use this if torch.compile causes issues with gradient checkpointing.
+#
+# Memory breakdown:
 # - Full model base: ~4GB
-# - Batch_size=20: ~6GB activations
+# - Batch_size=16: ~5GB activations
 # - Gradient checkpointing: Saves ~2-3GB (trades compute for memory)
-# - torch.compile: Saves ~1GB (optimizes memory layout)
-# - Total expected: ~9-10GB (safe on T4)
+# - Total expected: ~8-9GB (safe on T4)
 #
-# Performance benefits:
-# - torch.compile (default mode): 15-25% faster training (after 1st epoch compilation)
-# - Full model: Better capacity than memory_optimized (32/64/128)
+# Performance characteristics:
+# - Full model: 64/128/256 channels (better capacity than 32/64/128)
 # - Gradient checkpointing: Slightly slower (~10-15%) but enables larger model
+# - NO torch.compile: More stable, avoids CUDA graph memory pointer issues
+# - Expected training time: ~2.5-3 hours for 50 epochs
 #
-# Note: Using 'default' compile mode instead of 'reduce-overhead' because:
-# - 'reduce-overhead' uses CUDA graphs which require stable memory pointers
-# - Gradient checkpointing can move tensors during recomputation
-# - This combination causes "static input data pointer changed" errors
-# - 'default' mode is still fast but more compatible with checkpointing
+# Comparison to other configs:
+# - colab_optimized.yaml: memory_optimized=true (32/64/128), batch=16, no compile
+# - colab_optimized_full.yaml: full model, batch=20, torch.compile enabled
+# - THIS config: full model, batch=16, NO compile (most stable)
 #
-# Comparison to memory_optimized config:
-# - memory_optimized: 32/64/128 channels, batch_size=16, ~7-8GB, no compile
-# - This config: 64/128/256 channels, batch_size=20, ~9-10GB, with compile
-# - Expected: Better accuracy + similar/faster speed
+# When to use this config:
+# - torch.compile causes "static input data pointer changed" errors
+# - CUDA graph issues with gradient checkpointing
+# - Need maximum stability for long training runs
+# - Willing to trade 15-25% speed for reliability
 #
 # If OOM occurs:
-# 1. Reduce batch_size to 16
+# 1. Reduce batch_size to 12
 # 2. Reduce temporal_frames to 4
-# 3. Set torch_compile=false (saves compilation memory)
-# 4. Fall back to colab_optimized.yaml (memory_optimized=true)
+# 3. Fall back to colab_optimized.yaml (memory_optimized=true)
 #
 # Monitor with: !nvidia-smi
