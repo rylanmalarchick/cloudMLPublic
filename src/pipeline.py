@@ -292,8 +292,10 @@ def run_final_training_and_evaluation(
 
     # Save metrics summary to JSON
     metrics_summary = {
-        k: v for k, v in metrics.items() if not isinstance(v, np.ndarray)
-    }  # Exclude arrays
+        k: float(v) if isinstance(v, (np.floating, np.integer)) else v
+        for k, v in metrics.items()
+        if not isinstance(v, np.ndarray)
+    }  # Exclude arrays and convert numpy types to Python types
     metrics_json_path = os.path.join(log_dir, "csv", f"metrics_{final_save_name}.json")
     with open(metrics_json_path, "w") as f:
         json.dump(metrics_summary, f, indent=4)
@@ -499,8 +501,10 @@ def run_loo_evaluation(config, all_flight_configs, scaler_info, hpc_settings):
 
         # Save per-fold metrics to JSON
         fold_metrics_summary = {
-            k: v for k, v in metrics.items() if not isinstance(v, np.ndarray)
-        }
+            k: float(v) if isinstance(v, (np.floating, np.integer)) else v
+            for k, v in metrics.items()
+            if not isinstance(v, np.ndarray)
+        }  # Exclude arrays and convert numpy types to Python types
         os.makedirs("results", exist_ok=True)
         fold_json_path = os.path.join(
             "results", f"loo_fold_{hold_out_name}_metrics.json"
