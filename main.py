@@ -58,6 +58,8 @@ def main():
         "optimizer": str,
         "scheduler": str,
         "hpc_mode": bool,
+        "batch_size": int,
+        "num_workers": int,
         "temporal_frames": int,
         "loss_type": str,
         "loss_alpha": float,
