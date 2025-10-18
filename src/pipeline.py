@@ -72,7 +72,13 @@ def run_pretraining(
     train_loader = DataLoader(train_dataset, shuffle=True, **hpc_loader_settings)
     val_loader = DataLoader(val_dataset, shuffle=False, **hpc_loader_settings)
 
-    model_config = get_model_config(dataset.image_shape, config["temporal_frames"])
+    # Use memory_optimized config for systems with limited GPU memory (e.g., Colab T4)
+    memory_optimized = config.get("memory_optimized", False)
+    model_config = get_model_config(
+        dataset.image_shape,
+        config["temporal_frames"],
+        memory_optimized=memory_optimized,
+    )
     model_config["use_spatial_attention"] = config.get("use_spatial_attention", True)
     model_config["use_temporal_attention"] = config.get("use_temporal_attention", True)
     model_class = get_model_class(
@@ -189,8 +195,12 @@ def run_final_training_and_evaluation(
     )
     val_loader = DataLoader(val_dataset, shuffle=False, **hpc_loader_settings)
 
+    # Use memory_optimized config for systems with limited GPU memory (e.g., Colab T4)
+    memory_optimized = config.get("memory_optimized", False)
     model_config = get_model_config(
-        train_dataset.image_shape, config["temporal_frames"]
+        train_dataset.image_shape,
+        config["temporal_frames"],
+        memory_optimized=memory_optimized,
     )
     model_config["use_spatial_attention"] = config.get("use_spatial_attention", True)
     model_config["use_temporal_attention"] = config.get("use_temporal_attention", True)
@@ -391,8 +401,12 @@ def run_loo_evaluation(config, all_flight_configs, scaler_info, hpc_settings):
             val_dataset, shuffle=False, drop_last=True, **loader_settings
         )
 
+        # Use memory_optimized config for systems with limited GPU memory (e.g., Colab T4)
+        memory_optimized = config.get("memory_optimized", False)
         model_config = get_model_config(
-            train_dataset.image_shape, config["temporal_frames"]
+            train_dataset.image_shape,
+            config["temporal_frames"],
+            memory_optimized=memory_optimized,
         )
         model_config["use_spatial_attention"] = config.get(
             "use_spatial_attention", True

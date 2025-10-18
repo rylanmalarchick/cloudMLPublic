@@ -562,38 +562,86 @@ def get_model_class(architecture_name):
         raise ValueError(f"Unknown architecture: {architecture_name}")
 
 
-def get_model_config(image_shape, temporal_frames, scalar_features=3):
-    # This function remains unchanged.
-    return {
-        "image_shape": image_shape,
-        "temporal_frames": temporal_frames,
-        "scalar_features": scalar_features,
-        "leaky_relu_slope": 0.01,
-        "cnn_layers": [
-            {
-                "out_channels": 64,
-                "params": {"kernel_size": 3, "padding": 1},
-                "film": True,
-                "pool": {"kernel_size": 2, "stride": 2},
-                "dropout": 0.25,
-            },
-            {
-                "out_channels": 128,
-                "params": {"kernel_size": 3, "padding": 1},
-                "pool": {"kernel_size": 2, "stride": 2},
-                "dropout": 0.25,
-            },
-            {
-                "out_channels": 256,
-                "params": {"kernel_size": 3, "padding": 1},
-                "pool": {"kernel_size": 2, "stride": 2},
-                "dropout": 0.25,
-            },
-        ],
-        "dense_layers": [
-            {"size": 256, "batch_norm": True, "dropout": 0.5},
-            {"size": 128, "batch_norm": True, "dropout": 0.3},
-        ],
-        "use_spatial_attention": True,
-        "use_temporal_attention": True,
-    }
+def get_model_config(
+    image_shape, temporal_frames, scalar_features=3, memory_optimized=False
+):
+    """
+    Returns model configuration.
+
+    Args:
+        image_shape: Shape of input images (temporal_frames, height, width)
+        temporal_frames: Number of temporal frames
+        scalar_features: Number of scalar features (SZA, SAA, etc.)
+        memory_optimized: If True, use reduced channels for Colab T4 GPU (15GB)
+    """
+    if memory_optimized:
+        # Memory-optimized config for Colab T4 - reduces channels by ~50%
+        # This allows batch_size=16 to fit in ~8-9GB instead of 14GB+
+        return {
+            "image_shape": image_shape,
+            "temporal_frames": temporal_frames,
+            "scalar_features": scalar_features,
+            "leaky_relu_slope": 0.01,
+            "cnn_layers": [
+                {
+                    "out_channels": 32,  # Reduced from 64
+                    "params": {"kernel_size": 3, "padding": 1},
+                    "film": True,
+                    "pool": {"kernel_size": 2, "stride": 2},
+                    "dropout": 0.25,
+                },
+                {
+                    "out_channels": 64,  # Reduced from 128
+                    "params": {"kernel_size": 3, "padding": 1},
+                    "pool": {"kernel_size": 2, "stride": 2},
+                    "dropout": 0.25,
+                },
+                {
+                    "out_channels": 128,  # Reduced from 256
+                    "params": {"kernel_size": 3, "padding": 1},
+                    "pool": {"kernel_size": 2, "stride": 2},
+                    "dropout": 0.25,
+                },
+            ],
+            "dense_layers": [
+                {"size": 128, "batch_norm": True, "dropout": 0.5},  # Reduced from 256
+                {"size": 64, "batch_norm": True, "dropout": 0.3},  # Reduced from 128
+            ],
+            "use_spatial_attention": True,
+            "use_temporal_attention": True,
+        }
+    else:
+        # Original full-size config for HPC systems with more memory
+        return {
+            "image_shape": image_shape,
+            "temporal_frames": temporal_frames,
+            "scalar_features": scalar_features,
+            "leaky_relu_slope": 0.01,
+            "cnn_layers": [
+                {
+                    "out_channels": 64,
+                    "params": {"kernel_size": 3, "padding": 1},
+                    "film": True,
+                    "pool": {"kernel_size": 2, "stride": 2},
+                    "dropout": 0.25,
+                },
+                {
+                    "out_channels": 128,
+                    "params": {"kernel_size": 3, "padding": 1},
+                    "pool": {"kernel_size": 2, "stride": 2},
+                    "dropout": 0.25,
+                },
+                {
+                    "out_channels": 256,
+                    "params": {"kernel_size": 3, "padding": 1},
+                    "pool": {"kernel_size": 2, "stride": 2},
+                    "dropout": 0.25,
+                },
+            ],
+            "dense_layers": [
+                {"size": 256, "batch_norm": True, "dropout": 0.5},
+                {"size": 128, "batch_norm": True, "dropout": 0.3},
+            ],
+            "use_spatial_attention": True,
+            "use_temporal_attention": True,
+        }

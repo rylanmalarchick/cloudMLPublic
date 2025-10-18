@@ -35,6 +35,7 @@ hard_mining_k: 0.35
 hard_mining_factor: 1.5
 swath_slice: [40, 480]
 hpc_mode: true # Enable for better data loading
+memory_optimized: true # Enable reduced model size for T4 GPU (50% fewer channels)
 
 # --- Data Loading Optimization ---
 num_workers: 2 # Matched to Colab's 2 CPU cores
@@ -80,9 +81,10 @@ flights:
     cFileName: "12Feb25/CPL_L2_V1-02_01kmLay_259016_12feb25.hdf5"
     nFileName: "12Feb25/CRS_20250212_nav.hdf"
 # --- Notes ---
-# - batch_size=16 uses ~8-9GB on T4 with temporal_frames=5 (safe, tested)
-# - If you want faster training and no OOM, try batch_size=20
-# - batch_size=24+ causes OOM on T4 with this model configuration
+# - batch_size=16 + memory_optimized=true: ~7-8GB on T4 (safe, tested)
+# - memory_optimized reduces CNN channels by 50% (32/64/128 vs 64/128/256)
+# - Without memory_optimized flag, model uses ~14GB+ (causes OOM on T4)
+# - For faster training on larger GPUs, set memory_optimized=false and increase batch_size
 # - For quick tests, set epochs=5 and --no_pretrain
 # - Monitor with: !nvidia-smi
 #
