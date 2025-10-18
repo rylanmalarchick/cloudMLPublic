@@ -159,7 +159,13 @@ def main():
     print(
         f"Sample data shape: {sample_data.image_shape}, Y_scaler initialized: {hasattr(sample_data, 'y_scaler')}"
     )
-    assert sample_data.image_shape[0] == 1, "Expected grayscale images (1 channel)"
+    # Verify image shape: (temporal_frames, height, width)
+    assert len(sample_data.image_shape) == 3, (
+        f"Expected 3D image shape (temporal_frames, height, width), got {sample_data.image_shape}"
+    )
+    assert sample_data.image_shape[0] == config["temporal_frames"], (
+        f"Expected {config['temporal_frames']} temporal frames, got {sample_data.image_shape[0]}"
+    )
     assert len(datasets_info) > 0, "No datasets loaded"
 
     print("\n--- Fitting Global Scalers ---")
