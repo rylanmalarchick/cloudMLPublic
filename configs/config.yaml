@@ -10,8 +10,8 @@ overweight_factor: 1.8
 validation_flight: "04Nov24, 12Feb25" # Flight to use for validation set
 
 # --- Training Parameters ---
-lr: 0.001
-wd: 0.05
+learning_rate: 0.001
+weight_decay: 0.05
 epochs: 80 # Increased epochs for more training with attention
 optimizer: "AdamW"
 scheduler: "ReduceLROnPlateau"

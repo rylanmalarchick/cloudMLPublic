@@ -4,22 +4,22 @@ data_directory: "/home/rylan/Documents/NASA/cloudML/data/"
 output_directory: "/home/rylan/Documents/NASA/cloudML/programDirectory/plots/"
 
 # --- Experiment Parameters ---
-pretrain_flight: '30Oct24'
-overweight_flight: '30Oct24'
+pretrain_flight: "30Oct24"
+overweight_flight: "30Oct24"
 overweight_factor: 3.5
-validation_flight: '12Feb25' # Flight to use for validation set
+validation_flight: "12Feb25" # Flight to use for validation set
 
 # --- Training Parameters ---
-lr: 0.001
-wd: 0.04
+learning_rate: 0.001
+weight_decay: 0.04
 epochs: 1 # Increased epochs for more training with attention
-optimizer: 'AdamW'
-scheduler: 'ReduceLROnPlateau'
+optimizer: "AdamW"
+scheduler: "ReduceLROnPlateau"
 temporal_frames: 3
-loss_type: 'huber' # Use weighted huber mae loss
-loss_alpha: 0.5   # Not needed for simplified Huber loss
-early_stopping_patience: 10   # Increased patience for longer training with attention
-filter_type: 'basic'
+loss_type: "huber" # Use weighted huber mae loss
+loss_alpha: 0.5 # Not needed for simplified Huber loss
+early_stopping_patience: 10 # Increased patience for longer training with attention
+filter_type: "basic"
 early_stopping_min_delta: 0.00025
 huber_delta: 1.0
 gamma: 1.5
@@ -35,27 +35,27 @@ hpc_mode: false
 
 # --- Flight Information ---
 flights:
-  - name: '10Feb25'
-    iFileName: '10Feb25/GLOVE2025_IRAI_L1B_Rev-_20250210.h5'
-    cFileName: '10Feb25/CPL_L2_V1-02_01kmLay_259015_10feb25.hdf5'
-    nFileName: '10Feb25/CRS_20250210_nav.hdf'
-  - name: '30Oct24'
-    iFileName: '30Oct24/WHYMSIE2024_IRAI_L1B_Rev-_20241030.h5'
-    cFileName: '30Oct24/CPL_L2_V1-02_01kmLay_259006_30oct24.hdf5'
-    nFileName: '30Oct24/CRS_20241030_nav.hdf'
-  - name: '04Nov24'
-    iFileName: '04Nov24/WHYMSIE2024_IRAI_L1B_Rev-_20241104.h5'
-    cFileName: '04Nov24/CPL_L2_V1-02_01kmLay_259008_04nov24.hdf5'
-    nFileName: '04Nov24/CRS_20241104_nav.hdf'
-  - name: '23Oct24'
-    iFileName: '23Oct24/WHYMSIE2024_IRAI_L1B_Rev-_20241023.h5'
-    cFileName: '23Oct24/CPL_L2_V1-02_01kmLay_259004_23oct24.hdf5'
-    nFileName: '23Oct24/CRS_20241023_nav.hdf'
-  - name: '18Feb25'
-    iFileName: '18Feb25/GLOVE2025_IRAI_L1B_Rev-_20250218.h5'
-    cFileName: '18Feb25/CPL_L2_V1-02_01kmLay_259017_18feb25.hdf5'
-    nFileName: '18Feb25/CRS_20250218_nav.hdf'
-  - name: '12Feb25'
-    iFileName: '12Feb25/GLOVE2025_IRAI_L1B_Rev-_20250212.h5'
-    cFileName: '12Feb25/CPL_L2_V1-02_01kmLay_259016_12feb25.hdf5'
-    nFileName: '12Feb25/CRS_20250212_nav.hdf'
+  - name: "10Feb25"
+    iFileName: "10Feb25/GLOVE2025_IRAI_L1B_Rev-_20250210.h5"
+    cFileName: "10Feb25/CPL_L2_V1-02_01kmLay_259015_10feb25.hdf5"
+    nFileName: "10Feb25/CRS_20250210_nav.hdf"
+  - name: "30Oct24"
+    iFileName: "30Oct24/WHYMSIE2024_IRAI_L1B_Rev-_20241030.h5"
+    cFileName: "30Oct24/CPL_L2_V1-02_01kmLay_259006_30oct24.hdf5"
+    nFileName: "30Oct24/CRS_20241030_nav.hdf"
+  - name: "04Nov24"
+    iFileName: "04Nov24/WHYMSIE2024_IRAI_L1B_Rev-_20241104.h5"
+    cFileName: "04Nov24/CPL_L2_V1-02_01kmLay_259008_04nov24.hdf5"
+    nFileName: "04Nov24/CRS_20241104_nav.hdf"
+  - name: "23Oct24"
+    iFileName: "23Oct24/WHYMSIE2024_IRAI_L1B_Rev-_20241023.h5"
+    cFileName: "23Oct24/CPL_L2_V1-02_01kmLay_259004_23oct24.hdf5"
+    nFileName: "23Oct24/CRS_20241023_nav.hdf"
+  - name: "18Feb25"
+    iFileName: "18Feb25/GLOVE2025_IRAI_L1B_Rev-_20250218.h5"
+    cFileName: "18Feb25/CPL_L2_V1-02_01kmLay_259017_18feb25.hdf5"
+    nFileName: "18Feb25/CRS_20250218_nav.hdf"
+  - name: "12Feb25"
+    iFileName: "12Feb25/GLOVE2025_IRAI_L1B_Rev-_20250212.h5"
+    cFileName: "12Feb25/CPL_L2_V1-02_01kmLay_259016_12feb25.hdf5"
+    nFileName: "12Feb25/CRS_20250212_nav.hdf"

@@ -48,6 +48,7 @@ def main():
         "zscore_normalize": bool,
         "use_spatial_attention": bool,
         "use_temporal_attention": bool,
+        "augment": bool,
     }
 
     for key, value in {
@@ -69,6 +70,8 @@ def main():
         "early_stopping_patience": int,
         "early_stopping_min_delta": float,
         "loo_epochs": int,
+        "angles_mode": str,
+        "architecture_name": str,
         **extra_flags,
     }.items():
         if value is bool:
@@ -86,9 +89,21 @@ def main():
     with open(args.config, "r") as f:
         config = yaml.safe_load(f)
 
+    # Handle backward compatibility for old config keys
+    if "lr" in config:
+        config["learning_rate"] = config.pop("lr")
+    if "wd" in config:
+        config["weight_decay"] = config.pop("wd")
+
     for key, value in vars(args).items():
         if value is not None:
-            config[key] = value
+            # Handle architecture_name specially - map to nested dict
+            if key == "architecture_name":
+                if "architecture" not in config:
+                    config["architecture"] = {}
+                config["architecture"]["name"] = value
+            else:
+                config[key] = value
 
     if not config.get("save_name"):
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -138,6 +153,8 @@ def main():
         filter_type=config["filter_type"],
         cbh_min=config.get("cbh_min"),
         cbh_max=config.get("cbh_max"),
+        augment=False,  # No augmentation for sample check
+        angles_mode=config.get("angles_mode", "both"),
     )
     print(
         f"Sample data shape: {sample_data.image_shape}, Y_scaler initialized: {hasattr(sample_data, 'y_scaler')}"

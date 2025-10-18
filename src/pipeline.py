@@ -48,9 +48,11 @@ def run_pretraining(
         sza_scaler=sza_scaler,
         saa_scaler=saa_scaler,
         y_scaler=y_scaler,
+        augment=config.get("augment", True),
         flat_field_correction=config.get("flat_field_correction", True),
         clahe_clip_limit=config.get("clahe_clip_limit", 0.01),
         zscore_normalize=config.get("zscore_normalize", True),
+        angles_mode=config.get("angles_mode", "both"),
     )
 
     val_split = 0.2
@@ -78,7 +80,9 @@ def run_pretraining(
     )
     model = model_class(model_config).to(device)
     optimizer = torch.optim.AdamW(
-        model.parameters(), lr=config["lr"], weight_decay=config["wd"]
+        model.parameters(),
+        lr=config["learning_rate"],
+        weight_decay=config["weight_decay"],
     )
 
     pretrain_save_name = f"pretrain_{pretrain_flight_name}{save_suffix}"
@@ -134,7 +138,7 @@ def run_final_training_and_evaluation(
         sza_scaler=sza_scaler,
         saa_scaler=saa_scaler,
         y_scaler=y_scaler,
-        augment=True,
+        augment=config.get("augment", True),
         swath_slice=tuple(config["swath_slice"]),
         temporal_frames=config["temporal_frames"],
         filter_type=config.get("filter_type", "basic"),
@@ -143,6 +147,7 @@ def run_final_training_and_evaluation(
         flat_field_correction=config.get("flat_field_correction", True),
         clahe_clip_limit=config.get("clahe_clip_limit", 0.01),
         zscore_normalize=config.get("zscore_normalize", True),
+        angles_mode=config.get("angles_mode", "both"),
     )
     val_dataset = prepare_streaming_data(
         val_config,
@@ -158,6 +163,7 @@ def run_final_training_and_evaluation(
         flat_field_correction=config.get("flat_field_correction", True),
         clahe_clip_limit=config.get("clahe_clip_limit", 0.01),
         zscore_normalize=config.get("zscore_normalize", True),
+        angles_mode=config.get("angles_mode", "both"),
     )
 
     pretrain_flight_name = config["pretrain_flight"]
@@ -200,7 +206,9 @@ def run_final_training_and_evaluation(
         )
 
     optimizer = torch.optim.AdamW(
-        model.parameters(), lr=config["lr"], weight_decay=config["wd"]
+        model.parameters(),
+        lr=config["learning_rate"],
+        weight_decay=config["weight_decay"],
     )
 
     final_save_name = f"final_overweighted{save_suffix}"
@@ -351,12 +359,13 @@ def run_loo_evaluation(config, all_flight_configs, scaler_info, hpc_settings):
             sza_scaler=sza_scaler_local,
             saa_scaler=saa_scaler_local,
             y_scaler=y_scaler_local,
-            augment=True,
+            augment=config.get("augment", True),
             swath_slice=tuple(config["swath_slice"]),
             temporal_frames=config["temporal_frames"],
             filter_type=config.get("filter_type", "basic"),
             cbh_min=config.get("cbh_min"),
             cbh_max=config.get("cbh_max"),
+            angles_mode=config.get("angles_mode", "both"),
         )
         val_dataset = prepare_streaming_data(
             hold_out_flight,
@@ -369,6 +378,7 @@ def run_loo_evaluation(config, all_flight_configs, scaler_info, hpc_settings):
             filter_type=config.get("filter_type", "basic"),
             cbh_min=config.get("cbh_min"),
             cbh_max=config.get("cbh_max"),
+            angles_mode=config.get("angles_mode", "both"),
         )
 
         # Apply HPC settings to DataLoader
@@ -396,7 +406,7 @@ def run_loo_evaluation(config, all_flight_configs, scaler_info, hpc_settings):
         model = model_class(model_config).to(device)
         optimizer = torch.optim.AdamW(
             model.parameters(),
-            lr=config["lr"],
+            lr=config["learning_rate"],
             weight_decay=config.get("weight_decay", 0.01),
         )
 

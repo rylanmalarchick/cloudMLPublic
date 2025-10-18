@@ -107,18 +107,82 @@ Once obtained, place the data in the directory specified by `data_directory` in 
 
 -   **Run a single experiment:**
     ```bash
-    python main.py --config bestComboConfig.yaml
+    python main.py --config configs/bestComboConfig.yaml
     ```
 
 -   **Override configuration parameters from the command line:**
     ```bash
-    python main.py --learning_rate 0.0001 --epochs 50
+    python main.py --config configs/bestComboConfig.yaml --learning_rate 0.0001 --epochs 50
+    ```
+
+-   **Run with specific ablation settings:**
+    ```bash
+    # Test without attention mechanisms
+    python main.py --config configs/bestComboConfig.yaml --no-use_spatial_attention --no-use_temporal_attention
+    
+    # Test with only zenith angles
+    python main.py --config configs/bestComboConfig.yaml --angles_mode sza_only
+    
+    # Test without augmentation
+    python main.py --config configs/bestComboConfig.yaml --no-augment
+    
+    # Test different architecture
+    python main.py --config configs/bestComboConfig.yaml --architecture_name gnn
     ```
 
 -   **Run a leave-one-out (LOO) evaluation:**
     ```bash
-    python main.py --loo
+    python main.py --config configs/bestComboConfig.yaml --loo
     ```
+
+#### Available Command-Line Arguments
+
+| Argument | Type | Description |
+|----------|------|-------------|
+| `--config` | str | Path to configuration YAML file |
+| `--learning_rate` | float | Learning rate for optimizer |
+| `--weight_decay` | float | Weight decay for regularization |
+| `--epochs` | int | Number of training epochs |
+| `--temporal_frames` | int | Number of temporal frames to use |
+| `--loss_type` | str | Loss function type (mae, huber, weighted_huber_mae) |
+| `--angles_mode` | str | Which angles to use: both, sza_only, saa_only, none |
+| `--architecture_name` | str | Model architecture: transformer, gnn, ssm, cnn |
+| `--augment` / `--no-augment` | bool | Enable/disable data augmentation |
+| `--use_spatial_attention` / `--no-use_spatial_attention` | bool | Enable/disable spatial attention |
+| `--use_temporal_attention` / `--no-use_temporal_attention` | bool | Enable/disable temporal attention |
+| `--flat_field_correction` / `--no-flat_field_correction` | bool | Enable/disable flat-field correction |
+| `--zscore_normalize` / `--no-zscore_normalize` | bool | Enable/disable z-score normalization |
+| `--loo` / `--no-loo` | bool | Enable/disable leave-one-out cross-validation |
+| `--save_name` | str | Custom name for saved models and results |
+| `--no_pretrain` | flag | Skip pretraining phase |
+| `--no_final` | flag | Skip final training/evaluation |
+| `--no_plots` | flag | Skip plot generation |
+
+### Running on Google Colab
+
+A Jupyter notebook (`colab_training.ipynb`) is provided for running experiments on Google Colab with free GPU access:
+
+1. **Open the notebook in Google Colab:**
+   - Upload `colab_training.ipynb` to Google Colab or open it directly from GitHub
+
+2. **Mount Google Drive:**
+   - Run the first cell to mount your Google Drive for persistent storage
+
+3. **Upload your data to Google Drive:**
+   - Create a folder: `/content/drive/MyDrive/CloudML/data/`
+   - Upload your flight data folders (e.g., `10Feb25/`, `30Oct24/`, etc.) to this location
+   - Each flight folder should contain the `.h5`, `.hdf5`, and `.hdf` files
+
+4. **Run the setup cells:**
+   - Install dependencies
+   - Clone/update the repository
+   - Update configuration paths
+
+5. **Run experiments:**
+   - Single experiments or ablation studies
+   - Results are saved to Google Drive automatically
+
+**Note:** Google Colab free tier has session limits (~12 hours). For longer training runs, consider Colab Pro or download checkpoints periodically.
 
 ## Project Structure
 
