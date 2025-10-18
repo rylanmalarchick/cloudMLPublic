@@ -15,29 +15,29 @@ validation_flight: "12Feb25"
 # --- Training Parameters ---
 learning_rate: 0.001
 weight_decay: 0.04
-epochs: 50  # Reasonable for Colab sessions
+epochs: 50 # Reasonable for Colab sessions
 optimizer: "AdamW"
 scheduler: "ReduceLROnPlateau"
-temporal_frames: 5  # Increased from 3 for better temporal context
+temporal_frames: 5 # Increased from 3 for better temporal context
 loss_type: "huber"
 loss_alpha: 0.5
-early_stopping_patience: 15  # More patience for better convergence
+early_stopping_patience: 15 # More patience for better convergence
 filter_type: "basic"
 early_stopping_min_delta: 0.00025
 huber_delta: 1.0
 gamma: 1.5
 under_weight: 1.0
-loo: false  # Disable for faster single runs; enable for full evaluation
+loo: false # Disable for faster single runs; enable for full evaluation
 loo_epochs: 30
-batch_size: 32  # Significantly increased from 8
+batch_size: 24 # Optimized for T4 GPU (15GB) - balance between speed and memory
 warmup_steps: 2000
 hard_mining_k: 0.35
 hard_mining_factor: 1.5
 swath_slice: [40, 480]
-hpc_mode: true  # Enable for better data loading
+hpc_mode: true # Enable for better data loading
 
 # --- Data Loading Optimization ---
-num_workers: 4  # Balanced for Colab's CPU
+num_workers: 4 # Balanced for Colab's CPU
 pin_memory: true
 prefetch_factor: 3
 
@@ -51,7 +51,7 @@ augment: true
 angles_mode: "both"
 
 architecture:
-  name: "transformer"  # Best performing architecture
+  name: "transformer" # Best performing architecture
 
 # --- Flight Information ---
 flights:
@@ -79,9 +79,8 @@ flights:
     iFileName: "12Feb25/GLOVE2025_IRAI_L1B_Rev-_20250212.h5"
     cFileName: "12Feb25/CPL_L2_V1-02_01kmLay_259016_12feb25.hdf5"
     nFileName: "12Feb25/CRS_20250212_nav.hdf"
-
 # --- Notes ---
-# - batch_size=32 should use ~10-12GB on T4 with temporal_frames=5
-# - If OOM, reduce batch_size to 24 or temporal_frames to 3
+# - batch_size=24 should use ~10-12GB on T4 with temporal_frames=5
+# - If still OOM, reduce batch_size to 16 or temporal_frames to 4
 # - For quick tests, set epochs=5 and --no_pretrain
 # - Monitor with: !nvidia-smi
