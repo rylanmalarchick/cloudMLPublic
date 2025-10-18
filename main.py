@@ -119,14 +119,24 @@ def main():
         sys.exit(0)
 
     hpc_mode = config.get("hpc_mode", False) or bool(os.getenv("HPC_MODE"))
+
+    # Use batch_size from config if specified, otherwise use HPC defaults
+    batch_size = config.get("batch_size", 128 if hpc_mode else 4)
+    num_workers = config.get("num_workers", 32 if hpc_mode else 2)
+    pin_memory = config.get("pin_memory", True if hpc_mode else False)
+    prefetch_factor = config.get("prefetch_factor", 4 if hpc_mode else 1)
+
     hpc_settings = {
         "hpc_mode": hpc_mode,
-        "batch_size": 128 if hpc_mode else 4,
-        "num_workers": 32 if hpc_mode else 2,
-        "pin_memory": True if hpc_mode else False,
-        "prefetch_factor": 4 if hpc_mode else 1,
+        "batch_size": batch_size,
+        "num_workers": num_workers,
+        "pin_memory": pin_memory,
+        "prefetch_factor": prefetch_factor,
     }
     print(f"--- {'HPC Mode Enabled' if hpc_mode else 'Development Mode'} ---")
+    print(
+        f"Batch size: {batch_size}, Num workers: {num_workers}, Pin memory: {pin_memory}"
+    )
 
     device = setup_environment(hpc_mode)
 
