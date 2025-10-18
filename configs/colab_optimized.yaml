@@ -29,7 +29,7 @@ gamma: 1.5
 under_weight: 1.0
 loo: false # Disable for faster single runs; enable for full evaluation
 loo_epochs: 30
-batch_size: 24 # Optimized for T4 GPU (15GB) - balance between speed and memory
+batch_size: 16 # Conservative for T4 GPU to avoid OOM - tested stable at ~8-9GB
 warmup_steps: 2000
 hard_mining_k: 0.35
 hard_mining_factor: 1.5
@@ -37,7 +37,7 @@ swath_slice: [40, 480]
 hpc_mode: true # Enable for better data loading
 
 # --- Data Loading Optimization ---
-num_workers: 4 # Balanced for Colab's CPU
+num_workers: 2 # Matched to Colab's 2 CPU cores
 pin_memory: true
 prefetch_factor: 3
 
@@ -80,7 +80,13 @@ flights:
     cFileName: "12Feb25/CPL_L2_V1-02_01kmLay_259016_12feb25.hdf5"
     nFileName: "12Feb25/CRS_20250212_nav.hdf"
 # --- Notes ---
-# - batch_size=24 should use ~10-12GB on T4 with temporal_frames=5
-# - If still OOM, reduce batch_size to 16 or temporal_frames to 4
+# - batch_size=16 uses ~8-9GB on T4 with temporal_frames=5 (safe, tested)
+# - If you want faster training and no OOM, try batch_size=20
+# - batch_size=24+ causes OOM on T4 with this model configuration
 # - For quick tests, set epochs=5 and --no_pretrain
 # - Monitor with: !nvidia-smi
+#
+# Memory optimization tips:
+# - Reduce temporal_frames to 3-4 if still getting OOM
+# - Disable augmentation during debugging (--no-augment)
+# - Use gradient accumulation if you need effective larger batch sizes
