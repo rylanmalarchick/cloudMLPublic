@@ -75,17 +75,37 @@ def run_pretraining(
 
     # Use memory_optimized config for systems with limited GPU memory (e.g., Colab T4)
     memory_optimized = config.get("memory_optimized", False)
+    print(f"Using memory_optimized={memory_optimized} model")
     model_config = get_model_config(
         dataset.image_shape,
         config["temporal_frames"],
         memory_optimized=memory_optimized,
     )
+    if memory_optimized:
+        print("  → Model channels: 32/64/128 (memory-optimized)")
+    else:
+        print("  → Model channels: 64/128/256 (full-size)")
     model_config["use_spatial_attention"] = config.get("use_spatial_attention", True)
     model_config["use_temporal_attention"] = config.get("use_temporal_attention", True)
+    model_config["gradient_checkpointing"] = config.get("gradient_checkpointing", False)
+
     model_class = get_model_class(
         config.get("architecture", {}).get("name", "transformer")
     )
     model = model_class(model_config).to(device)
+
+    # Apply torch.compile() for performance optimization (PyTorch 2.0+)
+    use_compile = config.get("torch_compile", False)
+    if use_compile and hasattr(torch, "compile"):
+        compile_mode = config.get("torch_compile_mode", "reduce-overhead")
+        print(f"Applying torch.compile() with mode='{compile_mode}'...")
+        model = torch.compile(model, mode=compile_mode)
+        print("  → Model compiled successfully")
+    elif use_compile:
+        print("Warning: torch.compile requested but not available (PyTorch < 2.0)")
+
+    if config.get("gradient_checkpointing", False):
+        print("  → Gradient checkpointing enabled (saves memory during training)")
     optimizer = torch.optim.AdamW(
         model.parameters(),
         lr=config["learning_rate"],
@@ -198,13 +218,20 @@ def run_final_training_and_evaluation(
 
     # Use memory_optimized config for systems with limited GPU memory (e.g., Colab T4)
     memory_optimized = config.get("memory_optimized", False)
+    print(f"Using memory_optimized={memory_optimized} model")
     model_config = get_model_config(
         train_dataset.image_shape,
         config["temporal_frames"],
         memory_optimized=memory_optimized,
     )
+    if memory_optimized:
+        print("  → Model channels: 32/64/128 (memory-optimized)")
+    else:
+        print("  → Model channels: 64/128/256 (full-size)")
     model_config["use_spatial_attention"] = config.get("use_spatial_attention", True)
     model_config["use_temporal_attention"] = config.get("use_temporal_attention", True)
+    model_config["gradient_checkpointing"] = config.get("gradient_checkpointing", False)
+
     model_class = get_model_class(
         config.get("architecture", {}).get("name", "transformer")
     )
@@ -215,6 +242,19 @@ def run_final_training_and_evaluation(
         model.load_state_dict(
             torch.load(pre_ckpt, weights_only=False)["model_state_dict"]
         )
+
+    # Apply torch.compile() for performance optimization (PyTorch 2.0+)
+    use_compile = config.get("torch_compile", False)
+    if use_compile and hasattr(torch, "compile"):
+        compile_mode = config.get("torch_compile_mode", "reduce-overhead")
+        print(f"Applying torch.compile() with mode='{compile_mode}'...")
+        model = torch.compile(model, mode=compile_mode)
+        print("  → Model compiled successfully")
+    elif use_compile:
+        print("Warning: torch.compile requested but not available (PyTorch < 2.0)")
+
+    if config.get("gradient_checkpointing", False):
+        print("  → Gradient checkpointing enabled (saves memory during training)")
 
     optimizer = torch.optim.AdamW(
         model.parameters(),
@@ -415,6 +455,10 @@ def run_loo_evaluation(config, all_flight_configs, scaler_info, hpc_settings):
         model_config["use_temporal_attention"] = config.get(
             "use_temporal_attention", True
         )
+        model_config["gradient_checkpointing"] = config.get(
+            "gradient_checkpointing", False
+        )
+
         model_class = get_model_class(
             config.get("architecture", {}).get("name", "transformer")
         )

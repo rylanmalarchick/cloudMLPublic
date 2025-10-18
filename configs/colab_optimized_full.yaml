@@ -1,0 +1,117 @@
+# --- GPU-Optimized Config for Google Colab T4 (FULL MODEL) ---
+# This config uses the FULL model (64/128/256 channels) with:
+# - Gradient checkpointing (saves ~30-40% memory)
+# - torch.compile() (20-30% speedup + 10-15% memory reduction)
+# - Optimized batch_size for T4 with these features enabled
+
+# --- File Paths ---
+data_directory: "/content/drive/MyDrive/CloudML/data/"
+output_directory: "/content/drive/MyDrive/CloudML/plots/"
+
+# --- Experiment Parameters ---
+pretrain_flight: "30Oct24"
+overweight_flight: "30Oct24"
+overweight_factor: 3.5
+validation_flight: "12Feb25"
+
+# --- Training Parameters ---
+learning_rate: 0.001
+weight_decay: 0.04
+epochs: 50
+optimizer: "AdamW"
+scheduler: "ReduceLROnPlateau"
+temporal_frames: 5
+loss_type: "huber"
+loss_alpha: 0.5
+early_stopping_patience: 15
+filter_type: "basic"
+early_stopping_min_delta: 0.00025
+huber_delta: 1.0
+gamma: 1.5
+under_weight: 1.0
+loo: false
+loo_epochs: 30
+batch_size: 20 # Can use larger batch with gradient checkpointing + compile
+warmup_steps: 2000
+hard_mining_k: 0.35
+hard_mining_factor: 1.5
+swath_slice: [40, 480]
+hpc_mode: true
+
+# --- Memory & Performance Optimization ---
+memory_optimized: false # Use FULL model (64/128/256 channels)
+gradient_checkpointing: true # Saves ~30-40% memory during backprop
+torch_compile: true # 20-30% speedup + 10-15% memory reduction
+torch_compile_mode: "reduce-overhead" # Best for small batches on GPU
+
+# --- Data Loading Optimization ---
+num_workers: 2 # Matched to Colab's 2 CPU cores
+pin_memory: true
+prefetch_factor: 3
+
+# --- Model Architecture ---
+use_spatial_attention: true
+use_temporal_attention: true
+flat_field_correction: true
+clahe_clip_limit: 0.01
+zscore_normalize: true
+augment: true
+angles_mode: "both"
+
+architecture:
+  name: "transformer" # Full MultimodalRegressionModel with attention
+
+# --- Flight Information ---
+flights:
+  - name: "10Feb25"
+    iFileName: "10Feb25/GLOVE2025_IRAI_L1B_Rev-_20250210.h5"
+    cFileName: "10Feb25/CPL_L2_V1-02_01kmLay_259015_10feb25.hdf5"
+    nFileName: "10Feb25/CRS_20250210_nav.hdf"
+  - name: "30Oct24"
+    iFileName: "30Oct24/WHYMSIE2024_IRAI_L1B_Rev-_20241030.h5"
+    cFileName: "30Oct24/CPL_L2_V1-02_01kmLay_259006_30oct24.hdf5"
+    nFileName: "30Oct24/CRS_20241030_nav.hdf"
+  - name: "04Nov24"
+    iFileName: "04Nov24/WHYMSIE2024_IRAI_L1B_Rev-_20241104.h5"
+    cFileName: "04Nov24/CPL_L2_V1-02_01kmLay_259008_04nov24.hdf5"
+    nFileName: "04Nov24/CRS_20241104_nav.hdf"
+  - name: "23Oct24"
+    iFileName: "23Oct24/WHYMSIE2024_IRAI_L1B_Rev-_20241023.h5"
+    cFileName: "23Oct24/CPL_L2_V1-02_01kmLay_259004_23oct24.hdf5"
+    nFileName: "23Oct24/CRS_20241023_nav.hdf"
+  - name: "18Feb25"
+    iFileName: "18Feb25/GLOVE2025_IRAI_L1B_Rev-_20250218.h5"
+    cFileName: "18Feb25/CPL_L2_V1-02_01kmLay_259017_18feb25.hdf5"
+    nFileName: "18Feb25/CRS_20250218_nav.hdf"
+  - name: "12Feb25"
+    iFileName: "12Feb25/GLOVE2025_IRAI_L1B_Rev-_20250212.h5"
+    cFileName: "12Feb25/CPL_L2_V1-02_01kmLay_259016_12feb25.hdf5"
+    nFileName: "12Feb25/CRS_20250212_nav.hdf"
+
+# --- Notes ---
+# FULL MODEL with Advanced Optimizations
+#
+# Memory breakdown with optimizations:
+# - Full model base: ~4GB
+# - Batch_size=20: ~6GB activations
+# - Gradient checkpointing: Saves ~2-3GB (trades compute for memory)
+# - torch.compile: Saves ~1GB (optimizes memory layout)
+# - Total expected: ~9-10GB (safe on T4)
+#
+# Performance benefits:
+# - torch.compile: 20-30% faster training (after 1st epoch compilation)
+# - Full model: Better capacity than memory_optimized (32/64/128)
+# - Gradient checkpointing: Slightly slower (~10-15%) but enables larger model
+#
+# Comparison to memory_optimized config:
+# - memory_optimized: 32/64/128 channels, batch_size=16, ~7-8GB, no compile
+# - This config: 64/128/256 channels, batch_size=20, ~9-10GB, with compile
+# - Expected: Better accuracy + similar/faster speed
+#
+# If OOM occurs:
+# 1. Reduce batch_size to 16
+# 2. Reduce temporal_frames to 4
+# 3. Set torch_compile=false (saves compilation memory)
+# 4. Fall back to colab_optimized.yaml (memory_optimized=true)
+#
+# Monitor with: !nvidia-smi

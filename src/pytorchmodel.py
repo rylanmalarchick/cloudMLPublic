@@ -80,6 +80,9 @@ class MultimodalRegressionModel(nn.Module):
     def __init__(self, model_config):
         super(MultimodalRegressionModel, self).__init__()
         self.config = model_config
+        self.use_gradient_checkpointing = model_config.get(
+            "gradient_checkpointing", False
+        )
         self.cnn_layers, self.film_layers, self.cnn_output_size = (
             self._build_cnn_layers()
         )
@@ -154,6 +157,31 @@ class MultimodalRegressionModel(nn.Module):
         nn.init.normal_(self.output.weight, 0, 0.5)
         nn.init.constant_(self.output.bias, 0.1)
 
+    def _process_frame(self, frame, scalars):
+        """Process a single frame through CNN layers with optional gradient checkpointing."""
+        x = frame
+        if self.config.get("use_spatial_attention", True):
+            x = self.spatial_attention(x)
+
+        self.attention_maps.append(self.spatial_attention.attention_weights)
+
+        film_idx_counter = 0
+        for i, layer in enumerate(self.cnn_layers):
+            x = layer(x)
+            if (
+                isinstance(layer, nn.LeakyReLU)
+                and film_idx_counter < len(self.film_layers)
+                and self.film_layers[film_idx_counter] is not None
+            ):
+                conv_layers_passed = sum(
+                    1 for lyr in self.cnn_layers[: i + 1] if isinstance(lyr, nn.Conv2d)
+                )
+                if conv_layers_passed > film_idx_counter:
+                    x = self.film_layers[film_idx_counter](x, scalars)
+                    film_idx_counter += 1
+
+        return x.flatten(1)
+
     def forward(self, image_input, param1_input, param2_input):
         image_input = torch.nan_to_num(image_input, 0.0)
         scalars = torch.cat(
@@ -170,30 +198,19 @@ class MultimodalRegressionModel(nn.Module):
         self.attention_maps = []
 
         for t in range(seq_len):
-            x = image_input[:, t, :, :].unsqueeze(1)
-            if self.config.get("use_spatial_attention", True):
-                x = self.spatial_attention(x)
+            frame = image_input[:, t, :, :].unsqueeze(1)
 
-            self.attention_maps.append(self.spatial_attention.attention_weights)
+            if self.use_gradient_checkpointing and self.training:
+                # Use gradient checkpointing to save memory during training
+                from torch.utils.checkpoint import checkpoint
 
-            film_idx_counter = 0
-            for i, layer in enumerate(self.cnn_layers):
-                x = layer(x)
-                if (
-                    isinstance(layer, nn.LeakyReLU)
-                    and film_idx_counter < len(self.film_layers)
-                    and self.film_layers[film_idx_counter] is not None
-                ):
-                    conv_layers_passed = sum(
-                        1
-                        for lyr in self.cnn_layers[: i + 1]
-                        if isinstance(lyr, nn.Conv2d)
-                    )
-                    if conv_layers_passed > film_idx_counter:
-                        x = self.film_layers[film_idx_counter](x, scalars)
-                        film_idx_counter += 1
+                frame_feat = checkpoint(
+                    self._process_frame, frame, scalars, use_reentrant=False
+                )
+            else:
+                frame_feat = self._process_frame(frame, scalars)
 
-            frame_features.append(x.flatten(1))
+            frame_features.append(frame_feat)
 
         temporal_input = torch.stack(frame_features, dim=1)
         if self.config.get("use_temporal_attention", True):
