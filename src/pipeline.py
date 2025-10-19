@@ -30,6 +30,27 @@ def run_pretraining(
     """Handles the pre-training phase on a specified flight."""
     if config.get("no_pretrain", False):
         print("\n--- Skipping Pre-training ---")
+
+        # Check if self-supervised pretrained checkpoint exists
+        pretraining_config = config.get("pretraining", {})
+        if pretraining_config.get("enabled", False):
+            checkpoint_dir = pretraining_config.get(
+                "checkpoint_dir", "models/pretrained"
+            )
+            pretrained_path = f"{checkpoint_dir}/pretrained_encoder_best.pth"
+
+            import os
+
+            if os.path.exists(pretrained_path):
+                print(
+                    f"✓ Found self-supervised pretrained checkpoint: {pretrained_path}"
+                )
+                print("  This checkpoint will be loaded for final training")
+                return pretrained_path
+            else:
+                print(f"⚠ Self-supervised checkpoint not found at: {pretrained_path}")
+                print("  Training will start from random weights")
+
         return None
 
     pretrain_flight_name = config["pretrain_flight"]
@@ -288,16 +309,41 @@ def run_final_training_and_evaluation(
     model = model_class(model_config).to(device)
 
     if pre_ckpt:
-        print(f"Initialized model from {pre_ckpt}")
+        print(f"Loading checkpoint from: {pre_ckpt}")
         checkpoint = torch.load(pre_ckpt, weights_only=False)
-        state_dict = checkpoint["model_state_dict"]
 
-        # Remove '_orig_mod.' prefix added by torch.compile if present
-        if any(key.startswith("_orig_mod.") for key in state_dict.keys()):
-            print("  → Cleaning torch.compile prefixes from checkpoint...")
-            state_dict = {k.replace("_orig_mod.", ""): v for k, v in state_dict.items()}
+        # Handle different checkpoint formats
+        if "model_state_dict" in checkpoint:
+            state_dict = checkpoint["model_state_dict"]
+        elif "encoder_state_dict" in checkpoint:
+            # Self-supervised checkpoint - load encoder weights only
+            print("  → Loading self-supervised pretrained encoder")
+            state_dict = checkpoint["encoder_state_dict"]
+            # Filter to only load encoder weights (CNN layers)
+            encoder_keys = [
+                k for k in model.state_dict().keys() if k.startswith("cnn.")
+            ]
+            filtered_state_dict = {
+                k: v for k, v in state_dict.items() if k in encoder_keys
+            }
+            model.load_state_dict(filtered_state_dict, strict=False)
+            print(f"  → Loaded {len(filtered_state_dict)} encoder parameters")
+            # Don't try to load full state dict
+            state_dict = None
+        else:
+            state_dict = checkpoint
 
-        model.load_state_dict(state_dict)
+        # Load full state dict if available
+        if state_dict is not None:
+            # Remove '_orig_mod.' prefix added by torch.compile if present
+            if any(key.startswith("_orig_mod.") for key in state_dict.keys()):
+                print("  → Cleaning torch.compile prefixes from checkpoint...")
+                state_dict = {
+                    k.replace("_orig_mod.", ""): v for k, v in state_dict.items()
+                }
+
+            model.load_state_dict(state_dict)
+            print("  → Loaded full model checkpoint")
 
     # Apply torch.compile() for performance optimization (PyTorch 2.0+)
     use_compile = config.get("torch_compile", False)
