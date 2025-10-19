@@ -1,0 +1,501 @@
+
+
+
+DOI: 10.1002/met.2130
+
+RESE ARCH ARTICL E
+
+
+Nowcast for cloud top height from Himawari-8 data based on deep learning algorithms
+
+Zhuofu Yu 1,2	|	Zhonghui Tan 1	|	Shuo Ma 1	|	Wei Yan 1
+
+1College of Meteorology and Oceanography, National University of Defense Technology, Changsha, China
+2Mail Box 5111, BeiJing, China
+
+Correspondence
+Zhonghui Tan, College of Meteorology and Oceanography, National University of Defense Technology, Changsha, China.
+Email: tanzhonghui18@nudt.edu.cn
+
+Funding information
+National Natural Science Foundation of China, Grant/Award Number: 41705007
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1 |	INTRODUCTION 
+
+Cloud top height (CTH) is a crucial cloud parameter that has a substantial influence on climate owing to its effect on radiation. CTH also plays a pivotal role in weather processes (Ohring & Adler, 1978). An overshooting
+
+
+convective cloud top usually indicates an extreme weather system (Bedka et al., 2010; Lane et al., 2003; Wang et al., 2021). Therefore, CTH is usually used as an indicator for the development of extreme weather sys- tems in research. For example, CTH can represent the growth rate of a thunderstorm (Castro et al., 2020; Mack
+
+
+
+This is an open access article under the terms of the Creative Commons Attribution-NonCommercial-NoDerivs License, which permits use and distribution in any medium, provided the original work is properly cited, the use is non-commercial and no modifications or adaptations are made.
+(c) 2023 The Authors. Meteorological Applications published by John Wiley & Sons Ltd on behalf of Royal Meteorological Society.
+
+
+Meteorol Appl. 2023;30:e2130.	wileyonlinelibrary.com/journal/met
+https://doi.org/10.1002/met.2130
+
+1 of 15
+
+
+
+
+et al., 1983), and precipitation during rainstorms also increases with increasing CTH (Adler & Mack, 1984; Snodgrass et al., 2009). Extreme weather systems pose significant threats to aviation flights. Thus, the Federal Aviation Administration issued flight guidelines to avoid possible aviation accidents induced by some extreme weather systems (Lane et al., 2003). Previous research mainly focused on the observation and retrieval of CTH, and rarely investigated the nowcast for CTH. In aviation, the variations of CTH in the next several hours are criti- cal for guiding aviation flights. Therefore, investigating the nowcast for CTH is meaningful.
+   The numerical weather prediction (NWP) model is currently used predominantly in the context of weather services, and cloud properties are the outputs of NWP models such as the Global Forecast System model and Met Office global forecast model (Abel et al., 2010; Bodas-Salcedo et al., 2008; Yoo & Li, 2012). However, the cloud remains one of the most difficult parameters in forecasting (Dupuy et al., 2021; Haiden et al., 2015). Time-efficiency is the critical objective and demands of nowcast. However, the results of the NWP model are usu- ally available with a time delay of several hours owing to the process of data assimilation (Sun et al., 2014; Urbich et al., 2018), which greatly influences the time-efficiency of NWP models in nowcast. Additionally, extreme weather systems are usually on a meso-micro scale and their structures cannot be adequately resolved using the computational meshes of NWP models (Barleben et al., 2020; Sun et al., 2014). Therefore, investigating a novel method that differs from NWP is necessary.
+   Optical flow methods have been applied in meteorol- ogy. The German Weather Service has implemented a short-term forecast of radar reflectivity using the optical flow method. Klocek et al. (2021) used the optical flow method as a baseline comparison for Microsoft Weather's operational precipitation nowcast product based on radar reflectivity. The success of estimating the optical flow of radar images indicates that this method could be trans- ferred to the forecasting of the cloud properties using satel- lite data (Urbich et al., 2018). Urbich et al. (2018) investigated the short-term forecasting of effective cloud albedo based on optical flow estimation methods. Kosmo- poulos et al. (2020) proposed using the optical flow in satel- lite cloud properties to forecast cloud optical thickness (COT) and cloud motion vectors, and then investigated their impact on downwelling surface solar irradiation. Niel- sen et al. (2020) implemented a cloud-type nowcast from satellite data based on the optical flow method; for compar- ison, they also attempted several deep learning algorithms, including convolutional long-short-term memory (ConvLSTM) and generative adversarial networks.
+   Deep learning algorithms are developing rapidly and outperform  some  traditional  methods  in  some
+
+meteorological research. Tran and Song (2019) proposed that in the radar echo extrapolation tasks, many approaches based on deep convolutional neural networks (CNNs) and recurrent neural network (RNNs) were better than traditional methods based on optical flow. Weyn et al. (2019) developed elementary weather prediction models using a deep CNN with no explicit knowledge of physical processes. The results showed that the CNN, trained to pre- dict only 500-hPa geopotential height, easily outperformed persistence, climatology and the dynamics-based barotropic vorticity model at forecast lead times of up to 3 days. Lar- raondo et al. (2019) demonstrated how an encoder-decoder CNN can derive total precipitation using geopotential height as the only input and showed that deep learning- based methods significantly outperform traditional meth- odologies in estimating total precipitation from the geopo- tential height field. Li et al. (2021) combined CNN with optical flow and random forest algorithms to develop a multisource data model, which was used to complete the precipitation nowcast task. Using multi-radar multi-sensor dataset, Agrawal et al. (2019) leveraged U-net to make a better precipitation prediction in an hour than traditional numerical methods. Min et al. (2019) employed the ran- dom forest method to develop a robust and rapid quantita- tive precipitation estimates algorithm for Himawari-8. Duan et al. (2021) chose U-net (a CNN based architecture) to develop a radar reflectivity reconstruction model. They converted the radiance data of Himawari-8 satellite into the radar combined reflectivity factor, and then this model can detect the occurrence, movement and disappearance of convective storms using Himawari-8 data. The findings of the aforementioned research demonstrate that deep learn- ing algorithms have broad application prospects in atmo- spheric science.
+Based on previous research, we attempted to investi-
+gate the nowcast for CTH using deep learning algorithms. There have been great advances in the spatiotemporal resolutions of meteorological satellites, which are advan- tageous for the detection of cloud variations on a meso- micro scale. Furthermore, satellite-based forecasts are available in near real time (Urbich et al., 2018). There- fore, in this study, we used satellite data. The remainder of this article is organized as follows:
+    Section 2 introduces the dataset. Section 3 presents the method and related experiments. The results and discus- sions are included in Section 4, and the conclusions in Section 5.
+
+
+2 |	DATA 
+
+Himawari-8, a Japanese new-generation geostationary meteorological satellite, was launched by Japan Meteoro- logical Agency/Meteorological Satellite Centre (JMA/MSC)
+
+
+
+
+
+
+
+FIGURE 1 Terrain map of Sichuan Province and surrounding areas.
+
+
+in October 2014 and positioned above 140.7oE. The Advanced Himawari Imager (AHI) is the main instrument onboard Himawari-8 and has 16 channels (3 visible chan-
+nels, 3 near-infrared channels and 10 infrared channels). The wavelength ranges of the 16 channels are from 0.47 to
+13.3 µm, and the spatial resolutions include 0.5, 1 and 2 km. The time interval of AHI full-disc scan mode is approximately 10 min, advantageous for observing the atmospheric state on the meso-micro scale (Bessho et al., 2016). The cloud products of Himawari-8 released by JMA/MSC consist of cloud cover, cloud top pressure, CTH, cloud type and COT. Their temporal and spatial resolutions are 10 min and 5 km, respectively.
+   The CTH retrieval algorithm of Himawari-8 was origi- nally based on the algorithm adopted by European Organi- sation for the Exploitation of Meteorological Satellites' Nowcasting Satellite Application Facility. The inputs included satellite data from AHI observations, vertical pro- file data from a radiative transfer model, and cloud-type data from a cloud-type and phase product (Kouki et al., 2016). Subsequently, JMA/MSC tested and improved the CTH retrieval algorithm based on the GOES-R Series algorithm and expanded the CTH retrieval algorithm of GOES-R from a single-layer model to two layers to improve the estimation accuracy (Kouki, 2019).
+   The dataset used in the study is the CTH dataset of Himawari-8 from 1 January 2018 to 31 December 2020. Our objective was to predict the CTH in the next 2 h according to the CTH in the previous 1 h. The temporal resolution of the CTH product was 10 min. Thus, CTH data at 18 successive time steps constituted a CTH sequence within 3 h. A total of 21,970 sequences were acquired after filtering the invalid data.
+   
+Our study area was Sichuan Province (26oN-34oN, 97oE-108oE), in southwest China. The plateaus and mountains higher than 3000 m are distributed in the west
+of the province, and the basins and hills are in the east. The altitude in this area is shown in Figure 1. Since the Qinghai-Tibet Plateau is located in the northwest of Sichuan Province, some weather systems with regional features were generated under the influence of the pla- teau. For example, the southwest vortex originates in Sichuan and can easily induce rainstorms.
+
+
+3 |	METHOD 
+
+From the perspective of computer vision, the CTH data from satellite observations can be expressed as two-dimensional (2D) numerical arrays of numbers; these 2D CTH fields can be further represented as digital images comprising latitude and longitude dimensions (Larraondo et al., 2019). There- fore, nowcast for CTH using satellite data is essentially a spatiotemporal sequence forecasting problem. To address this issue, we introduced an encoder-forecaster framework and used two relatively mature deep learning structures, ConvLSTM and trajectory-gated recurrent unit (TrajGRU).
+
+
+3.1 |	Models
+
+The encoder-forecaster framework employed in this study is a variant of the encoder-decoder. The salient fea- ture of this framework is that the last states of the basic cell blocks in the encoder are copied over to the initial states of the corresponding blocks in the forecaster (Shi et al., 2015; Srivastava et al., 2015). The blocks in the encoder extract features by reading inputs and encode the features into a hidden state tensor. Subsequently, the forecaster unfolds the hidden state tensor and yields final outputs (Shi et al., 2015; Sutskever et al., 2014). In the fol- lowing experiments, ConvLSTM and TrajGRU were used as basic cell blocks in the encoder and forecaster, respec- tively, to build nowcast models.
+   ConvLSTM was proposed by Shi et al. (2015). The convolution in this structure can capture spatial informa- tion in the inputs and hidden states, while the LSTM in this structure is responsible for temporal correlations. Thus, this structure is usually used to address spatiotem- poral sequence forecasting problems.
+   TrajGRU is a new tool proposed by Shi et al. (2017) for precipitation nowcast investigations. This structure is innovative due to the location-variant connections, which can generate the local neighbourhood set for each loca- tion in the inputs, and effectively handle motion patterns like rotations.
+
+
+
+
+FIGURE 2	The schematic diagram of the encoder-forecaster framework.
+
+
+   Figure 2 shows a schematic diagram of the encoder-forecaster framework used in this study. The CNNs in the rectangles were employed to change the scale of the data, for the sake of computational efficiency.
+
+
+3.2 |	Experiment design
+
+The objective of our experiments was to find the optimal model that can use the CTH data of satellites in the
+
+previous 1 h to predict the CTH in the next 2 h. We designed the experiments based on ConvLSTM and Traj- GRU in an encoder-forecaster framework. A flow chart of the experiments is shown in Figure 3.
+   First, the CTH data of each month were divided into training, validation and test data into an approximate ratio of 6:2:2 (summarized in Table 1). Second, the strat- egy of early stopping was adopted to obtain the optimal models using training data and validation data. Third, we compared the models' results to find the optimal nowcast model using test data.
+
+
+
+FIGURE 3	Flow chart of the experiments.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+TABLE 1	Dataset used in this study.
+
+
+
+
+
+
+
+
+
+   The choice of loss function has a critical impact on a model's performance. Previous studies have usually used L1 or L2 loss function, corresponding to mean absolute error (MAE) and mean squared error (MSE),
+
+SSIM πX, Y ή 1/4  π2µX µY ώ C1ήπ2sXY ώ C2ή  ,	π1ή πµ2 ώ µ2 ώ C1ήπs2 ώ s2 ώ C2ή
+
+where µX is the average value of image X and µY is the
+
+which result in blurry images as the forecasting leading
+
+average value of image Y. s2
+
+is the variance of image X,
+
+time extends (Klein et al., 2015; Tran & Song, 2019). Tran and Song (2019) posited that using image quality assessment (IQA) metrics to support the training pro-
+ 
+2 is the variance of image Y, and sXY is the covariance of X and Y. C1 and C2 are two constants, which are used to avoid the production of unstable results when either
+
+cess could be a cheap and effective solution. Thus, they
+
+µ2 ώ µ2	or s2 ώ s2
+
+are very close to zero (Wang
+
+X	Y	X	Y
+
+employed some IQA metrics as loss functions and investigated the applicability of these metrics in solving the blurry images problem. Structural similarity (SSIM) is a typical metric in IQA, which measures the similar- ity between two images X and Y, and can be calculated using the following formula (1):
+
+et al., 2004). In our experiments, we set two values for these two constants, that is C1 1/4 0:0001, C2 1/4 0:0009. SSIM is in the interval of (-1, 1), with higher SSIM value corresponding to greater similarity between two images.
+In the following experiments, we used 1-SSIM as a loss function to train the models.
+
+
+
+
+   The early stopping strategy is an effective approach to avoid model overfitting during the training process. Vali- dation data can be used to check whether the model overfits or not. Generally, a model would be gradually optimized with the increase of the training epochs, and the validation loss of the model would also decrease. If the validation loss in this epoch is greater than that in the previous epoch, the model may be overfitting and the training should stop. To avoid the influence of the fluctu- ation of validation loss, we set five epochs as the training patience. When the validation loss in the epoch of T was minimum and the validation losses in the following con- secutive five epochs stopped decreasing, the training stopped and the model trained in the epoch of T was the optimal model.
+   Benchmarks are necessary to compare the perfor- mance of deep learning nowcast models. The bench- marks used in this study were the optical flow model and persistence. The persistence was the CTH at the last time step of inputs and remained constant in the next 2 h. The models with performance inferior to that of persistence were considered to have no nowcast skills. Notably, we adopted MSE, peak signal-to-noise ratio (PSNR) and Pearson correlation coefficient (PCC) as the main metrics to evaluate the performance of the models.
+   As we mentioned, 2D CTH fields can be represented as digital images comprising latitude and longitude dimensions. Herein, we transformed CTH data to grey- scale with values in the range of 0-255. The greyscale had only one colour channel, which reduced the calcula- tion cost and facilitated processing. Then, we rescaled the grey level to the range of (0, 1), to evaluate the results
+conveniently. The size of each CTH image in Sichuan Province was 165 x 224 pixels and had a spatial resolu- tion of 5 km. Owing to the limits of our computation resource, all CTH images were resized to 120 x 120 pixels.
+   One CTH sequence consisted of 18 consecutive images. In our experiments, the first six images were used as the input, the last 12 were used as the ground truth and 5 CTH sequences were fed to models as one batch. Thus, the tensor sizes of inputs and outputs were 5, 120, 120, 1, and 6 and 5, 120, 120, 1, and 12, respectively (as shown in Figure 2). The five dimensions represented batch size, image width, image height, colour channel of the image and time steps, respectively. Three ConvLSTM/TrajGRU blocks were stacked in the encoder and forecaster. In the encoder, the numbers of the feature channels in the three ConvLSTM/TrajGRU blocks were 16, 32 and 64, respectively; the corresponding numbers in
+the forecaster were 64, 32 and 16, respectively. The size of all convolutional kernels in ConvLSTM/TrajGRU was 7 x 7. For the TrajGRU block, the number of
+
+neighbouring points connected to one location was 5. The 3 x 3 convolutional kernels were used for all down-sample CNNs in the encoder-forecaster framework,
+which has been widely used in research (Simonyan & Zisserman, 2015; Tran et al., 2015; Tran & Song, 2019) and significantly reduces the calculation cost. The total numbers of the trainable parameters in the ConvLSTM- based model and TrajGRU-based model were 4,036,337 and 2,415,469, respectively.
+   Our experiments were implemented in Python with the help of Pytorch (Paszke et al., 2019). The learning rate was selected to be 0.001 during the training process, which was the default value and was held constant. The weights in the ConvLSTM/TrajGRU blocks were also ini- tialized by the default means of Kaiming initialization (He et al., 2015). Additionally, the Adam optimiser was used in the training process. We used five different ran- dom seeds to perform independent experiments and obtain an ensemble of models. Notably, we did not use any other image transformations except for division of all pixels by 255, as noted earlier. All experiments were run on a computer with a single NVIDIA GeForce GTX 1080 Ti GPU.
+
+
+4 |	RESULTS AND DISCUSSION 
+
+4.1 |	Models evaluations
+
+The models were evaluated using the test data split. The models' performance on the test data is displayed in Table 2.
+   In terms of the three metrics (MSE, PSNR and PCC), both deep learning models outperformed the two bench- marks of the optical flow model and persistence. Specifi- cally, the TrajGRU-based model was the best, followed by the ConvLSTM-based model and the optical flow model. The advantages of the TrajGRU-based model over the two benchmarks on MSE, PSNR and PCC were approximately 0.002, 1.1 and 0.03, respectively. The advantages of the ConvLSTM-based model over the two benchmarks on MSE, PSNR and PCC are approximately 0.001, 0.5 and 0.025, respectively. As a traditional predic- tion method, the optical flow model also exhibited now- cast skills, compared with the persistence benchmark.
+   Shi et al. (2017) clarified the reason that TrajGRU outperformed ConvLSTM in their research on precipita- tion nowcast. They posited that natural motion and transformation are location-variant in general. The con- volutional recurrence structure in ConvLSTM is location- invariant, whereas TrajGRU can actively learn location- variant features by recurrent connections. Thus, TrajGRU can capture the characteristics of natural motions better
+
+
+
+TABLE 2	Performance of the two deep learning models and two benchmarks computed on the test data split.
+
+MSE
+Seed 0
+0.0085
+Seed 0
+0.0072
+0.0092
+0.0095
+
+Seed 1
+0.0083
+Seed 1
+0.0072
+
+
+
+Seed 372
+0.0084
+Seed 372
+0.0075
+
+
+
+Seed 895
+0.0082
+Seed 895
+0.0074
+
+
+
+Seed 1996
+0.0081
+Seed 1996
+0.0072
+
+
+PSNR
+Seed 0
+69.2936
+Seed 0
+70.1714
+68.9471
+68.9260
+
+Seed 1
+69.5380
+Seed 1
+70.0795
+
+
+
+Seed 372
+69.4539
+Seed 372
+69.9752
+
+
+
+Seed 895
+69.5213
+Seed 895
+70.1248
+
+
+
+Seed 1996
+69.6249
+Seed 1996
+70.1448
+
+
+PCC
+Seed 0
+0.8907
+Seed 0
+0.9128
+0.8794
+0.8761
+
+Seed 1
+0.8979
+Seed 1
+0.9066
+
+
+
+Seed 372
+0.8947
+Seed 372
+0.9071
+
+
+
+Seed 895
+0.8962
+Seed 895
+0.9122
+
+
+
+Seed 1996
+0.8995
+Seed 1996
+0.9102
+
+
+
+
+
+
+FIGURE 4	The MSE, PSNR and PCC of models and benchmarks at each time step on test data.
+
+
+
+than the ConvLSTM, and provide better nowcast results. Although clouds are usually distributed in wide spatial scopes and some types of clouds (e.g., cirrus and stratus) are less variable, the variations of CTH are location-vari- ant. For example, the sudden dissipation and occurrence of clouds, or the convections in clouds, are all location- variant motions. In these cases, TrajGRU performed bet- ter than ConvLSTM.
+    In contrast, the results of the optical flow model were inferior to those of the deep learning models and only slightly superior to those of persistence. We posited that this could be interpreted by the motions of clouds and the developments of CTH. Urbich et al. (2018) mentioned
+
+that one criterion of optical flow was that the intensity of image pixels must remain constant between two consecu- tive frames. In fact, cloud motion is not always regular, and it is impossible for CTH to remain unchanged. Par- ticularly, on the meso-micro scale, when extreme weather occurs, clouds move so quickly and CTH varies so rapidly that the criterion of optical flow is not applica- ble. Moreover, Shi et al. (2015) thought it is difficult to find a reasonable way to update the future flow fields and train everything end-to-end for the optical flow method. In the work of CTH nowcast, the optical flow model extracts the optical flows from the six time steps in the previous 1 h, but the optical flows cannot be reasonably
+
+
+
+
+FIGURE 5	The MSE, PSNR and PCC of models and benchmarks at each time step in four seasons.
+
+
+
+
+
+updated in the next 2 h. Therefore, the optical flow model cannot effectively predict the variations of CTH as the nowcast time extends.
+   Our objective was to obtain nowcast results for the next 2 h. To this end, we analysed the specific perfor- mance of the models and benchmarks at the 12 time steps (as shown in Figure 4).
+
+
+   In the first 20 min, two benchmarks of the optical flow model and persistence performed slightly better than the two deep learning models. From 30 min on, the deep learning models gradually outperformed the two benchmarks. As the nowcast time increased, the advan- tages of the deep learning models were greater, especially the TrajGRU-based model. The TrajGRU-based model
+
+
+
+
+performed better than the ConvLSTM-based model and the two benchmarks after 30 min. The TrajGRU-based model exhibited more stable nowcast skills than the ConvLSTM-based model, as indicated by the smaller standard deviation of MSE, PSNR and PCC. In contrast, the advantage of the ConvLSTM-based model over the persistence was not as pronounced. For example, the MSE of the persistence was almost equal to the sum of the mean MSE and standard deviation of the ConvLSTM- based model, which indicated that the nowcast skill of the ConvLSTM-based model is not significant, compared with the persistence. Additionally, the nowcast skill of the optical flow model decreased greatly as the nowcast time increased. After 40 min, the optical flow model exhibited worse performance than the persistence. The MSE, PSNR and PCC of the optical flow model were all inferior to those of the persistence, which indicated that the optical flow model almost had no nowcast skills.
+    As mentioned above, CTH is related to convections in clouds and an overshooting convective cloud top indi- cates an extreme weather system. The occurrence fre- quency of convections and related extreme weather systems varies with the seasons, leading to seasonal varia- tions of CTH. Thus, we analysed the models' performance in different seasons. The results are shown in Figure 5.
+   The results of the models and benchmarks varied greatly with the seasons. The variation trends of the three metrics in spring, autumn and winter were similar. The two benchmarks had comparable MSE, PSNR and PCC
+
+with the two deep learning models in the first 20 min. However, the deep learning models had significantly bet- ter nowcast skills with increasing time steps, especially after 30 min. Additionally, the differences between the deep learning models and the benchmarks were also greater as the nowcast time increased. For example, the MSE, PSNR and PCC of the TrajGRU-based model were vastly superior to those of the ConvLSTM-based model and the two benchmarks in winter. The ConvLSTM- based model was second to the TrajGRU-based model. The MSEs of the two benchmarks were inferior to the sum of the mean MSE and standard deviation of the ConvLSTM-based model. The PSNR/PCC was also infe- rior to the difference between the mean PSNR/PCC and standard deviation of the ConvLSTM-based model. Nota- bly, the optical flow model almost had no nowcast skills after 40 min. The MSE, PSNR and PCC deteriorated sharply (especially the MSE and PCC). The MSE and PCC increased and decreased, respectively, in an almost linear fashion with respect to the nowcast time.
+   The summer results were completely different. The obvious differences were the performance of the ConvLSTM-based model. The ConvLSTM-based model did not have advantages over the two benchmarks. Spe- cifically, the MSE of the ConvLSTM-based model was larger than that of the persistence at all nowcast time steps. The PSNR of the ConvLSTM-based model is close to that of the two benchmarks. The PCC of the ConvLSTM-based model only had a slight advantage over
+
+
+
+
+
+
+FIGURE 6	CTH from 0550 UTC to 0640 UTC for case 1 (28, July 2019). The colour bar indicates the range of CTH.
+
+14698080, 2023, 3, Downloaded from https://rmets.onlinelibrary.wiley.com/doi/10.1002/met.2130, Wiley Online Library on [28/07/2025]. See the Terms and Conditions (https://onlinelibrary.wiley.com/terms-and-conditions) on Wiley Online Library for rules of use; OA articles are governed by the applicable Creative Commons License
+
+
+
+
+the persistence. In contrast, the TrajGRU-based model showed significant nowcast skills with an increase in the nowcast time steps. Additionally, the MSE, PSNR and PCC were superior to those of the ConvLSTM-based models and the two benchmarks. The reason may be related to the frequent convections in summer. Convec- tions usually occur abruptly and regionally, which is a typical location-variant motion. Owing to the intrinsic connections of the model, the variations of CTH accom- panied by convections cannot be accurately predicted by the ConvLSTM-based model.
+
+
+4.2 |	Case analysis
+
+We analysed two cases to intuitively compare the results of the deep learning models and the benchmarks.
+    The first case was on 28 July 2019, when a convection occurred.
+   As shown in Figure 6, a broad convective region developed east of the Sichuan basin. The shape of the convective region was roughly circular. From 0550 UTC to 0640 UTC, the location of this convective region hardly changed but the convection gradually strengthened, accompanied by increasing CTH. North of this convective region, three smaller convective regions developed almost at the same latitude and strengthened rapidly. However, since 0610 UTC, the three smaller convective regions merged and the intensity gradually decreased.
+   
+Figure 7 displays the ground truth and the models' nowcast results in the next 2 h.
+    We selected four time steps to illustrate intuitive sce- narios. At the time step of 30 min, the three smaller con- vective regions in the north almost merged into one region and the convection intensities decreased greatly. At the time step of 60 min, the north convective regions moved close to the larger convective region in the south and tended to merge. The CTH did not decrease signifi- cantly. At the time step of 90 min, the three northern regions merged and slowly diffused towards the north- east. Subsequently, the south convective region also con- nected with the north region. At 120 min, the north and the south regions gradually moved to the east together but did not merge into one region. Overall, in the 2 h, the intensity of the convective regions gradually weakened, but the CTH did not show a significant decrease.
+    The ConvLSTM-based model captured the variations of the convective regions. The decrease in the convection intensity and the merging of the convective regions were reflected in the results. Additionally, the diffusion of the region could also be observed at the 120 min mark. Never- theless, the differences between the ConvLSTM-based model results and the ground truth were notable and were mainly shown as the merging of the north region and the south convective region. At 90 min, the two regions almost merged into one region in the ConvLSTM-based model and became one region at 120 min. The TrajGRU-based model yielded better nowcast results on the merging of the
+
+
+
+
+
+
+FIGURE 9	CTH from 0340 UTC to 0430 UTC for case 2 (30, April 2018). The colour bar indicates the range of CTH.
+
+
+
+
+two regions. The gap between the two regions was always clear after 120 min, but the locations of the gap were not predicted well in the TrajGRU-based models. The varia- tions of the clouds were not shown in the two benchmarks. For the optical flow model, the main variations in the now- cast results were shown as the diffusion of the north con- vective region. This region diffused towards the northeast, but the merging of the north and south convective regions and the decrease of the convections could not be observed in the nowcast results.
+   Figure 8 shows the performance of the models and benchmarks for case 1. At the first 20-min mark, the two benchmarks had superior MSE, PSNR and PCC over the two deep learning models. After 30 min, the MSE, PSNR and PCC of the persistence were inferior to those of the two deep learning models and the optical flow model. Nev- ertheless, the advantages of the deep learning models over
+
+the two benchmarks were not as significant in this case. The MSE, PSNR and PCC of the optical flow model were close to the three metrics of the deep learning models, especially the MSE and PSNR.
+   The second case was on 30 April 2018, when the cloud motion was mainly advection. Figure 9 shows the CTH from 0340 UTC to 0430 UTC. The clouds mainly moved to the northeast in this case, and there were no obvious increases or decreases in CTH.
+   Figure 10 shows the nowcast results of the models and benchmarks. The most significant differences between the deep learning models' results and bench- marks were the blurry images. In the first 60 min, the results of the deep learning models were clear and the cloud edges were observable. However, the images became noticeably blurry after 90 min, and the texture structures of the clouds could not be recognized. In
+
+
+
+
+
+FIGURE 10	Models' results, benchmarks and ground truth for case 2 (30, April 2018). The colour bar indicates the range of CTH.
+
+
+
+
+FIGURE 11	The MSE, PSNR and PCC of models and benchmarks at each time step for case 2 (30, April 2018).
+
+
+
+contrast, the cloud edges and the texture structures were clearer in the benchmarks.
+    We also calculate the three metrics of the models and benchmarks in this case, which are shown in Figure 11.
+   The performance of the two deep learning models was comparable to that of the two benchmarks in the first 20 min. From 20 to 30 min, the MSEs of the two benchmarks increased greatly and were obviously larger than those of the two deep learning models. The varia- tion trends of the PSNRs and PCCs were similar. After 40 min, the optical flow model had almost no nowcast skills compared with persistence. However, the deep learning model showed significant nowcast skills com- pared with the persistence, and the advantages of the deep learning models over the two benchmarks became more pronounced as the nowcast time increased.
+
+
+5 |	CONCLUSIONS
+
+CTH describes vertical developments in clouds, and an overshooting cloud top is closely related to some extreme weather systems, such as rainstorms and thunderstorms, which frequently induce flight accidents and threaten aviation safety. Thus, knowing the variations of CTH in the next several hours can be meaningful for guiding avi- ation flights. In this study, we used CTH data from the Himawari-8 satellite, owing to its wide observation scope and high spatiotemporal resolution. The objective of this study was to predict the CTH variations in the next 2 h according to the CTH in the previous 1 h.
+   We investigated the nowcast for CTH based on deep learning algorithms. ConvLSTM and TrajGRU were used to build the nowcast models in the encoder-forecaster framework, respectively. The early stopping strategy was adopted to obtain the optimal models. The optical flow
+
+model and the persistence were used as benchmarks to evaluate the performance of the deep learning models. Overall, the results exemplified the nowcast skills of the deep learning models. Particularly, the TrajGRU-based model performed best, followed by the ConvLSTM-based model. The nowcast skill of the optical flow model gradu- ally worsened with the extension of the nowcast dura- tion. However, the results were different in four seasons, especially in summer. The ConvLSTM-based model had no obvious advantages over the optical flow model and persistence. In contrast, the TrajGRU-based model had superior MSE, PSNR and PCC over the ConvLSTM-based model and the two benchmarks. Additionally, in two cases of strong convection and common advection in clouds, the TrajGRU-based model outperformed the ConvLSTM-based model and the two benchmarks.
+   Although the deep learning models provided better nowcast results than the optical flow model and persis- tence in the next 2 h, there is still room for improvement. For example, the accuracy of the nowcast results could be improved. Additionally, further research should focus on making the textures and edge structures of the clouds more clearly observable with the progression of the now- cast time. Actually, some models, such as the generative adversarial neural network (Ravuri et al., 2021), could obtain good results and avoid blurry images. In this study, we choose some effective and cheap approaches to obtain the nowcast results, such as using the IQA metric as a loss function owing to computer resource limitations. We will focus on these topics in future research.
+
+AUTHOR CONTRIBUTIONS 
+Zhuofu Yu: Conceptualization (lead); data curation (equal); investigation (equal); methodology (lead); visualiza- tion (lead); writing - original draft (lead); writing - review and editing (equal). Zhonghui Tan: Conceptualization
+
+
+
+
+(lead); investigation (equal); methodology (lead); writing - original draft (equal); writing - review and editing (lead). Shuo Ma: Data curation (lead); formal analysis (lead); funding acquisition (lead); investigation (equal); writing - review and editing (equal). Wei Yan: Data cura- tion (lead); formal analysis (lead); funding acquisition (equal); project administration (lead); writing - review and editing (equal).
+
+FUNDING INFORMATION
+This work was financially supported by the National Nat- ural Science Foundation of China under Grant No. [41705007].
+
+CONFLICT OF INTEREST STATEMENT 
+The authors declare that they have no known competing financial interests or personal relationships that could have appeared to influence the work reported in this paper.
+
+DATA AVAILABILITY STATEMENT 
+Himawari-8 data used in this paper are openly available from https://www.eorc.jaxa.jp/ptree/.
+
+ORCID 
+Zhuofu Yu  https://orcid.org/0000-0002-9416-7789
+
+REFERENCES 
+Abel, S.J., Walters, D.N. & Allen, G. (2010) Evaluation of stratocu- mulus cloud prediction in the met office forecast model during VOCALS-REx. Atmospheric Chemistry and Physics, 10, 10541- 10559. Available from: https://doi.org/10.5194/acp-10-10541- 2010
+Adler, R.F. & Mack, R.A. (1984) Thunderstorm cloud height- rainfall rate relations for use with satellite rainfall estimation techniques. Journal of Climate and Applied Meteorology, 23, 280-296. Available from: https://doi.org/10.1175/1520-0450 (1984)023<0280:TCHRRF>2.0.CO;2
+Agrawal, S., Barrington, L., Bromberg, C., Burge, J., Gazen, C. & Hickey, J. (2019) Machine learning for precipitation nowcast- ing from radar images. https://doi.org/10.48550/arXiv.1912. 12132
+Barleben, A., Haussler, S., Mόller, R. & Jerg, M. (2020) A novel approach for satellite-based turbulence nowcasting for aviation. Remote Sensing, 12, 2255. Available from: https://doi.org/10. 3390/rs12142255
+Bedka, K., Brunner, J., Dworak, R., Feltz, W., Otkin, J. & Greenwald, T. (2010) Objective satellite-based detection of over- shooting tops using infrared window channel brightness tem- perature gradients. Journal of Applied Meteorology and Climatology, 49, 181-202. Available from: https://doi.org/10. 1175/2009JAMC2286.1
+Bessho, K., Date, K., Hayashi, M., Ikeda, A., Imai, T., Inoue, H. et al. (2016) An introduction to Himawari-8/9-Japan's new- generation geostationary meteorological satellites. Journal of
+
+the Meteorological Society of Japan. Ser. II, 94, 151-183. Avail- able from: https://doi.org/10.2151/jmsj.2016-009
+Bodas-Salcedo, A., Webb, M.J., Brooks, M.E., Ringer, M.A., Williams, K.D., Milton, S.F. et al. (2008) Evaluating cloud sys- tems in the met office global forecast model using simulated CloudSat radar reflectivities. Journal of Geophysical Research- Atmospheres, 113, D00A13. Available from: https://doi.org/10. 1029/2007JD009620
+Castro, E., Ishida, T. & Takahashi, Y. (2020) Determination of cloud-top height through three-dimensional cloud reconstruc- tion using DIWATA-1 data. Scientific Reports, 10, 7570. Avail- able from: https://doi.org/10.1038/s41598-020-64274-z
+Duan, M.S., Xia, J.J., Yan, Z.W., Han, L., Zhang, L., Xia, H. et al. (2021) Reconstruction of the radar reflectivity of convective storms based on deep learning and Himawari-8 observations. Remote Sensing, 13, 3330. Available from: https://doi.org/10. 3390/rs13163330
+Dupuy, F., Mestre, O., Serrurier, M., Burd'a, V.K., Zamo, M.,
+Cabrera-Gutiιrrez, N.C. et al. (2021) ARPEGE cloud cover fore- cast post-processing with convolutional neural network. Weather and Forecasting, 36, 567-586. Available from: https:// doi.org/10.1175/WAF-D-20-0093.1
+Haiden, T., Forbes, R., Ahlgrimm, M. & Bozzo, A. (2015) The skill of ECMWF cloudiness forecasts. ECMWF Newsletter, 143, 14-19.
+He, K.M., Zhang, X.Y., Ren, S.Q. & Sun, J. (2015) Delving deep into rectifiers: surpassing human-level performance on ImageNet classification. In proceedings of the IEEE international confer- ence on computer vision, 2015. https://openaccess.thecvf.com/ content_iccv_2015/papers/He_Delving_Deep_into_ICCV_ 2015_paper.pdf
+Klein, B., Wolf, L. & Afek, Y. (2015) A dynamic convolutional layer for short range weather prediction. In Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition, Bos- ton, MA, USA, 7-12 June. pp. 4840-4848.
+Klocek, S., Dong, H.Y., Dixon, M., Kanengoni, P., Kazmi, N., Luferenko, P. et al. (2021) MS-nowcasting: operational precipi- tation nowcasting with convolutional LSTMs at microsoft weather. https://arxiv.org/pdf/2111.09954.pdf
+Kosmopoulos, P., Dimitris, K., Kyriakoula, P., Raptis, P.I., Masoom, A., Saint-Drenan, Y.M. et al. (2020) Short-term fore- casting of large-scale clouds impact on downwelling surface solar irradiation. Energies, 13, 6555. Available from: https://doi. org/10.3390/en13246555
+Kouki, M. (2019) Improvement of the cloud top height algorithm for the fundamental cloud product and related evaluation. Meteorological Satellite Center Technical Note, 61, 23-36.
+Kouki, M., Hiroshi, S., Ryo, Y. & Toshiharu, I. (2016) Algorithm theoretical basis document for cloud top height product. Meteo- rological Satellite Center Technical Note, 61, 33-42. Avaiable from. Available from: https://www.data.jma.go.jp/mscweb/ technotes/msctechrep61-3.pdf
+Lane, T.P., Sharman, R.D., Clark, T.L. & Hsu, H.M. (2003) An investigation of turbulence generation mechanisms above deep convection. Journal of the Atmospheric Sciences, 60, 1297-1321. Available from: https://doi.org/10.1175/1520-0469(2003) 60<1297:AIOTGM>2.0.CO;2
+Larraondo, P.R., Renzullo, L.J., Inza, I. & Lozano, J.A. (2019) A data-driven approach to precipitation parameterizations using
+
+
+
+
+convolutional encoder-decoder neural networks. ArXiv http:// arxiv.org/abs/1903.10274
+Li, D.W., Liu, Y.D. & Chen, C.H. (2021) MSDM v1.0: a machine learning model for precipitation nowcasting over eastern China using multisource data. Geoscientific Model Development, 14, 401-4034. Available from: https://doi.org/10.5194/gmd-14- 4019-2021
+Mack, R., Hasler, A.F. & Rodgers, E.B. (1983) Stereoscopic observa- tions of hurricanes and tornadic thunderstorms from geosyn- chronous satellites. Advances in Space Research, 2, 143-151. Available from: https://doi.org/10.1016/0273-1177(82)90134-X
+Min, M., Bai, C., Guo, J.P., Sun, F., Liu, C., Wang, F. et al. (2019) Estimating summertime precipitation from Himawari-8 and global forecast system based on machine learning. IEEE Trans- actions on Geoscience and Remote Sensing, 57(5), 2557-2570. Available from: https://doi.org/10.1109/TGRS.2018.2874950
+Nielsen, A.H., Iosifidis, A. & Karstoft, H. (2020) CloudCast: a satellite-based dataset and baseline for forecasting clouds. IEEE J-Stars, 14, 3485-3494. Available from: https://doi.org/10.1109/ JSTARS.2021.3062936
+Ohring, G. & Adler, S. (1978) Some experiments with a zonally average climate model. Journal of the Atmospheric Sciences, 35, 186-205. Available from: https://doi.org/10.1175/1520-0469 (1978)035<0186:SEWAZA>2.0.CO;2
+Paszke, A., Gross, S., Massa, F., Lerer, A., Bradbury, J., Chanan, G. et al. (2019) PyTorch: an imperative style, high-performance deep learning library. In Proceedings of the Advances in Neural Information Processing Systems, Vancouver, BC, Canada, 8-14 December. pp. 8024-8035.
+Ravuri, S., Lenc, K., Willson, M., Kangin, D., Lam, R., Mirowski, P. et al. (2021) Skilful precipitation nowcasting using deep genera- tive models of radar. Nature, 597, 672-677. Available from: https://doi.org/10.1038/s41586-021-03854-z
+Shi, X.J., Chen, Z., Wang, H., Yeung, D.Y., Wong, W.K. & Woo, W.
+C. (2015) Convolutional LSTM network: a machine learning approach for precipitation nowcasting. Advances in Neural Information Processing Systems, 28, 802-810.
+Shi, X.J., Gao, Z., Lausen, L., Wang, H., Yeung, D.Y., Wong, W.K. et al. (2017) Deep learning for precipitation nowcasting: a benchmark and a new model. Advances in Neural Information Processing Systems, 30, 5617-5627.
+Simonyan, K. & Zisserman, A. (2015) Very deep convolutional net- works for image recognition. In Proceedings of the Interna- tional Conference on Learning Representations 2014. https:// arxiv.org/pdf/1409.1556.pdf
+Snodgrass, E.R., Girolamo, L.D. & Rauber, R.M. (2009) Precipita- tion characteristics of trade wind clouds during RICO derived from radar, satellite, and aircraft measurements. Journal of Applied Meteorology and Climatology, 48, 464-483. Available from: https://doi.org/10.1175/2008JAMC1946.1
+
+Srivastava, N., Mansimov, E. & Salakhutdinov, R. (2015) Unsuper- vised learning of video representations using LSTMs. Proceed- ings of the 32 nd International Conference on Machine Learning, Lille, France, 2015. JMLR: W&CP volume 37.
+Sun, J.Z., Xue, M., Wilson, J.W., Zawadzki, I., Ballard, S.P., Onvlee- Hooimeyer, J. et al. (2014) Use of NWP for nowcasting convec- tive precipitation. Bulletin of the American Meteorological Soci- ety, 95, 409-426. Available from: https://doi.org/10.1175/ BAMS-D-11-00263.1
+Sutskever, I., Vinyals, O. & Le, Q.V. (2014) Sequence to sequence learning with neural networks. Advances in Neural Information Processing Systems, 27, 3104-3112.
+Tran, D., Bourdev, L., Fergus, R., Torresani, L. & Paluri, M. (2015) Learning spatiotemporal features with 3D convolutional net- works. Proceedings of the International Conference on Computer Vision, 2015, 4489-4497.
+Tran, Q.K. & Song, S.K. (2019) Computer vision in precipitation nowcasting: applying image quality assessment metrics for training deep neural networks. Atmosphere, 10, 244. Available from: https://doi.org/10.3390/atmos10050244
+Urbich, I., Bendix, J. & Mόller, R. (2018) A novel approach for the short-term forecast of the effective cloud albedo. Remote Sens- ing, 10, 955. Available from: https://doi.org/10.3390/rs10060955 Wang, G.Y., Wang, H.Q., Zhuang, Y., Wu, Q., Chen, S. & Kang, H. (2021) Tropical overshooting cloud-top height retrieval from Himawari-8 imagery based on random forest model. Atmo- sphere, 12, 173. Available from: https://doi.org/10.3390/
+atmos12020173
+Wang, Z., Bovik, A.C., Sheikh, H.R. & Simoncelli, E.P. (2004) Image quality assessment: from error visibility to structural similarity. IEEE Transactions on Image Processing, 13(4), 612. Available from: https://doi.org/10.1109/TIP.2003.819861
+Weyn, J.A., Durran, D.R. & Caruana, R. (2019) Can machines learn to predict weather? Using deep learning to predict gridded 500-hPa geopotential height from historical weather data. Jour- nal of Advances in Modeling Earth Systems, 11, 2680-2693. Available from: https://doi.org/10.1029/2019MS001705
+Yoo, H. & Li, Z.Q. (2012) Evaluation of cloud properties in the NOAA/NCEP global forecast system using multiple satellite products. Climate Dynamics, 39, 2769-2787. Available from: https://doi.org/10.1007/s00382-012-1430-0
+

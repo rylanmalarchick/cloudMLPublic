@@ -13,28 +13,28 @@ log_dir: "/content/drive/MyDrive/CloudML/logs/"
 # --- Experiment Parameters ---
 pretrain_flight: "30Oct24"
 overweight_flight: "30Oct24"
-overweight_factor: 2.0  # TUNED: Reduced from 3.5 (less aggressive, prevents catastrophic forgetting)
+overweight_factor: 2.0 # TUNED: Reduced from 3.5 (less aggressive, prevents catastrophic forgetting)
 validation_flight: "12Feb25"
 
 # --- Training Parameters ---
-learning_rate: 0.0005  # TUNED: Reduced from 0.001 (more stable, less overshooting)
+learning_rate: 0.0005 # TUNED: Reduced from 0.001 (more stable, less overshooting)
 weight_decay: 0.04
 epochs: 50
 optimizer: "AdamW"
 scheduler: "ReduceLROnPlateau"
-temporal_frames: 5
+temporal_frames: 7 # TIER 1: Increased from 5 to 7 for more spatial coverage (if data permits)
 loss_type: "huber"
 loss_alpha: 0.5
-early_stopping_patience: 10  # TUNED: Reduced from 15 (stop sooner when not improving)
+early_stopping_patience: 10 # TUNED: Reduced from 15 (stop sooner when not improving)
 filter_type: "basic"
-early_stopping_min_delta: 0.0005  # TUNED: Increased from 0.00025 (require more significant improvement)
+early_stopping_min_delta: 0.0005 # TUNED: Increased from 0.00025 (require more significant improvement)
 huber_delta: 1.0
 gamma: 1.5
 under_weight: 1.0
 loo: false
 loo_epochs: 30
 batch_size: 20
-warmup_steps: 500  # TUNED: Reduced from 2000 (start learning sooner)
+warmup_steps: 500 # TUNED: Reduced from 2000 (start learning sooner)
 hard_mining_k: 0.35
 hard_mining_factor: 1.5
 swath_slice: [40, 480]
@@ -54,6 +54,8 @@ prefetch_factor: 3
 # --- Model Architecture ---
 use_spatial_attention: true
 use_temporal_attention: true
+use_multiscale_temporal: true # TIER 1: Enable multi-scale temporal attention
+attention_heads: 4 # TIER 1: Number of attention heads for multi-scale attention
 flat_field_correction: true
 clahe_clip_limit: 0.01
 zscore_normalize: true
@@ -90,8 +92,15 @@ flights:
     cFileName: "12Feb25/CPL_L2_V1-02_01kmLay_259016_12feb25.hdf5"
     nFileName: "12Feb25/CRS_20250212_nav.hdf"
 
+# --- Self-Supervised Pre-training (TIER 1) ---
+pretraining:
+  enabled: true # TIER 1: Enable self-supervised pre-training
+  epochs: 20 # Number of pre-training epochs
+  learning_rate: 0.0001 # Lower LR for pre-training
+  save_checkpoints: true
+  checkpoint_dir: "/content/drive/MyDrive/CloudML/models/pretrained/"
 # --- Notes ---
-# TUNED CONFIGURATION based on baseline run analysis
+# TUNED CONFIGURATION based on baseline run analysis + TIER 1 IMPROVEMENTS
 #
 # Changes from colab_optimized_full.yaml:
 # 1. learning_rate: 0.001 → 0.0005
@@ -114,11 +123,26 @@ flights:
 #    - Reason: Require more significant improvement to count as progress
 #    - Impact: Less sensitivity to noise, clearer improvement signal
 #
-# Expected improvements:
+# TIER 1 IMPROVEMENTS (Literature-driven):
+# 1. temporal_frames: 5 → 7
+#    - Based on Himawari-8 paper (used 6 input frames)
+#    - More spatial views = better shadow height triangulation
+#
+# 2. use_multiscale_temporal: true
+#    - Based on Himawari-8 paper multi-scale processing
+#    - Captures cross-view relationships at different scales
+#    - Expected: +5-10% R² improvement
+#
+# 3. Self-supervised pre-training enabled
+#    - Based on LSTM Autoencoder paper (two-stage learning)
+#    - Encoder learns spatial features via reconstruction before supervised training
+#    - Expected: +10-20% R² improvement
+#
+# Combined TIER 1 expected improvements:
+# - R² improvement: +15-25% (target: 0.15-0.25)
 # - More stable validation loss curve
-# - Better R² (hopefully > 0)
-# - Faster convergence (fewer wasted epochs)
-# - Less overfitting (gentler overweighting)
+# - Better feature representations
+# - Less reliance on limited labeled data
 #
 # First run results (for comparison):
 # - R²: -0.0927 (worse than mean baseline)
@@ -127,8 +151,8 @@ flights:
 # - Best val loss: 0.9440 at epoch 14
 # - Then 15 epochs of no improvement
 #
-# Target for this run:
-# - R² > 0.3 (at least better than mean)
+# Target for TIER 1 run:
+# - R² > 0.15 (meaningful predictive power)
 # - MAE < 0.30 km
 # - RMSE < 0.45 km
 # - Stable val loss curve

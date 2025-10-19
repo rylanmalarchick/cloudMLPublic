@@ -56,6 +56,91 @@ class TemporalAttention(nn.Module):
         return context_vector, attn_weights.squeeze(-1)
 
 
+class MultiScaleTemporalAttention(nn.Module):
+    """
+    Multi-scale attention across temporal/spatial frames.
+    Processes frames at different temporal scales before attention.
+    Based on Himawari-8 paper insights - captures features at multiple scales.
+
+    For cloud shadow height: treats the 5 simultaneous camera views as a "temporal"
+    sequence and applies multi-scale processing to capture cross-view relationships
+    at different scales.
+    """
+
+    def __init__(self, feature_dim, num_heads=4):
+        super().__init__()
+        self.feature_dim = feature_dim
+
+        # Multi-scale processing paths
+        self.scale_1 = nn.Identity()  # Full resolution
+
+        self.scale_2 = nn.Sequential(  # 2-frame average
+            nn.Conv1d(feature_dim, feature_dim, kernel_size=2, stride=1, padding=1),
+            nn.BatchNorm1d(feature_dim),
+            nn.ReLU(),
+        )
+
+        self.scale_3 = nn.Sequential(  # 3-frame average
+            nn.Conv1d(feature_dim, feature_dim, kernel_size=3, stride=1, padding=1),
+            nn.BatchNorm1d(feature_dim),
+            nn.ReLU(),
+        )
+
+        # Attention over concatenated multi-scale features
+        self.attention = nn.MultiheadAttention(
+            embed_dim=feature_dim * 3,  # Concatenated scales
+            num_heads=num_heads,
+            dropout=0.1,
+            batch_first=True,
+        )
+
+        # Project back to original dimension
+        self.projection = nn.Linear(feature_dim * 3, feature_dim)
+        self.layer_norm = nn.LayerNorm(feature_dim)
+
+    def forward(self, x):
+        """
+        Args:
+            x: (batch, seq_len, feature_dim) - sequence of frame features
+        Returns:
+            attended: (batch, feature_dim) - aggregated feature vector
+            weights: attention weights
+        """
+        batch_size, seq_len, feat_dim = x.shape
+
+        # Transpose for Conv1d: (batch, feature_dim, seq_len)
+        x_t = x.transpose(1, 2)
+
+        # Multi-scale processing
+        scale1_out = self.scale_1(x_t)  # (batch, feat, seq_len)
+        scale2_out = self.scale_2(x_t)  # Conv1d with padding
+        scale3_out = self.scale_3(x_t)  # Conv1d with padding
+
+        # Ensure all scales have same seq_len by trimming if needed
+        min_len = min(scale1_out.size(2), scale2_out.size(2), scale3_out.size(2))
+        scale1_out = scale1_out[:, :, :min_len]
+        scale2_out = scale2_out[:, :, :min_len]
+        scale3_out = scale3_out[:, :, :min_len]
+
+        # Concatenate scales: (batch, feat*3, seq_len)
+        multi_scale = torch.cat([scale1_out, scale2_out, scale3_out], dim=1)
+
+        # Transpose back: (batch, seq_len, feat*3)
+        multi_scale = multi_scale.transpose(1, 2)
+
+        # Apply attention
+        attended, attn_weights = self.attention(multi_scale, multi_scale, multi_scale)
+
+        # Pool over sequence dimension
+        attended_pooled = attended.mean(dim=1)  # (batch, feat*3)
+
+        # Project back to original feature dimension
+        output = self.projection(attended_pooled)  # (batch, feat_dim)
+        output = self.layer_norm(output)
+
+        return output, attn_weights
+
+
 class FiLMLayer(nn.Module):
     """
     Feature-wise Linear Modulation (FiLM) layer.
@@ -89,7 +174,15 @@ class MultimodalRegressionModel(nn.Module):
         self.dense_layers = self._build_dense_layers()
         self.output = nn.Linear(self.config["dense_layers"][-1]["size"], 1)
         self.spatial_attention = SpatialAttention(1)
-        self.temporal_attention = TemporalAttention(self.cnn_output_size)
+
+        # Use multi-scale temporal attention if specified in config
+        if self.config.get("use_multiscale_temporal", False):
+            self.temporal_attention = MultiScaleTemporalAttention(
+                self.cnn_output_size, num_heads=self.config.get("attention_heads", 4)
+            )
+        else:
+            self.temporal_attention = TemporalAttention(self.cnn_output_size)
+
         self._initialize_weights()
 
     def _build_cnn_layers(self):

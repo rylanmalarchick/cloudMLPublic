@@ -13,6 +13,7 @@ from .pytorchmodel import get_model_config, get_model_class
 from .train_model import train_model
 from .evaluate_model import evaluate_model_and_get_metrics
 from .visualization import plot_results
+from .pretraining import pretrain_encoder  # TIER 1: Self-supervised pre-training
 
 
 def run_pretraining(
@@ -89,10 +90,35 @@ def run_pretraining(
     model_config["use_temporal_attention"] = config.get("use_temporal_attention", True)
     model_config["gradient_checkpointing"] = config.get("gradient_checkpointing", False)
 
+    # TIER 1: Multi-scale temporal attention
+    model_config["use_multiscale_temporal"] = config.get(
+        "use_multiscale_temporal", False
+    )
+    model_config["attention_heads"] = config.get("attention_heads", 4)
+
     model_class = get_model_class(
         config.get("architecture", {}).get("name", "transformer")
     )
     model = model_class(model_config).to(device)
+
+    # TIER 1: Self-supervised pre-training phase
+    pretraining_config = config.get("pretraining", {})
+    if pretraining_config.get("enabled", False):
+        print("\n" + "=" * 70)
+        print("TIER 1: SELF-SUPERVISED PRE-TRAINING ENABLED")
+        print("=" * 70)
+        model = pretrain_encoder(
+            model,
+            train_loader,
+            epochs=pretraining_config.get("epochs", 20),
+            lr=pretraining_config.get("learning_rate", 1e-4),
+            device=device,
+            save_checkpoints=pretraining_config.get("save_checkpoints", True),
+            checkpoint_dir=pretraining_config.get(
+                "checkpoint_dir", "models/pretrained"
+            ),
+        )
+        print("Pre-training complete! Proceeding to supervised training...\n")
 
     # Apply torch.compile() for performance optimization (PyTorch 2.0+)
     use_compile = config.get("torch_compile", False)

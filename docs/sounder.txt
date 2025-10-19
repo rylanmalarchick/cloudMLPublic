@@ -1,0 +1,324 @@
+
+
+
+
+
+Using Sounder Data to Improve Cirrus Cloud Height Estimation from Satellite Imagers
+
+ANDREW K. HEIDINGER
+NOAA/NESDIS/Center for Satellite Applications and Research, Madison, Wisconsin
+
+NICHOLAS BEARSON, MICHAEL J. FOSTER, YUE LI, STEVE WANZONG, STEVEN ACKERMAN,
+AND ROBERT E. HOLZ
+Cooperative Institute for Meteorological Satellite Studies, University of Wisconsin-Madison, Madison, Wisconsin
+
+STEVEN PLATNICK AND KERRY MEYER
+NASA Goddard Space Flight Center, Greenbelt, Maryland
+(Manuscript received 1 June 2018, in final form 18 April 2019) ABSTRACT
+
+  Modern polar-orbiting meteorological satellites provide both imaging and sounding observations simul- taneously. Most imagers, however, do not have H2O and CO2 absorption bands and therefore struggle to accurately estimate the height of optically thin cirrus clouds. Sounders provide these needed observations, but at a spatial resolution that is too coarse to resolve many important cloud structures. This paper presents a technique to merge sounder and imager observations with the goal of maintaining the details offered by the imager's high spatial resolution and the accuracy offered by the sounder's spectral information. The technique involves deriving cloud temperatures from the sounder observations, interpolating the sounder temperatures to the imager pixels, and using the sounder temperatures as an additional constraint in the imager cloud height optimal estimation approach. This technique is demonstrated using collocated VIIRS and Cross-track In- frared Sounder (CrIS) observations with the impact of the sounder observations validated using coincident CALIPSO/CALIOP cloud heights These comparisons show significant improvement in the cloud heights for optically thin cirrus. The technique should be generally applicable to other imager/sounder pairs.
+
+
+
+1. Introduction
+  Cloud height estimation from satellites is an important capability. Cloud heights are being used for the height assignment of cloud-drift wind vectors (Bresky et al. 2012; Borde and Dubuisson 2010), which have a direct impact on numerical weather prediction (NWP). Cloud height is also an important climate variable and provides insight into the variability in atmospheric dynamics and ener- getics (Marvel et al. 2015) as well as inferring cloud feedback in a warming climate (Hartmann and Larson 2002; Li et al. 2012).
+  The most common method of estimating cloud height from satellites is through the use of infrared (IR) observations (Menzel et al. 2008; Heidinger and
+
+
+  Corresponding author: Andrew Heidinger, andrew.heidinger@ noaa.gov
+
+Pavolonis. 2009), which are provided by meteorologi- cal imagers and sounders. Imagers typically provide a limited number of channels at high (1-2 km) spatial resolution while sounders provide much more spectral information but at lower spatial resolution (10-20 km). The spectral information offered by sounders does provide accurate cloud heights for most ice cloud re- gimes including multilayer scenes (Susskind et al. 2003; Li et al. 2005; Kahn et al. 2007) and are successfully used for many applications (Kahn et al. 2014). How- ever, in some applications it is advantageous to use cloud heights at the fine spatial resolution offered by imagers. Examples of these applications include the derivation of atmospheric motion vectors (AMVs) (Velden et al. 2017), the study of convection, and the study of aerosol/cloud interactions. In addition, other imager applications often require knowledge of cloud height such as cloud microphysical retrievals, which use
+
+
+DOI: 10.1175/JTECH-D-18-0079.1
+(c) 2019 American Meteorological Society. For information regarding reuse of this content and general copyright information, consult the AMS Copyright Policy (www.ametsoc.org/PUBSReuseLicenses).
+
+
+
+  FIG. 1. Image of a deep convective cloud exhibiting an overshooting top taken from an aircraft. Overlaid are hypothetical retrievals from imager (red) and sounder (yellow). Imager provides high spatial resolution and accurate retrievals in the opaque parts of cloud. Sounder provides coarse spatial resolution but accurate retrievals for the spatially smooth and optically thin cirrus regions. Photo courtesy M. Setvák, 2007. Image taken from the EUMETSAT website (http://convectivestorm.blogspot.com/p/overshooting-tops-in-vis-and-ir-bt.html).
+
+
+
+cloud height to predict atmospheric correction terms (Platnick et al. 2017).
+  The goal of the paper is to demonstrate a method that can exploit the accuracy offered by the spectral in- formation of the sounder to improve cloud heights generated at the high spatial resolution offered by the imager. Figure 1 illustrates this concept. This figure shows an image taken from an aircraft of a deep con- vective cloud that exhibits an overshooting top and an extensive anvil. The convective regions are opaque and exhibit fine spatial structures while the anvil region is optically thinner and spatially smoother. Overlaid on Fig. 1 are hypothetical imager (red) and sounder (yellow) retrievals, which are drawn to illustrate the main motivation for the technique described here. The yellow lines represent the sounder retrievals that have a coarse spatial resolution and are accurate in the anvil but miss the structure of the core and the cloud edges. The imager heights (red) capture the structure of the core and the cloud edges but are generally less accurate in the anvil. The goal of this technique is to exploit the accuracy of the sounder and the fine spatial resolution of the imager to yield a final product that is optimal in terms of accuracy and spatial information.
+  The new technique uses the cloud heights generated with sounder data as a new a priori constraint in an imager cloud height retrieval based on optimal estima- tion (OE). The optimal estimation algorithm used here is the Algorithm Working Group (AWG) Cloud Height
+
+
+Algorithm (ACHA) (Heidinger and Pavolonis 2009), which is the operational algorithm for NOAA Visible Infrared Imaging Radiometer Suite (VIIRS) processing and is used in the Moderate Resolution Imaging Spec- troradiometer (MODIS) AWG (MODAWG) process- ing for the NASA National Polar-Orbiting Partnership (NPP) MODIS Continuity Project. It is also the sole target cloud height assignment method used in the GOES-R AWG AMV software package, when tracking cloud objects.
+  This method is applicable to any imager/sounder pair and to any method of sounder height estimation, and has been successfully implemented in two major applications. The first targeted application is the NPP MODIS Conti- nuity Project, which aims to generate cloud products from VIIRS and the Cross-track Infrared Sounder (CrIS) that are physically consistent with those from the EOS sensors (MODIS and AIRS). The second involves the Advanced Very High Resolution Radiometer (AVHRR) and the High Resolution Infrared Radiation Sounder (HIRS) and aims to generate an improved version of the Pathfinder Atmospheres-Extended (PATMOS-x) cloud climatology (Heidinger et al. 2014). In both of these ap- plications, the imagers (AVHRR and VIIRS) lack the IR channels in H2O and CO2 absorption bands needed for accurate thin ice cloud height estimation. These IR channels are present on MODIS, which flies on the EOS Aqua and Terra missions. The MODIS cloud height products use the four channels in the 14-mm CO2 band
+
+and have been used for real-time and climate applications (Holz et al. 2006). The sounder observations are used to replicate these four MODIS CO2 bands, and the CO2 slicing technique is used here to generate the sounder cloud height observations used later.
+  This paper will discuss the steps and assumptions used in this technique and will demonstrate the method on the VIIRS/CrIS sensor suite. Spaceborne lidar data from the Cloud-Aerosol Lidar and Infrared Pathfinder Sat- ellite Observations (CALIPSO) mission (Winker et al. 2009) will be used to quantify the positive impact of the sounder data on the ACHA cloud products relative to the imager-only retrieval.
+  In addition to this method, other approaches are also being developed to merge imager and sounder data with the goal of improving cloud products at the spatial resolution of the imager. Weisz et al. (2012) used re- gressions based on the gradients of imager window channels within sounder footprints to downscale the sounder cloud heights to the imager resolution. An- other technique uses statistical relationships between imager channels and sounder channels convolved with imager channel spectral response functions (SRFs) to generate new imager channels that can be used in many applications. One application of this technique uses CrIS and VIIRS to generate a MODIS-like 13.3-mm channel to improve cloud height retrievals (Cross et al. 2013). Recently, Weisz et al. (2017) have extended this technique to other MODIS-like bands. The technique described here differs from these in that it starts with an imager-resolution cloud height algorithm and uses the sounder information as a new piece of information in an optimal estimation approach.
+
+2. Data
+  All data used here are provided by the NASA NPP Atmospheric Science Investigator-led Processing System (SIPS) located at the University of Wisconsin-Madison Space Science and Engineering Center (SSEC). The tools to merge the imager and the sounder data into a MODIS- like file were developed at CIMSS as part of the NOAA GOES-R support (Nagle and Holz 2009) and are dis- cussed in the appendix.
+  For this study, VIIRS-CrIS Intermediate File Format (IFF) data are generated to match the CrIS granule time span of around 8 min for 1-8 January and 20-26 August 2015. IFF files are aggregated imager files that include additional channels derived from the sounder. Details on the IFF data are discussed in the appendix. Only the CO2 channels from CrIS are used here, though other MODIS-like channels exist in the IFF data. No attempt is made to extrapolate the CrIS data into VIIRS pixels
+
+that fall outside of the CrIS footprints. The IFF data include a mask that tells when a VIIRS pixel falls outside of a CrIS footprint. Using this mask, about 35% of the VIIRS pixels within the CrIS swath falls outside of a CrIS footprint. In terms of all VIIRS pixels, 50% falls outside of a CrIS footprint.
+a. CALIPSO
+  The Cloud-Aerosol Lidar with Orthogonal Polariza- tion (CALIOP) instrument is a two-wavelength (532 and 1064 nm) near-nadir viewing active lidar on board CALIPSO. It sends out lidar pulses and detects the backscatter signal, providing high-resolution vertical profiles of aerosols and clouds. This study will use CALIPSO/CALIOP L2, version 3.30, cloud-layer prod- uct as truth data and collocate CALIPSO with VIIRS- CrIS IFF granules to demonstrate the value of combined imager-sounder observations. The collocation is being conducted so that the VIIRS and CALIPSO observation times are within 15 min and the distance difference df is no larger than 48. These numbers are selected to maxi- mize collocations and the major findings do not change if tighter thresholds are used. Here, df is defined as
+  df 5 q(??l??a??t????2?????l?a???t???)??2???1????[??(??l?o???n?????2?????l?o???n????)???3?????c??o???s?(??l??a??t???)??]??2? , where lat and lon stand for latitude and longitude, and
+y and c denote VIIRS and CALIPSO.
+  The CALIPSO 1- and 5-km cloud-layer (CLay) prod- ucts were merged in this study to exploit the higher res- olution of the 1-km product and enhanced thin cirrus detection capability of the 5-km data. This was accom- plished by first collocating the 5-km CALIOP product with the VIIRS data. The collocation was then repeated using 1-km CALIOP data. If a VIIRS pixel had no cloud from the 5-km data but did have cloud from 1-km data, the 1-km results were used. If a VIIRS pixel had a cloud from both the 5- and 1-km data, the 5-km values were used. Since there is no optical depth in the 1-km CLay product, the column optical depth for the additional clouds from the 1-km-resolution files was set to 3, a value where CALIOP saturates. It is assumed only smaller-scale and more opaque clouds are missing in the 5-km CLay product. The apparent shift of the position of the object when viewed from different angles, known as parallax, affects collocation of satellite data from different platforms (Wang et al. 2011). During the collocation process, a par- allax correction is made using the highest cloud height and the azimuth and viewing angles of the imager (i.e., VIIRS). The purpose for the inclusion of CALIPSO/CALIOP data is to have a reference for the true cloud-top height. Because of the nature of IR radiative transfer,
+
+IR cloud-top height algorithms typically report a value 1 or 2 km below the true cloud-top height detected by a lidar. Holz et al. (2006) verified that IR heights for thick clouds correspond to the level of optical depth equal to 1 into the cloud. Unless stated otherwise, for this study truth is defined as the center of the highest cloud layer from the CALIOP cloud-layer product. If there is no base reported for the highest layer, the top of the layer is used as truth. Therefore, the assumption used here should be valid for vertically homogenous clouds with optical depths less than or equal to 2. Since CALIPSO cloud optical depths saturate for values greater than 3, it is only a small fraction of clouds where this adjustment will result in an underestimation of the true height. As stated above, for thick cloud there is no cloud base reported. When no cloud base is available, no adjustment to the reported top-layer height is made. For the rest of this paper, any mention of CALIOP cloud-top height will refer to these adjusted values unless stated otherwise.
+b. CLAVR-x
+  The processing framework used here was the Clouds from Advanced Retrievals Extended (CLAVR-x). CLAVR-x has served as an operational system in NOAA/NESDIS for AVHRR and GOES cloud prod- uct generation. CLAVR-x also serves as the processing system for the PATMOS-x climate dataset (Heidinger et al. 2014). CLAVR-x is also part of the processing chain used in the NPP MODIS Continuity Project. For this project, CLAVR-x was modified to read the VIIRS/CrIS IFF data described above. In addition to running the cloud-height algorithm described below, CLAVR-x also provides the cloud-mask and cloud- type information.
+c. ACHA
+  The cloud height algorithm used here was the ACHA. ACHA employs an optimal estimation approach (Rodgers 1976) that uses analytical cloudy radiative transfer ap- proximations and the Pressure-Layer Fast Algorithm for Atmospheric Transmittance (PFAAST) model (Hannon et al. 1996), a fast clear-sky radiative transfer model, to achieve the computational efficiency demanded by real- time processing at NESDIS. For technical details on ACHA, refer to Heidinger and Pavolonis (2009) and Heidinger (2011). ACHA retrieves cloud-top tempe- rature, cloud emissivity, and a microphysical index (b). Cloud-top pressure and cloud-top height are derived from the cloud-top temperature and NWP profiles. Cloud op- tical depth and effective radius are derived using the methodology laid out in Heidinger et al. (2015). ACHA is designed to operate on the many channel combinations offered by various meteorological imagers. For this study,
+
+
+
+FIG. 2. Flowchart illustrating the individual parts of the method- ology developed here.
+
+which focuses on VIIRS, ACHA retrieves using the 8.5-, 11-, and 12-mm observations. When processing AVHRR and HIRS, ACHA uses the 11- and 12-mm observations.
+
+3. Methodology
+  The methodology developed here is composed of several distinct steps and these are shown in the flow- chart in Fig. 2. The generation of the collocated sounder and imager data and sources of the sounder and imager level-1b data are described above and in the appendix. In addition, the imager cloud-type algorithm is part of the CLAVR-x system and not described further. Its role here is to identify cirrus clouds. The critical part of this methodology are the lower three boxes in Fig. 2. The sounder height algorithm is of course critical to ultimate success of this approach but this methodology could be applied to a sounder height product made from any technique. The following sections explain the sounder- derived cloud products and their use in the imager cloud algorithm.
+a. Sounder-derived cloud height
+  The first step in this process is the retrieval of cloud- height and temperature from the sounder observations. The specific method used to derive the sounder heights does not impact the proposed methodology. Ideally, the sounder height would be derived from the most accurate
+
+techniques that exploit the full capabilities of the sounder data. Multiple methods exist to derive cloud height from the IR sounder observations. One popular cloud height estimation is the CO2 slicing approach (Menzel et al. 2008) and it is the method adopted here to generate the sounder cloud height. CO2 slicing has been applied to the four longwave IR CO2 channels present on the Terra/Aqua MODIS sensors (channels 33/13.3, 34/13.6, 35/13.9, and 36/14.2 mm). Given that the IFF VIIRS/CrIS data provided the MODIS-like CO2 chan- nels, adoption of the CO2 slicing approach for this project was a natural choice. It is important to clarify that the VIIRS-only results shown later are not derived in any way from the CO2 channels and use only those channels available on VIIRS.
+  The method implemented here is similar to that run by the MODIS Science Team set of cloud height products (aka MYD06) (Menzel et al. 2015). The ap- proach estimates a height for each of the CO2 three channel pairs (channels 33/34, 34/35, and 35/36). Each channel pair results in a cloud height estimation. If multiple CO2 results are generated, the result from the highest-peaking channel pair is taken as the final an- swer. The implementation is done on b profiles, which are discussed in Heidinger et al. (2010). The b values are the ratio of IR emissivities from different spectral bands. Since the CO2 channels are spectrally close, the CO2 solution for a channel pair occurs where the b profiles take on a value of 1.0. This method differs from MYD06 in that the use of sensor noise to de- termine valid solution was not used since the sensor noise from the MODIS-derived channels from CrIS is not known at this time but it is presumably much less than the true MODIS CO2 channel noise. In addition, window-channel solutions were ignored since the sounder heights are used only for ice clouds.
+  Figure 3 shows the bias distribution of the sounder height derived from the MODIS-like CrIS CO2 channels on 10 March 2013 compared to that from CALIPSO/ CALIOP. Data are filtered to include pixels indic- ating single-layer, phase-matched ice clouds with cloud emissivity less than 0.63 (optical depth less than 1). The VIIRS cloud type and phase algorithm used here is that used in CLAVR-x (Pavolonis et al. 2005) and the mul- tilayer flag as well as the optical depth are taken from CALIOP. Using the technique described above, the CALIOP cloud height is adjusted downward into the cloud to approximate what an IR retrieval should report. As described in the next section, these values are com- puted at the spatial resolution of CrIS and are spatially interpolated to the VIIRS pixels. As Fig. 3 shows, the sounder height shows little bias compared to CALIOP. The standard deviation in the height difference
+
+
+
+  FIG. 3. Histogram distribution showing differences between sounder and lidar ice cloud height along the CALIPSO track for one day, 10 Mar 2013. Data are filtered to include single-layer phase-matched ice clouds with emissivity less than 0.63, which approximately equates to an optical depth of 1. The vertical gray bars indicate the standard deviation of this height difference.
+
+
+is 1.52 km, which equates to a cloud temperature stan- dard deviation of roughly 9.88 K. It is the standard de- viation of the cloud temperature that is used in implementing the sounder constraint in the imager OE cloud height algorithm. Note that Holz et al. (2008) compared MODIS high cloud height with CALIOP and reported a similar standard deviation of 1.8 km for single- layer CO2 slicing-only retrievals.
+b. Generating an a priori constraint on cirrus cloud temperature from sounder data
+  For some imager and sounder combinations, some imager pixels will fall outside of the sounder fields of view. The spatial gap between sounder pixels varies among each sounder instrument. To use the sounder- derived cloud heights for the imager, the spatial gaps need to be filled. To accomplish this, the sounder-derived heights are spatially interpolated between the gaps. The interpolation is done only for ice cloud retrievals. The assumption is made that the spatial variation of the tops of ice clouds is uniform. To test this assumption, an analysis of CALIPSO/CALIOP 1-km CLay data is made. The standard deviation of the height of the highest ice clouds are computed as a function of the averaging distance. Figure 4 shows the variation of the mean standard deviation of the cloud height as a function of the averaging distance. The data are com- puted for all CALIPSO/CALIOP data from 20 August 2015. It is demonstrated that the spatial variability of ice cloud height is generally less than the uncertainty of the sounder height retrieval. Therefore, smoothing sounder heights over a large area and interpolating to imager resolutions is an efficient and reliable way to provide the a priori values for the OE approach.
+
+
+
+  FIG. 4. Variation of the standard deviation of the highest ice cloud height retrieved by CALIPSO/CALIOP 1-km CLay product as a function of the averaging scale. Data are all orbits from 20 Aug 2015. The solid line is the mean value of the standard deviation. The dashed line shows the standard deviation of the difference between the sounder retrieval and the CALIPSO/CALIOP heights. 300 km was chosen as the size of spatial averaging window for this study.
+
+
+  Figure 5 shows an example region with an 8-min IFF granule on 20 August 2015. The region is selected to demonstrate the structures of the sounder and imager data. The bright color in the 11-mm brightness tempera- ture image indicates the presence of cold ice cloud tops. Figure 5b shows cloud heights retrieved by the sounder. Gaps are observed between sounder footprints and the footprint size becomes larger as it moves to the edge of the scan. The gaps are largely filled after spatial smoothing, where a cloud pressure less than 440-hPa constraint and cloud-type information have been applied to filter out nonice clouds (Fig. 5c). It is the smoothed sounder re- trievals that are adopted for comparison and used as an
+
+opaque cloud retrieval. For cirrus clouds, the initial a priori value of the cloud temperature was provided by an offset NWP tropopause temperature. In Heidinger and Pavolonis (2009), this offset was 15 K and was determined by a global comparison of CALIPSO/CALIOP data and NWP tropopause temperatures. Since then, this global offset has been replaced by a latitudinally varying value. The sounder heights derived above now offer an ad- ditional constraint to ACHA. Figure 6 shows these two a priori values for 20 August 2015 computed for the ascending node data of VIIRS and CrIS. Figure 6a shows that NWP/CALIPSO-derived cirrus cloud-top temperature. It is computed everywhere and does not rely on the actual observations or the presence of cloud. Figure 6b shows the sounder cloud-top temperatures for this day. These data only exist where there was ice cloud, the CO2 slicing approach was successful, and the spatial interpolation was successful. There are evident differences where the a priori cirrus temperature is available from the sounder, particularly for tropical
+regions where cirrus is prevalent.
+  To combine these a priori values, ACHA was modified to construct a new single a priori cloud-top temperature value based on the weighted sum of the two separate a priori values. The weights are the standard deviation es- timates from each of these a priori values. For the NWP/ CALIPSO values, the standard deviations come from the latitudinal variation comparisons of the NWP tropopause and CALIPSO cloud temperatures. For the sounder a priori, the standard deviations come from the CALIPSO/ CALIOP bias distribution shown in Fig. 3 (;10 K). Therefore, the new a priori value (xa) and its uncertainty estimate (Sa) are now given by the following relation:
+
+additional constraint for the next retrieval step. It is noted that this ice cloud system shows multilayer structures in
+
+xa 5 (xas
+
+/Sas
+
+1 xai
+
+/Sai
+
+)/(1/Sas
+
+1 1/Sai), 
+
+the upper center surrounded by single-layer cirrus clouds at the edges. Current cloud height retrieval methods, in-
+
+Sa 5 (1/Sas
+
+1 1/Sai
+
+)21 ,
+
+cluding the CO2 slicing technique, tend to estimate lower heights when multilayer clouds are present, as observed here. The final retrieved cloud-top height (Fig. 5d), which will be discussed below, appears similar as the smoothed sounder background and captures detailed cloud struc- tures at the imager resolution.
+c. Modifying imager OE to accept sounder height constraint
+  As stated above, the target algorithm here, ACHA, is an OE cloud height retrieval. In common with all OE approaches, ACHA uses a priori estimates of its retrieved parameter, including cloud-top temperature. For a cloud determined to be opaque, the a priori value is the cloud- top temperature derived from a simple single-channel
+
+where xas and xai stand for the a priori values from sounder and imager, respectively, and similarly for the matrix element Sa. Note that no changes are made to other elements in the OE approach. In the following comparisons, retrieval differences between with sounder (VIIRS 1 CrIS) and without sounder (VIIRS alone) constraints are solely due to the aforementioned modi- fications. This approach makes effective use of the sounder information without any additional computa- tional burden to the original OE approach. More com- plicated methods do exist but would require additional matrix mathematics that may computationally impede the operational utility of ACHA.
+  Figure 7 illustrates the impact of this new sounder constraint on the scene shown in Fig. 5. Figure 7 shows
+
+
+
+  FIG. 5. An example region within an IFF granule between 2213 and 2221 UTC 20 Aug 2015 shows (a) 11-mm brightness temperature, (b) sounder height at original resolution, (c) smoothed sounder height background, and
+(d) final retrieved cloud height for both water and ice phases. Smoothing is applied to sounder field of views with cloud pressure less than 440 hPa and ice phase only in (c). Water cloud retrievals in (d) are not impacted by sounder. The color bar at the bottom applies to all of the cloud height images.
+
+
+
+the difference between imager height retrieval with and without the sounder constraint and the sounder height. The imager solution that relies solely on window channel observations struggles to accurately estim- ate cloud heights. Therefore, for thin ice clouds with emissivity less than 0.4, the impact of including the sounder constraint should be and is significant. The bias is mostly negative, suggesting an underestimation of thin ice cloud top, for imager-only retrieval with a
+
+
+large spread. The peak tends to be close to 0 and showing a much narrower distribution when sounder is included. As cloud emissivity increases, the impact is decreasing. For optically thicker clouds with emissivity larger than 0.80, the difference are minimal. This is consistent as Fig. 1 illustrates that non-CO2 channels, 8.5, 11, and 12 mm, can perform equally well for thick clouds. In Fig. 7d, when all data are used, the standard deviation of the bias decreases from 1.65 to 0.61 km
+
+
+
+  FIG. 6. Maps of the a priori cloud-top temperatures used in ACHA. (a) The value taken from an offset in temperatures from the NWP tropopause temperature. The offset is determined via comparisons with CALIPSO.
+(b) The sounder cloud-top temperatures. Both images are constructed from the ascending node VIIRS/CrIS data from 20 Aug 2015.
+
+
+showing the overall impact of including the sounder data on the retrieval.
+
+4. Impact of sounder data on CALIPSO/CALIOP comparisons
+  In the previous section, the impact of the sounder data on the OE cloud height algorithm was demonstrated. In this section, comparisons are made to the CALIPSO/ CALIOP data, which allows for a direct assessment of the impact of the sounder improvements to the original
+
+imager-only retrieval. Figure 8 illustrates the compari- sons between CALIPSO/CALIOP and the VIIRS data for a single scene. The scene is from a nighttime collo- cation of SNPP and CALIPSO over the tropical South Pacific Ocean. The red pixels are the sounder-only (CrIS only) retrievals. The blue points are the imager-only (VIIRS only) retrievals and the black points are the retrievals from the VIIRS that use the sounder con- straint. The gray regions show the extent of the atmo- sphere that CALIPSO detected as cloud. The truth is provided by cloud tops from CALIPSO/CALIOP lidar.
+
+
+
+
+  FIG. 7. Biases of the ACHA ice cloud height relative to the sounder height with and without including sounder data as the a priori. The same scene as in Fig. 5 is used, and clouds are separated based on emissivity ranges for
+(a) 0-0.4, (b) 0.4-0.8, (c) 0.8-1, and (d) 0-1. Numbers in the legends are the standard deviation of the biases.
+
+
+
+  FIG. 8. Comparison of retrieved cloud-top height from VIIRS along the CALIPSO track between 1949 and 1957 UTC 20 Aug. Circle and 3 symbols in the figure indicate retrieval with and without using sounder data as the a priori. Square symbol denotes retrieval from sounder directly. Gray shaded areas indicate CALIOP detected cloud boundaries. Only retrievals for pixels with mutually agreed ice phase are shown.
+
+As described above, the lidar results are adjusted down to better match the IR results. This adjustment allows the IR retrievals to be higher than the lidar values. Without this adjustment, the lidar values would be 1 to 2 km higher than the IR retrievals. As Fig. 8 indicates, the sounder values (red) tend to outperform the imager-only values (blue) and the inclusion of the sounder constraint into the imager algorithm brings
+
+the imager values (black) into better agreement with both CALIPSO/CALIOP and the sounder values.
+  Figure 9 shows the results for the CALIPSO/CALIOP comparisons generated for 15 days in January and August 2015, from the merged 5- and 1-km-resolution cloud-layer products. The details of the contents and process for making these files are described above. The results shown here are filtered by ignoring multilayer clouds and any clouds that were not ice phase as de- termined by VIIRS and CALIPSO/CALIOP. Figure 9 uses the same format as Fig. 6 where each panel represents a range in cloud emissivity. The x axis in Fig. 9 now shows the bias of the ACHA retrieval against the CALIPSO/CALIOP data and not the sounder retrieval as in Fig. 7. The ideal behavior for Fig. 8 would be to show a large impact of the sounder data for the thinnest cloud and that the imager plus sounder retrievals agree better with CALIPSO/CALIOP. As Fig. 9 shows, this behavior is generally observed. These characteristics are most evident in Fig. 9a (thin- nest clouds). As explained in Fig. 6, the impact of sounder data for the thicker clouds (Fig. 9c) is less be- cause of the strong sensitivity of the imager observations to cloud height (the sounder constraint is ignored). In this panel, the sounder data and the imager plus sounder data differ slightly with respect to CALIPSO but that is expected since the two algorithms employ different channels and assumptions.
+
+
+
+FIG. 9. Cloud-top height bias distributions computed for VIIRS/CrIS data relative to CALIPSO/CALIOP lidar data. Different panels show different emissivity ranges. Data are from 15 days in January and August 2015.
+
+TABLE 1. Metrics of the CALIPSO/CALIOP comparisons as a function of cloud emissivity. N 5 pixel count. MD 5 mode of the bias distribution. MN 5 mean of the bias distribution. SD 5 standard deviation of the bias distribution.
+Imager only	Imager 1 sounder	Sounder only
+Emissivity range
+N
+MD
+MN
+SD
+
+MD
+MN
+SD
+
+MD
+MN
+SD
+0.0-0.4
+28 918
+20.75
+20.62
+2.15
+
+0.25
+0.35
+1.22
+
+0.75
+0.53
+1.19
+0.4-0.8
+22 619
+20.75
+20.70
+1.35
+
+20.25
+20.27
+1.03
+
+0.25
+0.19
+0.79
+0.8-1.0
+27 962
+20.25
+20.25
+0.87
+
+20.25
+20.25
+0.87
+
+20.25
+20.06
+0.76
+0.0-1.0
+79 499
+20.25
+20.51
+1.53
+
+20.25
+20.07
+1.07
+
+0.25
+0.20
+0.95
+
+
+  Table 1 shows the mode, mean and standard devi- ation of VIIRS-only, CrIS-only, and CrIS/VIIRS against CALIPSO/CALIOP. Before looking at these metrics, it is important to understand what the expected perfor- mance of the satellite cloud height algorithm. Cloud height is not listed in the 2011 Global Climate Observing System (GCOS) satellite supplement list of essential cli- mate variables (ECV), but cloud-top pressure and tem- perature are. In this document, cloud-top pressure has an accuracy requirement of 50 hPa, and cloud-top tempera- ture has an accuracy requirement of 3 K. Using a mean lapse rate of 6.5 K km21, one can translate these into a cloud-top height requirement of 0.5 km. Therefore, the metrics shown here should be interpreted relative to this number.
+  The metrics in Table 1 quantitatively confirm the vi- sual information in Fig. 8. In general, the modes of the bias with respect to CALIPSO/CALIOP are minimally affected by the sounder data. It is the means and espe- cially the standard deviations that are impacted by the sounder data. For the thinnest clouds (top row), the standard deviations drop by half. Similar but smaller reductions in the standard deviation are seen in all rows except for the thickest clouds, where the sounder con- straint has little impact. The metrics also show good quantitative agreement between the sounder and the imager. Except for very opaque clouds with fine spatial structures, the sounder height is assumed to be superior than the imager heights. In relation to the GCOS re- quirements, the impact of the sounder causes the imager retrievals to meet the GCOS requirement in terms of the mode and the mean. The standard deviations of the CALIPSO/CALIOP bias distributions never fall below
+0.5 km but are generally close to 1 km when the sounder is used. Overall, the impact of sounder data is the largest for the thinnest clouds (where the imager struggles the most) and should offer a clear benefit to those applica- tions relying on the height of thin cirrus and requiring high spatial resolutions.
+  The zonal mean cloud height biases with respect to CALIPSO/CALIOP are plotted in Fig. 10. Also plotted is the zonal mean cloud emissivity showing smaller values over tropical regions due to presence of
+
+more thin cirrus. Other than comparing to adjusted CALIPSO cloud height as discussed previously (Fig. 10a), the true lidar cloud top is also used for comparison purpose (Fig. 10b). The general zonal patterns are similar regardless of which lidar values are used. It is apparent that the retrievals from imager plus sounder tend to move values closer toward sounder values across all latitudes, reducing negative biases from imager-only retrievals. Figure 10 also shows that by using the adjusted lidar height as truth, there is a 1.5-km upward shift in cloud height biases. Using ei- ther the true or adjusted lidar cloud heights, the
+
+
+
+  FIG. 10. Zonal averages of the bias in the ice cloud height with respect to CALIPSO/CALIOP for the VIIRS, CrIS, and VIIRS 1 CrIS retrievals. (a) Adjusted lidar height is used and (b) true top- layer lidar cloud height is used. Also shown is the zonal average of cloud emissivity from the VIIRS 1 CrIS retrievals.
+
+impact of the sounder is to move the imager values closer to the lidar values.
+
+5. Conclusions
+  This paper presented a method to merge sounder and imager observations for improving cirrus cloud- top height estimation. This method used the coarser- spatial- but higher-spectral-resolution sounder data to derive an accurate sounder-resolution cloud height using the CO2 slicing technique. These sounder results were then interpolated to the imager pixels and used in an optimal estimation cloud height algorithm. The resulting cloud height data preserved both the accu- racy of the sounder information and the resolution offered by the imager. Comparisons with CALIPSO showed that the imager plus sounder heights more closely matched the sounder heights, and agreed better with CALIPSO than the imager products. The technique also has the advantage that for water clouds the high-spatial-resolution CTH from the VIIRS IR window channel is maintained compared to sounder- only retrievals.
+  The technique was applied in this paper to VIIRS and CrIS and has been applied to AVHRR and HIRS. The technique is applicable to any sounder/imager pair and to any method of sounder height estimation. With sup- port from the NOAA National Centers for Environ- mental Information (NCEI), this technique will be used to generate a new version of the PATMOS-x cloud cli- mate data. In this PATMOS-x version, HIRS data will also be used to improve the cloud detection. This tech- nique was developed for the NPP MODIS Continuity Project and has been tested globally using the NPP SIPS resources. Our goal is that this technique allows for improved cloud heights for real-time applications and more consistent imager cloud products from AVHRR/ HIRS (1979-2025) and VIIRS/CrIS (2011-40).
+
+  Acknowledgments. The views, opinions, and findings contained in this report are those of the author(s) and should not be construed as an official National Oce- anic and Atmospheric Administration or U.S. gov- ernment position, policy, or decision. The CALIPSO data were obtained from the NASA Langley Research Center Atmospheric Science Data Center. All data were provided via NPP Atmosphere SIPS and University of Wisconsin-Madison Space Science and Engineering Center. Funding for this work was provided by the NOAA National Centers for Environmental Informa- tion (NCEI) Climate Data Records (CDR) Program and the NASA NPP MODIS Continuity Project led by Steve Platnick.
+
+APPENDIX
+
+Merged VIIRS and CrIS Level-1b Data
+  The process to merge VIIRS and CrIS data begins with the standard VIIRS and CrIS sensor data record (SDR) provided by the SIPS. The next step involves the SIPS generating IFF data, which reformats the SNPP VIIRS SDR data to more closely match the data from MODIS. This includes the aggregation of the data to make granules that have a duration of a selected time interval, a HDF4 format and naming conventions similar to that used in MODIS MYD021KM files. In addition, the SIPS spectrally convolves the CrIS ob- servations using MODIS SRFs and then collocates these convolved CrIS observations into the VIIRS swath providing each VIIRS pixel with the nearest CrIS FOV. As a result, the IFF VIIRS data include additional channels derived from CrIS that are spec- trally identical to MODIS longwave CO2 channels (channels 33/13.3, 34/13.6, 35/13.9, and 36/14.2 mm) and the MODIS IR H2O channels (channels 27/6.7 and 28/7.3 mm). The spatial resolution of the convolved channels is the same as that of the CrIS data (14 km).
+
+REFERENCES
+
+Borde, R., and P. Dubuisson, 2010: Sensitivity of atmospheric motion vectors height assignment methods to semitransparent cloud properties using simulated Meteosat-8 radiances.
+J. Appl. Meteor. Climatol., 49, 1205-1218, https://doi.org/ 10.1175/2010JAMC2352.1.
+Bresky, W. C., J. M. Daniels, A. A. Bailey, and S. T. Wanzong, 2012: New methods toward minimizing the slow speed bias associated with atmospheric motion vectors. J. Appl. Meteor. Climatol., 51, 2137-2151, https://doi.org/10.1175/JAMC-D-11-0234.1.
+Cross, J., I. Gladkova, W. P. Menzel, A. Heidinger, and M. D. Grossberg, 2013: Statistical estimation of a 13.3 mm visible infrared imaging radiometer suite channel using multisensor data fusion. J. Appl. Remote Sens., 7, 073473, https://doi.org/ 10.1117/1.JRS.7.073473.
+Hannon, S. E., L. L. Strow, and W. W. McMillan, 1996: Atmo- spheric infrared fast transmittance models: A comparison of two approaches. Proc. SPIE, 2830, 94-105, https://doi.org/ 10.1117/12.256106.
+Hartmann, D. L., and K. Larson, 2002: An important constraint on tropical cloud-climate feedback. Geophys. Res. Lett., 29, 1951, https://doi.org/10.1029/2002GL015835.
+Heidinger, A. K., 2011: ABI cloud height. NOAA NESDIS Center for Satellite Applications and Research Algorithm Theoretical Basis Doc., 77 pp., http://www.goes-r.gov/products/ATBDs/ baseline/Cloud_CldHeight_v2.0_no_color.pdf.
+--, and M. J. Pavolonis, 2009: Gazing at cirrus clouds for
+25 years through a split window. Part I: Methodology.
+J. Appl. Meteor. Climatol., 48, 1100-1116, https://doi.org/ 10.1175/2008JAMC1882.1.
+--, --, R. E. Holz, B. A. Baum, and S. Berthier, 2010: Using CALIPSO to explore the sensitivity to cirrus height in the
+
+infrared observations from NPOESS/VIIRS and GOES-R/ ABI. J. Geophys. Res., 115, D00H20, https://doi.org/10.1029/ 2009JD012152.
+--, M. J. Foster, A. Walther, and X. Zhao, 2014: The Pathfinder Atmospheres-Extended AVHRR climate dataset. Bull. Amer. Meteor. Soc., 95, 909-922, https://doi.org/10.1175/ BAMS-D-12-00246.1.
+--, Y. Li, B. A. Baum, R. E. Holz, S. Platnick, and P. Yang, 2015: Retrieval of cirrus cloud optical depth under day and night conditions from MODIS collection 6 cloud property data. Remote Sens., 7, 7257-7271, https://doi.org/10.3390/ rs70607257.
+Holz, R. E., S. Ackerman, P. Antonelli, F. Nagle, R. O. Knuteson,
+M. McGill, D. L. Hlavka, and W. D. Hart, 2006: An im- provement to the high-spectral-resolution CO2-slicing cloud- top altitude retrieval. J. Atmos. Oceanic Technol., 23, 653-670, https://doi.org/10.1175/JTECH1877.1.
+--, --, F. W. Nagle, R. A. Frey, S. Dutcher, R. E. Kuehn,
+M. Vaughan, and B. A. Baum, 2008: Global Moderate Reso- lution Imaging Spectroradiometer (MODIS) cloud detection and height evaluation using CALIOP. J. Geophys. Res., 113, D00A19, https://doi.org/10.1029/2008JD009837.
+Kahn, B. H., A. Eldering, A. J. Braverman, E. J. Fetzer, J. H. Jiang, E. Fishbein, and D. L. Wu, 2007: Toward the charac- terization of upper tropospheric clouds using Atmospheric Infrared Sounder and Microwave Limb Sounder observa- tions. J. Geophys. Res., 112, D05202, https://doi.org/10.1029/ 2006JD007336.
+--, and Coauthors, 2014: The Atmospheric Infrared Sounder version 6 cloud products. Atmos. Chem. Phys., 14, 399-426, https://doi.org/10.5194/acp-14-399-2014.
+Li, J., and Coauthors, 2005: Retrieval of cloud microphysical properties from MODIS and AIRS. J. Appl. Meteor., 44, 1526-1543, https://doi.org/10.1175/JAM2281.1.
+Li, Y., P. Yang, G. R. North, and A. Dessler, 2012: Test of the fixed anvil temperature hypothesis. J. Atmos. Sci., 69, 2317-2328, https://doi.org/10.1175/JAS-D-11-0158.1.
+Marvel, K., M. Zelinka, S. A. Klein, C. Bonfils, P. Caldwell,
+C. Doutriaux, B. D. Santer, and K. E. Taylor, 2015: External influences on modeled and observed cloud trends. J. Climate, 28, 4820-4840, https://doi.org/10.1175/JCLI-D-14-00734.1.
+Menzel, W. P., and Coauthors, 2008: MODIS global cloud-top pressure and amount estimation: Algorithm description and results. J. Appl. Meteor. Climatol., 47, 1175-1198, https:// doi.org/10.1175/2007JAMC1705.1.
+--, R. A. Frey, and B. A. Baum, 2015: Cloud top properties and cloud phase, version 11. NASA Algorithm Theoretical Basis
+
+Doc., 73 pp., https://modis-atmosphere.gsfc.nasa.gov/sites/ default/files/ModAtmo/MOD06-ATBD_2015_05_01_2.pdf.
+Nagle, F. W., and R. E. Holz, 2009: Computationally efficient methods of collocating satellite, aircraft, and ground obser- vations. J. Atmos. Oceanic Technol., 26, 1585-1595, https:// doi.org/10.1175/2008JTECHA1189.1.
+Pavolonis, M. J., A. K. Heidinger, and T. Uttal, 2005: Daytime global cloud typing from AVHRR and VIIRS: Algorithm description, validation, and comparisons. J. Appl. Meteor., 44, 804-826, https://doi.org/10.1175/JAM2236.1.
+Platnick, S., and Coauthors, 2017: The MODIS cloud optical and microphysical products: Collection 6 updates and examples From Terra and Aqua. IEEE Trans. Geosci. Remote Sens., 55, 502-525, https://doi.org/10.1109/TGRS.2016.2610522.
+Rodgers, C. D., 1976: Retrieval of atmospheric temperature and composition from remote measurements of thermal radia- tion. Rev. Geophys., 14, 609-624, https://doi.org/10.1029/ RG014i004p00609.
+Susskind, J., C. D. Barnet, and J. M. Blaisdell, 2003: Retrieval of atmospheric and surface parameters from AIRS/AMSU/HSB data in the presence of clouds. IEEE Trans. Geosci. Remote Sens., 41, 390-409, https://doi.org/10.1109/TGRS.2002.808236. Velden, C., W. E. Lewis, W. Bresky, D. Stettner, J. Daniels, and
+S. Wanzong, 2017: Assimilation of high-resolution satellite- derived atmospheric motion vectors: Impact on HWRF fore- casts of tropical cyclone track and intensity. Mon. Wea. Rev., 145, 1107-1125, https://doi.org/10.1175/MWR-D-16-0229.1.
+Wang, C., Z. J. Luo, and Z. Huang, 2011: Parallax correction in collocating CloudSat and Moderate Resolution Imaging Spectroradiometer (MODIS) observations: Method and ap- plication to convection study. J. Geophys. Res., 116, D17201, https://doi.org/10.1029/2011JD016097.
+Weisz, E., W. P. Menzel, N. Smith, R. Frey, E. E. Borbas, and B. A. Baum, 2012: An approach for improving cirrus cloud-top pressure/height estimation by merging high-spatial-resolution infrared-window imager data with high-spectral-resolution sounder data. J. Appl. Meteor. Climatol., 51, 1477-1488, https://doi.org/10.1175/JAMC-D-11-0170.1.
+--, B. A. Baum, and W. P. Menzel, 2017: Fusion of satellite-based imager and sounder data to construct supplementary high spa- tial resolution narrowband IR radiances. J. Appl. Remote Sens., 11, 036022, https://doi.org/10.1117/1.JRS.11.036022.
+Winker, D. M., M. A. Vaughan, A. Omar, Y. Hu, K. A. Powell,
+Z. Liu, W. H. Hunt, and S. A. Young, 2009: Overview of the
+CALIPSO mission and CALIOP data processing algorithms.
+J. Atmos. Oceanic Technol., 26, 2310-2323, https://doi.org/ 10.1175/2009JTECHA1281.1.
+
+
+
+
+
+
+
+
+
