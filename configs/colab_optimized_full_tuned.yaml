@@ -1,0 +1,142 @@
+# --- GPU-Optimized Config for Google Colab T4 (FULL MODEL - TUNED) ---
+# This config is tuned based on first baseline run analysis:
+# - Issue: Negative R² (-0.0927), erratic validation loss
+# - Root causes: LR too high, aggressive overweighting, long warmup
+# - Improvements: Lower LR, reduced warmup, gentler overweighting, tighter early stopping
+
+# --- File Paths ---
+data_directory: "/content/drive/MyDrive/CloudML/data/"
+output_directory: "/content/drive/MyDrive/CloudML/plots/"
+models_directory: "/content/drive/MyDrive/CloudML/models/trained/"
+log_dir: "/content/drive/MyDrive/CloudML/logs/"
+
+# --- Experiment Parameters ---
+pretrain_flight: "30Oct24"
+overweight_flight: "30Oct24"
+overweight_factor: 2.0  # TUNED: Reduced from 3.5 (less aggressive, prevents catastrophic forgetting)
+validation_flight: "12Feb25"
+
+# --- Training Parameters ---
+learning_rate: 0.0005  # TUNED: Reduced from 0.001 (more stable, less overshooting)
+weight_decay: 0.04
+epochs: 50
+optimizer: "AdamW"
+scheduler: "ReduceLROnPlateau"
+temporal_frames: 5
+loss_type: "huber"
+loss_alpha: 0.5
+early_stopping_patience: 10  # TUNED: Reduced from 15 (stop sooner when not improving)
+filter_type: "basic"
+early_stopping_min_delta: 0.0005  # TUNED: Increased from 0.00025 (require more significant improvement)
+huber_delta: 1.0
+gamma: 1.5
+under_weight: 1.0
+loo: false
+loo_epochs: 30
+batch_size: 20
+warmup_steps: 500  # TUNED: Reduced from 2000 (start learning sooner)
+hard_mining_k: 0.35
+hard_mining_factor: 1.5
+swath_slice: [40, 480]
+hpc_mode: true
+
+# --- Memory & Performance Optimization ---
+memory_optimized: false # Use FULL model (64/128/256 channels)
+gradient_checkpointing: true # Saves ~30-40% memory during backprop
+torch_compile: true # 20-30% speedup + 10-15% memory reduction
+torch_compile_mode: "default" # Compatible with gradient checkpointing
+
+# --- Data Loading Optimization ---
+num_workers: 2
+pin_memory: true
+prefetch_factor: 3
+
+# --- Model Architecture ---
+use_spatial_attention: true
+use_temporal_attention: true
+flat_field_correction: true
+clahe_clip_limit: 0.01
+zscore_normalize: true
+augment: true
+angles_mode: "both"
+
+architecture:
+  name: "transformer"
+
+# --- Flight Information ---
+flights:
+  - name: "10Feb25"
+    iFileName: "10Feb25/GLOVE2025_IRAI_L1B_Rev-_20250210.h5"
+    cFileName: "10Feb25/CPL_L2_V1-02_01kmLay_259015_10feb25.hdf5"
+    nFileName: "10Feb25/CRS_20250210_nav.hdf"
+  - name: "30Oct24"
+    iFileName: "30Oct24/WHYMSIE2024_IRAI_L1B_Rev-_20241030.h5"
+    cFileName: "30Oct24/CPL_L2_V1-02_01kmLay_259006_30oct24.hdf5"
+    nFileName: "30Oct24/CRS_20241030_nav.hdf"
+  - name: "04Nov24"
+    iFileName: "04Nov24/WHYMSIE2024_IRAI_L1B_Rev-_20241104.h5"
+    cFileName: "04Nov24/CPL_L2_V1-02_01kmLay_259008_04nov24.hdf5"
+    nFileName: "04Nov24/CRS_20241104_nav.hdf"
+  - name: "23Oct24"
+    iFileName: "23Oct24/WHYMSIE2024_IRAI_L1B_Rev-_20241023.h5"
+    cFileName: "23Oct24/CPL_L2_V1-02_01kmLay_259004_23oct24.hdf5"
+    nFileName: "23Oct24/CRS_20241023_nav.hdf"
+  - name: "18Feb25"
+    iFileName: "18Feb25/GLOVE2025_IRAI_L1B_Rev-_20250218.h5"
+    cFileName: "18Feb25/CPL_L2_V1-02_01kmLay_259017_18feb25.hdf5"
+    nFileName: "18Feb25/CRS_20250218_nav.hdf"
+  - name: "12Feb25"
+    iFileName: "12Feb25/GLOVE2025_IRAI_L1B_Rev-_20250212.h5"
+    cFileName: "12Feb25/CPL_L2_V1-02_01kmLay_259016_12feb25.hdf5"
+    nFileName: "12Feb25/CRS_20250212_nav.hdf"
+
+# --- Notes ---
+# TUNED CONFIGURATION based on baseline run analysis
+#
+# Changes from colab_optimized_full.yaml:
+# 1. learning_rate: 0.001 → 0.0005
+#    - Reason: LR ramped to 0.000015 caused erratic val loss
+#    - Impact: More stable training, less overshooting
+#
+# 2. warmup_steps: 2000 → 500
+#    - Reason: 2000 steps delays actual learning too long
+#    - Impact: Model starts learning sooner
+#
+# 3. overweight_factor: 3.5 → 2.0
+#    - Reason: 3.5x too aggressive, may cause catastrophic forgetting
+#    - Impact: Gentler fine-tuning, better retention of pretrained features
+#
+# 4. early_stopping_patience: 15 → 10
+#    - Reason: First run wasted 15 epochs with no improvement
+#    - Impact: Stop sooner, save time
+#
+# 5. early_stopping_min_delta: 0.00025 → 0.0005
+#    - Reason: Require more significant improvement to count as progress
+#    - Impact: Less sensitivity to noise, clearer improvement signal
+#
+# Expected improvements:
+# - More stable validation loss curve
+# - Better R² (hopefully > 0)
+# - Faster convergence (fewer wasted epochs)
+# - Less overfitting (gentler overweighting)
+#
+# First run results (for comparison):
+# - R²: -0.0927 (worse than mean baseline)
+# - MAE: 0.3415 km
+# - RMSE: 0.5046 km
+# - Best val loss: 0.9440 at epoch 14
+# - Then 15 epochs of no improvement
+#
+# Target for this run:
+# - R² > 0.3 (at least better than mean)
+# - MAE < 0.30 km
+# - RMSE < 0.45 km
+# - Stable val loss curve
+#
+# If still poor results, try:
+# - Reduce temporal_frames to 4 (more training samples)
+# - Switch to MAE loss (simpler than Huber)
+# - Disable one attention mechanism (reduce overfitting)
+# - Use memory_optimized model (less capacity = less overfitting)
+#
+# Monitor with: !nvidia-smi
