@@ -276,6 +276,12 @@ def run_final_training_and_evaluation(
     model_config["use_temporal_attention"] = config.get("use_temporal_attention", True)
     model_config["gradient_checkpointing"] = config.get("gradient_checkpointing", False)
 
+    # TIER 1: Multi-scale temporal attention (must match pretraining config)
+    model_config["use_multiscale_temporal"] = config.get(
+        "use_multiscale_temporal", False
+    )
+    model_config["attention_heads"] = config.get("attention_heads", 4)
+
     model_class = get_model_class(
         config.get("architecture", {}).get("name", "transformer")
     )
