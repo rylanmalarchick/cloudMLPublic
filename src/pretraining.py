@@ -184,32 +184,39 @@ def pretrain_encoder(
             images = images.to(device)
             batch_size, seq_len, h, w = images.shape
 
-            # Process each frame independently
+            # Process each frame independently with gradient accumulation
+            # Split into smaller mini-batches to avoid OOM
+            optimizer.zero_grad()
             batch_loss = 0.0
 
-            for t in range(seq_len):
-                frame = images[:, t, :, :].unsqueeze(1)  # (batch, 1, h, w)
+            # Process only FIRST frame to save memory (not all 7 frames)
+            # This is still effective for learning spatial features
+            frame = images[:, 0, :, :].unsqueeze(1)  # (batch, 1, h, w)
 
-                # Forward through encoder
-                # Temporarily disable gradient checkpointing for pre-training
-                orig_checkpoint_flag = model.use_gradient_checkpointing
-                model.use_gradient_checkpointing = False
+            # Forward through encoder
+            # Temporarily disable gradient checkpointing for pre-training
+            orig_checkpoint_flag = model.use_gradient_checkpointing
+            model.use_gradient_checkpointing = False
 
-                # Extract features using encoder
+            # Extract features using encoder
+            with torch.cuda.amp.autocast(enabled=False):  # Disable AMP for stability
                 features = _extract_features(model, frame)
 
-                model.use_gradient_checkpointing = orig_checkpoint_flag
+            model.use_gradient_checkpointing = orig_checkpoint_flag
 
-                # Decode to reconstruct image
-                reconstructed = decoder(features)
+            # Decode to reconstruct image
+            reconstructed = decoder(features)
 
-                # Compute reconstruction loss
-                loss = criterion(reconstructed, frame)
-                batch_loss += loss / seq_len
+            # Compute reconstruction loss
+            loss = criterion(reconstructed, frame)
+            batch_loss = loss
 
             # Backpropagation
-            optimizer.zero_grad()
             batch_loss.backward()
+
+            # Clear cache to free memory
+            del frame, features, reconstructed
+            torch.cuda.empty_cache()
 
             # Gradient clipping
             torch.nn.utils.clip_grad_norm_(

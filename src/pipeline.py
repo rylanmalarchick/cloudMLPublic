@@ -107,9 +107,22 @@ def run_pretraining(
         print("\n" + "=" * 70)
         print("TIER 1: SELF-SUPERVISED PRE-TRAINING ENABLED")
         print("=" * 70)
+
+        # Create smaller batch DataLoader for pre-training to avoid OOM
+        pretrain_batch_size = pretraining_config.get("batch_size", 8)
+        pretrain_loader_settings = hpc_loader_settings.copy()
+        pretrain_loader_settings["batch_size"] = pretrain_batch_size
+
+        pretrain_loader = DataLoader(
+            train_dataset, shuffle=True, **pretrain_loader_settings
+        )
+        print(
+            f"Pre-training batch size: {pretrain_batch_size} (reduced from {hpc_loader_settings['batch_size']} to save memory)"
+        )
+
         model = pretrain_encoder(
             model,
-            train_loader,
+            pretrain_loader,
             epochs=pretraining_config.get("epochs", 20),
             lr=pretraining_config.get("learning_rate", 1e-4),
             device=device,

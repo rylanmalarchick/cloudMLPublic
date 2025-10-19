@@ -97,6 +97,7 @@ pretraining:
   enabled: true # TIER 1: Enable self-supervised pre-training
   epochs: 20 # Number of pre-training epochs
   learning_rate: 0.0001 # Lower LR for pre-training
+  batch_size: 8 # Smaller batch size for pre-training to avoid OOM (normal training uses 20)
   save_checkpoints: true
   checkpoint_dir: "/content/drive/MyDrive/CloudML/models/pretrained/"
 # --- Notes ---
