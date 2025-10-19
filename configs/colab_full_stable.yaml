@@ -7,6 +7,8 @@
 # --- File Paths ---
 data_directory: "/content/drive/MyDrive/CloudML/data/"
 output_directory: "/content/drive/MyDrive/CloudML/plots/"
+models_directory: "/content/drive/MyDrive/CloudML/models/trained/"
+log_dir: "/content/drive/MyDrive/CloudML/logs/"
 
 # --- Experiment Parameters ---
 pretrain_flight: "30Oct24"
@@ -86,7 +88,6 @@ flights:
     iFileName: "12Feb25/GLOVE2025_IRAI_L1B_Rev-_20250212.h5"
     cFileName: "12Feb25/CPL_L2_V1-02_01kmLay_259016_12feb25.hdf5"
     nFileName: "12Feb25/CRS_20250212_nav.hdf"
-
 # --- Notes ---
 # FULL MODEL with STABLE Configuration (NO torch.compile)
 #

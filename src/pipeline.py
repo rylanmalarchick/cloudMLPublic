@@ -113,7 +113,12 @@ def run_pretraining(
     )
 
     pretrain_save_name = f"pretrain_{pretrain_flight_name}{save_suffix}"
-    pretrain_save_path = os.path.join("models", "trained", f"{pretrain_save_name}.pth")
+    # Use absolute paths for model saving (Google Drive on Colab)
+    models_dir = config.get(
+        "models_directory", os.path.join(log_dir, "..", "models", "trained")
+    )
+    os.makedirs(models_dir, exist_ok=True)
+    pretrain_save_path = os.path.join(models_dir, f"{pretrain_save_name}.pth")
     pretrain_log_dir = os.path.join(log_dir, "tensorboard")
 
     pretrain_config = config.copy()
@@ -269,7 +274,12 @@ def run_final_training_and_evaluation(
     )
 
     final_save_name = f"final_overweighted{save_suffix}"
-    final_save_path = os.path.join("models", "trained", f"{final_save_name}.pth")
+    # Use absolute paths for model saving (Google Drive on Colab)
+    models_dir = config.get(
+        "models_directory", os.path.join(log_dir, "..", "models", "trained")
+    )
+    os.makedirs(models_dir, exist_ok=True)
+    final_save_path = os.path.join(models_dir, f"{final_save_name}.pth")
     final_log_dir = os.path.join(log_dir, "tensorboard")
 
     final_config = config.copy()
@@ -340,6 +350,9 @@ def run_final_training_and_evaluation(
         Y_test = metrics["y_true"]
         Y_pred = metrics["y_pred"]
         raw_indices = metrics["local_indices"]
+        # Get uncertainty bounds if available, otherwise use None
+        Y_lower = metrics.get("y_lower", None)
+        Y_upper = metrics.get("y_upper", None)
 
         # Safely load navigation data for the specific validation flight
         nav_data = {"lat": None, "lon": None}
@@ -369,12 +382,14 @@ def run_final_training_and_evaluation(
             model=final_model,
             Y_test=Y_test,
             Y_pred=Y_pred,
+            Y_lower=Y_lower,
+            Y_upper=Y_upper,
             raw_indices=raw_indices,
             nav_data=nav_data,
             model_name=final_save_name,
             timestamp=timestamp,
             dataset=plot_dataset,
-            output_base_dir="plots",
+            output_base_dir=config.get("output_directory", "plots"),
         )
 
 
@@ -478,7 +493,12 @@ def run_loo_evaluation(config, all_flight_configs, scaler_info, hpc_settings):
         )
 
         loo_save_name = f"loo_{hold_out_name}_{config['save_name']}"
-        loo_save_path = os.path.join("models", "trained", f"{loo_save_name}.pth")
+        # Use absolute paths for model saving (Google Drive on Colab)
+        models_dir = config.get(
+            "models_directory", os.path.join("logs", "..", "models", "trained")
+        )
+        os.makedirs(models_dir, exist_ok=True)
+        loo_save_path = os.path.join(models_dir, f"{loo_save_name}.pth")
         loo_log_dir = os.path.join("logs", "tensorboard")
 
         fold_config = config.copy()
@@ -529,8 +549,10 @@ def run_loo_evaluation(config, all_flight_configs, scaler_info, hpc_settings):
         )
 
     results_df = pd.DataFrame(loo_results)
+    # Use config output directory for results
+    results_dir = config.get("output_directory", "results")
     results_save_path = os.path.join(
-        "results", f"loo_summary_{config['save_name']}.csv"
+        results_dir, f"loo_summary_{config['save_name']}.csv"
     )
     os.makedirs(os.path.dirname(results_save_path), exist_ok=True)
     results_df.to_csv(results_save_path, index=False)

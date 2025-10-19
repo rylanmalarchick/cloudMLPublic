@@ -7,6 +7,8 @@
 # --- File Paths ---
 data_directory: "/content/drive/MyDrive/CloudML/data/"
 output_directory: "/content/drive/MyDrive/CloudML/plots/"
+models_directory: "/content/drive/MyDrive/CloudML/models/trained/"
+log_dir: "/content/drive/MyDrive/CloudML/logs/"
 
 # --- Experiment Parameters ---
 pretrain_flight: "30Oct24"
