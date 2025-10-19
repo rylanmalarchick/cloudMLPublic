@@ -13,7 +13,7 @@ log_dir: "/content/drive/MyDrive/CloudML/logs/"
 # --- Experiment Parameters ---
 pretrain_flight: "30Oct24"
 overweight_flight: "30Oct24"
-overweight_factor: 2.0 # TUNED: Reduced from 3.5 (less aggressive, prevents catastrophic forgetting)
+overweight_factor: 1.5 # FIXED: Reduced from 2.0 (gentler overweighting, prevents overfitting)
 validation_flight: "12Feb25"
 
 # --- Training Parameters ---
@@ -94,7 +94,7 @@ flights:
 
 # --- Self-Supervised Pre-training (TIER 1) ---
 pretraining:
-  enabled: true # TIER 1: Enable self-supervised pre-training
+  enabled: false # FIXED: Disabled until single-frame bug is resolved
   epochs: 20 # Number of pre-training epochs
   learning_rate: 0.0001 # Lower LR for pre-training
   batch_size: 8 # Smaller batch size for pre-training to avoid OOM (normal training uses 20)
