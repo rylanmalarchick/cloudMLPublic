@@ -39,8 +39,6 @@ def run_pretraining(
             )
             pretrained_path = f"{checkpoint_dir}/pretrained_encoder_best.pth"
 
-            import os
-
             if os.path.exists(pretrained_path):
                 print(
                     f"✓ Found self-supervised pretrained checkpoint: {pretrained_path}"
