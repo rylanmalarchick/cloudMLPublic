@@ -239,9 +239,15 @@ def run_final_training_and_evaluation(
 
     if pre_ckpt:
         print(f"Initialized model from {pre_ckpt}")
-        model.load_state_dict(
-            torch.load(pre_ckpt, weights_only=False)["model_state_dict"]
-        )
+        checkpoint = torch.load(pre_ckpt, weights_only=False)
+        state_dict = checkpoint["model_state_dict"]
+
+        # Remove '_orig_mod.' prefix added by torch.compile if present
+        if any(key.startswith("_orig_mod.") for key in state_dict.keys()):
+            print("  → Cleaning torch.compile prefixes from checkpoint...")
+            state_dict = {k.replace("_orig_mod.", ""): v for k, v in state_dict.items()}
+
+        model.load_state_dict(state_dict)
 
     # Apply torch.compile() for performance optimization (PyTorch 2.0+)
     use_compile = config.get("torch_compile", False)
