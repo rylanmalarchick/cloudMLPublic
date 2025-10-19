@@ -132,7 +132,9 @@ def train_model(
 ):
     """Main training loop with early stopping."""
     device = get_device()
-    log_file = os.path.join("logs", "csv", f"{config['save_name']}.csv")
+    # Extract base log_dir if it ends with 'tensorboard'
+    base_log_dir = log_dir.replace("/tensorboard", "").replace("\\tensorboard", "")
+    log_file = os.path.join(base_log_dir, "csv", f"{config['save_name']}.csv")
 
     # Ensure the logs/csv directory exists
     os.makedirs(os.path.dirname(log_file), exist_ok=True)
