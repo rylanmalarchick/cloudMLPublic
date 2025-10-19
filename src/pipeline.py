@@ -318,16 +318,12 @@ def run_final_training_and_evaluation(
         elif "encoder_state_dict" in checkpoint:
             # Self-supervised checkpoint - load encoder weights only
             print("  → Loading self-supervised pretrained encoder")
-            state_dict = checkpoint["encoder_state_dict"]
-            # Filter to only load encoder weights (CNN layers)
-            encoder_keys = [
-                k for k in model.state_dict().keys() if k.startswith("cnn.")
-            ]
-            filtered_state_dict = {
-                k: v for k, v in state_dict.items() if k in encoder_keys
-            }
-            model.load_state_dict(filtered_state_dict, strict=False)
-            print(f"  → Loaded {len(filtered_state_dict)} encoder parameters")
+            encoder_state_dict = checkpoint["encoder_state_dict"]
+
+            # The checkpoint contains model.cnn_layers.state_dict()
+            # We need to load it into model.cnn_layers
+            model.cnn_layers.load_state_dict(encoder_state_dict)
+            print(f"  → Loaded {len(encoder_state_dict)} encoder parameters")
             # Don't try to load full state dict
             state_dict = None
         else:
