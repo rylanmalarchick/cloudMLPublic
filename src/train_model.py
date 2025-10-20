@@ -91,11 +91,15 @@ def train_epoch(
             else:
                 base_loss = individual_losses.mean()
 
-            # Add variance-preserving term to prevent collapse
-            pred_var = y_pred.var()
-            target_var = y_true.var()
-            variance_loss = (1.0 - pred_var / (target_var + 1e-8)) ** 2
-            loss = base_loss + variance_lambda * variance_loss
+            # Add variance-preserving term to prevent collapse (only if batch has >1 sample)
+            if y_pred.numel() > 1:
+                pred_var = y_pred.var()
+                target_var = y_true.var()
+                variance_loss = (1.0 - pred_var / (target_var + 1e-8)) ** 2
+                loss = base_loss + variance_lambda * variance_loss
+            else:
+                # Single sample batch - skip variance term
+                loss = base_loss
 
         scaler.scale(loss).backward()  # Scale loss and backpropagate
 
@@ -130,15 +134,25 @@ def validate(model, val_loader, criterion, device, variance_lambda=0.5):
                 # Base loss
                 base_loss = criterion(y_pred, y_true, reduction="mean")
 
-                # Variance-preserving term
-                pred_var = y_pred.var()
-                target_var = y_true.var()
-                variance_loss = (1.0 - pred_var / (target_var + 1e-8)) ** 2
-                loss = base_loss + variance_lambda * variance_loss
+                # Variance-preserving term (only if batch has >1 sample)
+                if y_pred.dim() > 0 and y_pred.numel() > 1:
+                    pred_var = y_pred.var()
+                    target_var = y_true.var()
+                    variance_loss = (1.0 - pred_var / (target_var + 1e-8)) ** 2
+                    loss = base_loss + variance_lambda * variance_loss
+                else:
+                    # Single sample batch - skip variance term
+                    loss = base_loss
 
             total_loss += loss.item()
-            all_preds.extend(y_pred.cpu().numpy())
-            all_targets.extend(y_true.cpu().numpy())
+
+            # Handle both scalar and vector predictions
+            if y_pred.dim() == 0:
+                all_preds.append(y_pred.cpu().numpy().item())
+                all_targets.append(y_true.cpu().numpy().item())
+            else:
+                all_preds.extend(y_pred.cpu().numpy().tolist())
+                all_targets.extend(y_true.cpu().numpy().tolist())
 
     # Calculate R² score
     all_preds = np.array(all_preds)
