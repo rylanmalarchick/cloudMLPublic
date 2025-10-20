@@ -8,6 +8,7 @@ import torch
 from torch.optim.lr_scheduler import _LRScheduler
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
+from sklearn.metrics import r2_score
 
 # --- CORRECTED IMPORT ---
 from .main_utils import get_device, save_model_and_scaler
@@ -66,8 +67,9 @@ def train_epoch(
     hard_mining_k=0.25,
     hard_mining_factor=2.0,
     grad_clip_value=None,
+    variance_lambda=0.5,
 ):
-    """Trains the model for one epoch with curriculum learning."""
+    """Trains the model for one epoch with curriculum learning and variance preservation."""
     model.train()
     total_loss = 0
     progress_bar = tqdm(train_loader, desc="Train", leave=False, dynamic_ncols=True)
@@ -85,9 +87,15 @@ def train_epoch(
                 hard_indices = torch.topk(individual_losses, k=num_hard_samples).indices
                 weights = torch.ones_like(individual_losses)
                 weights[hard_indices] *= hard_mining_factor
-                loss = (individual_losses * weights).mean()
+                base_loss = (individual_losses * weights).mean()
             else:
-                loss = individual_losses.mean()
+                base_loss = individual_losses.mean()
+
+            # Add variance-preserving term to prevent collapse
+            pred_var = y_pred.var()
+            target_var = y_true.var()
+            variance_loss = (1.0 - pred_var / (target_var + 1e-8)) ** 2
+            loss = base_loss + variance_lambda * variance_loss
 
         scaler.scale(loss).backward()  # Scale loss and backpropagate
 
@@ -103,10 +111,13 @@ def train_epoch(
     return total_loss / len(train_loader)
 
 
-def validate(model, val_loader, criterion, device):
-    """Validates the model on the validation set."""
+def validate(model, val_loader, criterion, device, variance_lambda=0.5):
+    """Validates the model on the validation set with variance-preserving loss and R² calculation."""
     model.eval()
     total_loss = 0
+    all_preds = []
+    all_targets = []
+
     with torch.no_grad():
         for batch in tqdm(val_loader, desc="Val", leave=False, dynamic_ncols=True):
             img_stack, sza, saa, y_true, _, _ = [b.to(device) for b in batch]
@@ -115,9 +126,37 @@ def validate(model, val_loader, criterion, device):
             with torch.amp.autocast("cuda"):  # Mixed precision
                 y_pred, _ = model(img_stack, sza, saa)
                 y_pred = y_pred.squeeze()
-                loss = criterion(y_pred, y_true, reduction="mean")
+
+                # Base loss
+                base_loss = criterion(y_pred, y_true, reduction="mean")
+
+                # Variance-preserving term
+                pred_var = y_pred.var()
+                target_var = y_true.var()
+                variance_loss = (1.0 - pred_var / (target_var + 1e-8)) ** 2
+                loss = base_loss + variance_lambda * variance_loss
+
             total_loss += loss.item()
-    return total_loss / len(val_loader)
+            all_preds.extend(y_pred.cpu().numpy())
+            all_targets.extend(y_true.cpu().numpy())
+
+    # Calculate R² score
+    all_preds = np.array(all_preds)
+    all_targets = np.array(all_targets)
+    r2 = r2_score(all_targets, all_preds)
+
+    # Calculate variance ratio
+    pred_std = np.std(all_preds)
+    target_std = np.std(all_targets)
+    variance_ratio = pred_std / (target_std + 1e-8)
+
+    return (
+        total_loss / len(val_loader),
+        r2,
+        variance_ratio,
+        pred_std,
+        all_preds.max() - all_preds.min(),
+    )
 
 
 def train_model(
@@ -154,8 +193,12 @@ def train_model(
     )
 
     best_val_loss = float("inf")
+    best_r2 = float("-inf")
     patience_counter = 0
     log_data = []
+
+    # Get variance lambda from config
+    variance_lambda = config.get("variance_lambda", 0.5)
 
     # Initialize GradScaler for mixed precision training
     grad_scaler = torch.amp.GradScaler("cuda")
@@ -164,6 +207,8 @@ def train_model(
     print(
         f"Early stopping enabled. Patience: {config['early_stopping_patience']}, min_delta: {config['early_stopping_min_delta']}"
     )
+    print(f"Variance-preserving loss enabled with lambda={variance_lambda}")
+    print("Early stopping will track R² score (minimize -R²)")
 
     for epoch in range(1, config["epochs"] + 1):
         epoch_start_time = time.time()
@@ -177,38 +222,62 @@ def train_model(
             hard_mining_k=config.get("hard_mining_k", 0.25),
             hard_mining_factor=config.get("hard_mining_factor", 2.0),
             grad_clip_value=config.get("grad_clip_value", None),
+            variance_lambda=variance_lambda,
         )
-        avg_val_loss = validate(model, val_loader, criterion, device)
+        avg_val_loss, val_r2, variance_ratio, pred_std, pred_range = validate(
+            model, val_loader, criterion, device, variance_lambda=variance_lambda
+        )
         epoch_duration = time.time() - epoch_start_time
 
         print(
-            f"Epoch {epoch}/{config['epochs']} | Train Loss: {avg_train_loss:.4f} | Val Loss: {avg_val_loss:.4f} | LR: {optimizer.param_groups[0]['lr']:.6f} | Time: {epoch_duration:.2f}s"
+            f"Epoch {epoch}/{config['epochs']} | Train Loss: {avg_train_loss:.4f} | Val Loss: {avg_val_loss:.4f} | "
+            f"R²: {val_r2:.4f} | Var Ratio: {variance_ratio:.1%} | Pred Std: {pred_std:.4f} | "
+            f"LR: {optimizer.param_groups[0]['lr']:.6f} | Time: {epoch_duration:.2f}s"
         )
 
         scheduler.step(avg_val_loss)
 
         writer.add_scalar("Loss/train", avg_train_loss, epoch)
         writer.add_scalar("Loss/val", avg_val_loss, epoch)
+        writer.add_scalar("Metrics/R2", val_r2, epoch)
+        writer.add_scalar("Metrics/VarianceRatio", variance_ratio, epoch)
+        writer.add_scalar("Metrics/PredStd", pred_std, epoch)
+        writer.add_scalar("Metrics/PredRange", pred_range, epoch)
         writer.add_scalar("LearningRate", optimizer.param_groups[0]["lr"], epoch)
         log_data.append(
             {
                 "epoch": epoch,
                 "train_loss": avg_train_loss,
                 "val_loss": avg_val_loss,
+                "r2": val_r2,
+                "variance_ratio": variance_ratio,
+                "pred_std": pred_std,
+                "pred_range": pred_range,
                 "learning_rate": optimizer.param_groups[0]["lr"],
             }
         )
 
-        if avg_val_loss < best_val_loss - config["early_stopping_min_delta"]:
+        # Early stopping based on R² (we want to maximize R², so track best R²)
+        if val_r2 > best_r2 + config["early_stopping_min_delta"]:
+            best_r2 = val_r2
             best_val_loss = avg_val_loss
             patience_counter = 0
-            print(f"New best model saved! (val_loss: {best_val_loss:.4f})")
+            print(
+                f"New best model saved! (R²: {best_r2:.4f}, val_loss: {best_val_loss:.4f})"
+            )
             save_model_and_scaler(model, scaler, save_path)
         else:
             patience_counter += 1
             print(
-                f"No improvement, patience_counter={patience_counter}/{config['early_stopping_patience']}"
+                f"No improvement in R², patience_counter={patience_counter}/{config['early_stopping_patience']}"
             )
+
+        # Emergency stop if severe variance collapse detected
+        if variance_ratio < 0.05:
+            print(
+                f"⚠️  WARNING: Severe variance collapse detected (ratio={variance_ratio:.3f}). Stopping early."
+            )
+            break
 
         if patience_counter >= config["early_stopping_patience"]:
             print("Early stopping triggered.")

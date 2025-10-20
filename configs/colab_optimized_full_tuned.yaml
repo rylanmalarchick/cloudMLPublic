@@ -13,7 +13,7 @@ log_dir: "/content/drive/MyDrive/CloudML/logs/"
 # --- Experiment Parameters ---
 pretrain_flight: "30Oct24"
 overweight_flight: "30Oct24"
-overweight_factor: 1.5 # FIXED: Reduced from 2.0 (gentler overweighting, prevents overfitting)
+overweight_factor: 1.0 # PHASE 1 FIX: Disabled overweighting (was causing conservative predictions)
 validation_flight: "12Feb25"
 
 # --- Training Parameters ---
@@ -22,9 +22,10 @@ weight_decay: 0.04
 epochs: 50
 optimizer: "AdamW"
 scheduler: "ReduceLROnPlateau"
-temporal_frames: 7 # TIER 1: Increased from 5 to 7 for more spatial coverage (if data permits)
+temporal_frames: 3 # PHASE 1 FIX: Reduced from 7 to 3 (7 frames caused over-averaging/variance collapse)
 loss_type: "huber"
 loss_alpha: 0.5
+variance_lambda: 0.5 # PHASE 1 FIX: Variance-preserving loss weight (prevents collapse to constant predictions)
 early_stopping_patience: 10 # TUNED: Reduced from 15 (stop sooner when not improving)
 filter_type: "basic"
 early_stopping_min_delta: 0.0005 # TUNED: Increased from 0.00025 (require more significant improvement)
@@ -101,6 +102,50 @@ pretraining:
   save_checkpoints: true
   checkpoint_dir: "/content/drive/MyDrive/CloudML/models/pretrained/"
 # --- Notes ---
+# PHASE 1 FIXES (Oct 20, 2024) - Critical fixes for variance collapse
+#
+# PROBLEM IDENTIFIED: Runs 1-3 all showed variance collapse (predictions near-constant)
+# - Run 1 (broken SSL): R²=-0.045, variance ratio=40% (BEST!)
+# - Run 2 (std=0.01): R²=-0.023, variance ratio=3.9% (near-total collapse)
+# - Run 3 (std=0.1): R²=-0.203, variance ratio=3.4% (WORST - catastrophic collapse)
+#
+# ROOT CAUSE: Loss function didn't penalize variance collapse
+# - All runs achieved similar val_loss (~0.51-0.53)
+# - But R² varied 4.5x! Val loss is NOT correlated with model quality
+# - Model learned to predict ~0.72 for everything → low MAE, terrible R²
+#
+# PHASE 1 FIXES APPLIED:
+# 1. variance_lambda: 0.5 - Add variance-preserving term to loss
+#    loss = base_loss + 0.5 * (1 - pred_var/target_var)²
+#    Prevents model from collapsing to constant predictions
+#
+# 2. temporal_frames: 7 → 3 - Reduce over-smoothing
+#    7 frames averaged out too much variance
+#    Start with 3, test 5 later if needed
+#
+# 3. overweight_factor: 1.5 → 1.0 - Disable overweighting
+#    May have encouraged conservative predictions (avoid risky high values)
+#
+# 4. Output init: std=0.1 → 0.5 (in pytorchmodel.py)
+#    Run 1's larger weights worked 10x better than Runs 2-3
+#
+# 5. Early stopping: Now tracks R² instead of val_loss (in train_model.py)
+#    Val loss doesn't reflect quality; R² does
+#
+# 6. Monitoring: Added variance_ratio, pred_std, pred_range logging
+#    Emergency stop if variance_ratio < 5% (catches collapse early)
+#
+# EXPECTED RESULTS:
+# - R² > 0.0 (minimum - better than mean)
+# - Variance ratio > 40% (better than Run 1)
+# - Prediction spread > 0.5
+# - No near-constant predictions
+#
+# SUCCESS CRITERIA:
+# - Minimum viable: R² > 0.3, variance ratio > 70%
+# - Good: R² > 0.5, variance ratio > 85%
+#
+# --- Original Notes Below ---
 # TUNED CONFIGURATION based on baseline run analysis + TIER 1 IMPROVEMENTS
 #
 # Changes from colab_optimized_full.yaml:

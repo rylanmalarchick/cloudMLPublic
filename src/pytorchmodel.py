@@ -247,9 +247,10 @@ class MultimodalRegressionModel(nn.Module):
                 nn.init.kaiming_normal_(
                     m.weight, mode="fan_out", nonlinearity="leaky_relu"
                 )
-        # Fixed: use moderate std (0.1) - not too large (0.5), not too small (0.01)
-        nn.init.normal_(self.output.weight, 0, 0.1)
-        nn.init.constant_(self.output.bias, 0.0)  # Let model learn the mean naturally
+        # PHASE 1 FIX: Use larger std (0.5) like Run 1 - smaller values caused severe collapse
+        # Run 1 (std~0.5): 40% variance ratio | Run 2-3 (std=0.01-0.1): 3-4% variance ratio
+        nn.init.normal_(self.output.weight, 0, 0.5)
+        nn.init.constant_(self.output.bias, 0.0)
 
     def _process_frame(self, frame, scalars):
         """Process a single frame through CNN layers with optional gradient checkpointing."""
@@ -581,8 +582,8 @@ class SimpleCNNModel(nn.Module):
                 nn.init.xavier_normal_(m.weight)
             elif isinstance(m, nn.Conv2d):
                 nn.init.kaiming_normal_(m.weight)
-        # Fixed: use moderate std (0.1) for regression output
-        nn.init.normal_(self.output.weight, 0, 0.1)
+        # PHASE 1 FIX: Use larger std (0.5) like Run 1 for SimpleCNNModel
+        nn.init.normal_(self.output.weight, 0, 0.5)
         nn.init.constant_(self.output.bias, 0.0)
 
     def forward(self, image_input, param1_input, param2_input):
