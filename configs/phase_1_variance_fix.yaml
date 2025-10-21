@@ -1,0 +1,62 @@
+# Configuration for Phase 1: Variance Collapse Fix Experiment
+# Goal: Validate that variance loss can prevent model collapse.
+# Changes from colab_optimized_full_tuned:
+# - epochs set to 10 for a short validation run.
+# - variance_lambda set to 2.0 to actively penalize variance collapse.
+# - min_variance_ratio set to 0.1 as a circuit-breaker.
+
+run_name: "phase_1_variance_fix"
+
+# --- Data Configuration ---
+data:
+  data_dir: "/content/drive/MyDrive/CloudML/data/"
+  flights:
+    - "10Feb25"
+    - "30Oct24"
+    - "04Nov24"
+    - "23Oct24"
+    - "18Feb25"
+    - "12Feb25"
+  cbh_range: [0.1, 2.0]
+  angles_mode: "both" # 'sza' (solar zenith), 'saa' (solar azimuth), or 'both'
+  augmentations: true
+  num_workers: 2 # Standard for Colab
+
+# --- Model Architecture ---
+# Using the full tuned architecture with attention, as per the original config.
+model:
+  name: "AttentionCNN"
+  params:
+    num_frames: 5
+    num_channels: 3
+    # CNN Backbone
+    cnn_out_channels: 64
+    # Attention Mechanism
+    attention_heads: 4
+    attention_dropout: 0.1
+    # Final Regression Head
+    fc_hidden_features: 128
+    regressor_dropout: 0.2
+
+# --- Training Parameters ---
+training:
+  epochs: 10 # Short run to validate the fix
+  batch_size: 32
+  learning_rate: 0.0001
+  optimizer: "AdamW"
+  scheduler: "CosineAnnealingLR"
+  # Early stopping can be disabled for short runs if desired
+  early_stopping_patience: 3
+
+# --- Loss Function Configuration ---
+loss:
+  base_loss: "MSE"
+  # Variance loss settings to combat collapse
+  variance_lambda: 2.0
+  # Stop training if prediction variance is <10% of label variance
+  min_variance_ratio: 0.1
+
+# --- Logging ---
+logging:
+  log_dir: "runs/"
+  log_every_n_steps: 10
