@@ -6,7 +6,7 @@
 
 ---
 
-## 🚨 Why This Matters
+## Why This Matters
 
 You've run 4 neural network experiments. **All failed** (R² < 0).
 
@@ -18,7 +18,7 @@ You've run 4 neural network experiments. **All failed** (R² < 0).
 
 ---
 
-## 📊 What The Literature Says
+## What The Literature Says
 
 From your papers:
 
@@ -40,7 +40,7 @@ From your papers:
 
 ---
 
-## 🔬 The Diagnostics (In Order)
+## The Diagnostics (In Order)
 
 ### Step 1: Correlation Analysis (30 min)
 
@@ -57,11 +57,11 @@ python diagnostics/1_correlation_analysis.py
 Best Pearson correlation:
   r² = 0.XXX (X% variance explained)
 
-Decision: [✅ PROCEED | 🟡 CAUTION | 🔴 STOP]
+Decision: [PROCEED | CAUTION | STOP]
 ```
 
 **Interpretation:**
-- **r² > 0.15:** Signal exists! 🎉 Proceed with confidence
+- **r² > 0.15:** Signal exists! Proceed with confidence
 - **r² = 0.05-0.15:** Weak signal, proceed carefully
 - **r² < 0.05:** No signal, task likely not learnable from these features
 
@@ -100,19 +100,19 @@ Run 4 (neural net): R² = -0.0655
 
 ---
 
-## 🎯 Decision Matrix
+## Decision Matrix
 
 | Correlation r² | Baseline R² | Decision | Next Steps |
 |----------------|-------------|----------|------------|
-| > 0.15 | > 0.2 | ✅ **Proceed with Run 5** | Task is learnable, fix training |
-| 0.05-0.15 | 0.0-0.2 | 🟡 **Proceed carefully** | Weak signal, low expectations |
-| < 0.05 | < 0 | 🔴 **STOP NN experiments** | Need different data/features |
+| > 0.15 | > 0.2 | **Proceed with Run 5** | Task is learnable, fix training |
+| 0.05-0.15 | 0.0-0.2 | **Proceed carefully** | Weak signal, low expectations |
+| < 0.05 | < 0 | **STOP NN experiments** | Need different data/features |
 
 ---
 
-## 🔍 Example Outcomes
+## Example Outcomes
 
-### Scenario A: Good News! ✅
+### Scenario A: Good News!
 ```
 Correlation: r² = 0.22
 Baseline: R² = 0.15 (Random Forest)
@@ -123,7 +123,7 @@ Neural nets: R² = -0.06 (all runs)
 → Fix: Run 5 with variance_lambda=2.0 should work
 ```
 
-### Scenario B: Bad News 🔴
+### Scenario B: Bad News
 ```
 Correlation: r² = 0.03
 Baseline: R² = -0.08 (all models)
@@ -136,7 +136,7 @@ Neural nets: R² = -0.06 (all runs)
 
 ---
 
-## 💡 If Diagnostics Show "Not Learnable"
+## If Diagnostics Show "Not Learnable"
 
 **This is NOT a failure!** You've discovered important scientific insight:
 
@@ -153,7 +153,7 @@ Neural nets: R² = -0.06 (all runs)
 
 ---
 
-## 🚀 Run It Now
+## Run It Now
 
 **In your terminal:**
 ```bash
@@ -181,29 +181,29 @@ cat diagnostics/results/baseline_summary.json
 
 ---
 
-## 📁 Output Files
+## Output Files
 
 After running, you'll have:
 
 ```
 diagnostics/results/
-├── correlation_results.csv      # All 28 features tested
-├── correlation_summary.json     # Top findings + decision
-├── baseline_results.csv         # All 7 models tested
-└── baseline_summary.json        # Best model + decision
+ correlation_results.csv      # All 28 features tested
+ correlation_summary.json     # Top findings + decision
+ baseline_results.csv         # All 7 models tested
+ baseline_summary.json        # Best model + decision
 ```
 
 ---
 
-## 🤝 Your Internship Is Not "Bullshit"
+## Your Internship Is Not "Bullshit"
 
 Even if diagnostics show "not learnable":
 
-✅ You systematically investigated deep learning  
-✅ You identified data limitations  
-✅ You can make informed recommendations  
-✅ You used proper scientific methodology  
-✅ Your report will have clear conclusions  
+- You systematically investigated deep learning  
+- You identified data limitations  
+- You can make informed recommendations  
+- You used proper scientific methodology  
+- Your report will have clear conclusions
 
 **This is exactly what research looks like!**
 
@@ -234,4 +234,4 @@ cd cloudMLPublic
 python diagnostics/1_correlation_analysis.py
 ```
 
-**You've got this!** 🎯
+**You've got this!**

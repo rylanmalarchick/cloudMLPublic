@@ -1,7 +1,7 @@
 # Diagnostic Plan - Is This Task Learnable?
 
 **Date:** October 20, 2024  
-**Status:** 🛑 STOP running experiments - Diagnose fundamental issues first  
+**Status:** STOP running experiments - Diagnose fundamental issues first  
 **Priority:** CRITICAL - Understand before continuing
 
 ---
@@ -303,29 +303,29 @@ START
   ↓
 D1: Correlation Analysis
   ↓
-  ├─ No correlation (r²<0.05) → STOP: Task likely not learnable from these features
-  │                              Consider: Different wavelengths? More metadata?
+   No correlation (r²<0.05) → STOP: Task likely not learnable from these features
+                                Consider: Different wavelengths? More metadata?
   ↓
-  └─ Some correlation (r²>0.05)
+   Some correlation (r²>0.05)
       ↓
     D2: Simple Baselines
       ↓
-      ├─ All R²<0 → STOP: Data doesn't contain learnable signal
-      │              Consider: Data collection issues? Need different sensors?
+       All R²<0 → STOP: Data doesn't contain learnable signal
+                    Consider: Data collection issues? Need different sensors?
       ↓
-      └─ Some R²>0
+       Some R²>0
           ↓
         D3: Architecture Ablation
           ↓
-          ├─ Simpler is better → Use simple architecture, abandon complex attention
+           Simpler is better → Use simple architecture, abandon complex attention
           ↓
-          └─ Complex helps but still R²<0.2 → Try different loss/approach
+           Complex helps but still R²<0.2 → Try different loss/approach
               ↓
             D4: Data Quality
               ↓
-              ├─ Major issues found → Fix data, re-run
+               Major issues found → Fix data, re-run
               ↓
-              └─ Data looks OK → Consider:
+               Data looks OK → Consider:
                   - Different task (classification instead of regression?)
                   - Multi-task learning (predict multiple properties)
                   - Semi-supervised learning
@@ -384,10 +384,10 @@ D1: Correlation Analysis
 
 | Phase | Time | Value |
 |-------|------|-------|
-| D1: Correlation | 30 min | ⭐⭐⭐⭐⭐ (Essential) |
-| D2: Baselines | 1 hour | ⭐⭐⭐⭐⭐ (Essential) |
-| D3: Ablation | 2 hours | ⭐⭐⭐⭐ (Very helpful) |
-| D4: Data Quality | 1 hour | ⭐⭐⭐ (Good to have) |
+| D1: Correlation | 30 min | Essential |
+| D2: Baselines | 1 hour | Essential |
+| D3: Ablation | 2 hours | Very helpful |
+| D4: Data Quality | 1 hour | Good to have |
 | **Total** | **4-5 hours** | vs many more failed training runs |
 
 **Compare to:** Continuing to tweak hyperparameters = potentially weeks with no guarantee of success.
@@ -416,15 +416,15 @@ D1: Correlation Analysis
 
 ## What This Gives You
 
-✅ **Confidence** that time spent on deep learning is justified  
-✅ **Understanding** of what features matter  
-✅ **Baseline** to beat (not just "better than mean")  
-✅ **Insights** to guide architecture choices  
-✅ **Clear decision points** (continue vs pivot)  
+**Confidence** that time spent on deep learning is justified  
+**Understanding** of what features matter  
+**Baseline** to beat (not just "better than mean")  
+**Insights** to guide architecture choices  
+**Clear decision points** (continue vs pivot)  
 
 vs
 
-❌ Running Run 5 → might get R² = -0.03 with 35% variance → still negative → back to square one
+Running Run 5 might get R² = -0.03 with 35% variance, still negative, back to square one
 
 ---
 

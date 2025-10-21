@@ -298,7 +298,7 @@ def train_model(
         # Emergency stop if severe variance collapse detected
         if variance_ratio < 0.05:
             print(
-                f"⚠️  WARNING: Severe variance collapse detected (ratio={variance_ratio:.3f}). Stopping early."
+                f"WARNING: Severe variance collapse detected (ratio={variance_ratio:.3f}). Stopping early."
             )
             break
 

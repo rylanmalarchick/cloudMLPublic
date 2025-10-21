@@ -268,7 +268,7 @@ def pretrain_encoder(
                 checkpoint_path,
             )
 
-            print(f"✓ Saved best checkpoint: {checkpoint_path} (loss: {best_loss:.4f})")
+            print(f" Saved best checkpoint: {checkpoint_path} (loss: {best_loss:.4f})")
 
         # Early stopping check (if loss not improving for 5 epochs)
         if epoch > 5:
@@ -277,7 +277,7 @@ def pretrain_encoder(
                 recent_losses[i] <= recent_losses[i + 1]
                 for i in range(len(recent_losses) - 1)
             ):
-                print(f"\n⚠ Early stopping: Loss not improving for 5 epochs")
+                print(f"\nWARNING: Early stopping: Loss not improving for 5 epochs")
                 break
 
     print("\n" + "=" * 70)
@@ -355,7 +355,7 @@ def pretrain_temporal_prediction(
     print("\n" + "=" * 70)
     print("PHASE 1: TEMPORAL PREDICTION PRE-TRAINING")
     print("=" * 70)
-    print("⚠ WARNING: This assumes your data has true temporal sequences!")
+    print("WARNING: This assumes your data has true temporal sequences!")
     print("For simultaneous multi-view data, use pretrain_encoder() instead.")
     print("=" * 70 + "\n")
 

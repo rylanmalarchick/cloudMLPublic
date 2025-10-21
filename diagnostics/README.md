@@ -31,9 +31,9 @@ After 4 training runs, all neural networks achieved **negative R²** (worse than
 - Identifies strongest predictors
 
 **Success criteria:**
-- ✅ If max r² > 0.1 → Signal exists, proceed to step 2
-- ⚠️ If max r² = 0.05-0.1 → Weak signal, proceed with caution
-- 🔴 If max r² < 0.05 → Task likely not learnable from these features
+- If max r² > 0.1 → Signal exists, proceed to step 2
+- If max r² = 0.05-0.1 → Weak signal, proceed with caution
+- If max r² < 0.05 → Task likely not learnable from these features
 
 **Output:**
 - `results/correlation_results.csv` - Full correlation table
@@ -51,9 +51,9 @@ After 4 training runs, all neural networks achieved **negative R²** (worse than
 - Evaluates on held-out test set
 
 **Success criteria:**
-- ✅ If best R² > 0.3 → Strongly learnable, deep learning should work
-- 🟡 If best R² = 0.0-0.3 → Weakly learnable, deep learning might help
-- 🔴 If best R² < 0 → Data doesn't contain learnable signal
+- If best R² > 0.3 → Strongly learnable, deep learning should work
+- If best R² = 0.0-0.3 → Weakly learnable, deep learning might help
+- If best R² < 0 → Data doesn't contain learnable signal
 
 **Output:**
 - `results/baseline_results.csv` - All model results
@@ -177,14 +177,14 @@ You've systematically diagnosed the problem and can now make informed recommenda
 
 ```
 diagnostics/
-├── README.md                        (this file)
-├── 1_correlation_analysis.py        (30 min runtime)
-├── 2_simple_baselines.py           (1 hour runtime)
-└── results/
-    ├── correlation_results.csv      (all features)
-    ├── correlation_summary.json     (top findings)
-    ├── baseline_results.csv         (all models)
-    └── baseline_summary.json        (best model)
+ README.md                        (this file)
+ 1_correlation_analysis.py        (30 min runtime)
+ 2_simple_baselines.py           (1 hour runtime)
+ results/
+     correlation_results.csv      (all features)
+     correlation_summary.json     (top findings)
+     baseline_results.csv         (all models)
+     baseline_summary.json        (best model)
 ```
 
 ---

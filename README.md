@@ -187,39 +187,39 @@ A Jupyter notebook (`colab_training.ipynb`) is provided for running experiments 
 ## Project Structure
 
 ```
-├── README.md
-├── main.py
-├── requirements.txt
-├── .gitignore
-├── .pre-commit-config.yaml
-├── configs/
-│   ├── config.yaml
-│   ├── bestComboConfig.yaml
-│   ├── complexity_weights.yaml
-│   ├── ablation_*.yaml
-├── scripts/
-│   ├── aggregate_results.py
-│   ├── calibrate_model.py
-│   ├── pretrain_ssl.py
-├── src/
-│   ├── __init__.py
-│   ├── caching.py
-│   ├── cplCompareSub.py
-│   ├── data_preprocessing.py
-│   ├── ensemble.py
-│   ├── evaluate_model.py
-│   ├── hdf5_dataset.py
-│   ├── mae_model.py
-│   ├── main_utils.py
-│   ├── pipeline.py
-│   ├── plot_saved_results.py
-│   ├── pytorchmodel.py
-│   ├── scene_complexity.py
-│   ├── train_model.py
-│   ├── unlabeled_dataset.py
-│   ├── utils/
-│   │   ├── ...
-│   ├── visualization.py
+ README.md
+ main.py
+ requirements.txt
+ .gitignore
+ .pre-commit-config.yaml
+ configs/
+    config.yaml
+    bestComboConfig.yaml
+    complexity_weights.yaml
+    ablation_*.yaml
+ scripts/
+    aggregate_results.py
+    calibrate_model.py
+    pretrain_ssl.py
+ src/
+    __init__.py
+    caching.py
+    cplCompareSub.py
+    data_preprocessing.py
+    ensemble.py
+    evaluate_model.py
+    hdf5_dataset.py
+    mae_model.py
+    main_utils.py
+    pipeline.py
+    plot_saved_results.py
+    pytorchmodel.py
+    scene_complexity.py
+    train_model.py
+    unlabeled_dataset.py
+    utils/
+       ...
+    visualization.py
 ```
 
 -   **`main.py`**: Entry point for running the model.

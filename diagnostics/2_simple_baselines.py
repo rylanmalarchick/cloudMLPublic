@@ -365,7 +365,7 @@ def main():
     best_r2 = best_model["test_r2"]
 
     if best_r2 < -0.05:
-        decision = "🔴 STOP"
+        decision = " STOP"
         explanation = f"Best model R² = {best_r2:.4f} (much worse than mean baseline)"
         recommendation = (
             "Data does NOT contain learnable signal for simple models.\n"
@@ -377,7 +377,7 @@ def main():
             "  4. Consult domain experts about physical feasibility"
         )
     elif best_r2 < 0:
-        decision = "🟡 VERY WEAK SIGNAL"
+        decision = " VERY WEAK SIGNAL"
         explanation = f"Best model R² = {best_r2:.4f} (slightly worse than mean)"
         recommendation = (
             "Simple models can't beat mean baseline.\n"
@@ -388,7 +388,7 @@ def main():
             "  3. Consider reformulating task (classification, ranking, etc.)"
         )
     elif best_r2 < 0.1:
-        decision = "🟡 WEAK BUT LEARNABLE"
+        decision = " WEAK BUT LEARNABLE"
         explanation = f"Best model R² = {best_r2:.4f} (barely positive)"
         recommendation = (
             "Signal exists but is VERY weak.\n"
@@ -399,7 +399,7 @@ def main():
             "  - Consider if this level of performance is useful for your application"
         )
     elif best_r2 < 0.3:
-        decision = "✅ LEARNABLE (MODERATE)"
+        decision = "LEARNABLE (MODERATE)"
         explanation = f"Best model R² = {best_r2:.4f} (moderate performance)"
         recommendation = (
             "Signal definitely exists! Simple models can learn patterns.\n\n"
@@ -410,7 +410,7 @@ def main():
             "  - Expected: Useful but not perfect predictions"
         )
     else:
-        decision = "✅ STRONGLY LEARNABLE"
+        decision = "STRONGLY LEARNABLE"
         explanation = f"Best model R² = {best_r2:.4f} (good performance!)"
         recommendation = (
             "Strong signal! Simple models work well.\n\n"
@@ -438,13 +438,13 @@ def main():
     print(f"Run 4 (neural net): R² = -0.0655")
 
     if best_r2 > 0:
-        print(f"\n⚠️  CRITICAL: Simple models BEAT all your neural network runs!")
+        print(f"\nCRITICAL: Simple models BEAT all your neural network runs!")
         print(
             f"   This means your neural network is UNDERPERFORMING due to training issues,"
         )
         print(f"   NOT because the task is impossible.")
     else:
-        print(f"\n⚠️  Both simple models and neural networks fail (R² < 0).")
+        print(f"\nBoth simple models and neural networks fail (R² < 0).")
         print(f"   This suggests fundamental data/feature limitations.")
 
     # Save summary

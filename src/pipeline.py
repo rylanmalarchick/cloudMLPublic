@@ -41,12 +41,14 @@ def run_pretraining(
 
             if os.path.exists(pretrained_path):
                 print(
-                    f"✓ Found self-supervised pretrained checkpoint: {pretrained_path}"
+                    f" Found self-supervised pretrained checkpoint: {pretrained_path}"
                 )
                 print("  This checkpoint will be loaded for final training")
                 return pretrained_path
             else:
-                print(f"⚠ Self-supervised checkpoint not found at: {pretrained_path}")
+                print(
+                    f"WARNING: Self-supervised checkpoint not found at: {pretrained_path}"
+                )
                 print("  Training will start from random weights")
 
         return None
