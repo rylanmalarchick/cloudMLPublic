@@ -115,12 +115,16 @@ def train_epoch(
     return total_loss / len(train_loader)
 
 
-def validate(model, val_loader, criterion, device, variance_lambda=0.5):
-    """Validates the model on the validation set with variance-preserving loss and R² calculation."""
+def validate(model, val_loader, criterion, device, variance_lambda=0.5, y_scaler=None):
+    """Validates the model on the validation set with variance-preserving loss and R² calculation.
+
+    Args:
+        y_scaler: StandardScaler for unscaling predictions to compute R² in original units (km)
+    """
     model.eval()
     total_loss = 0
-    all_preds = []
-    all_targets = []
+    all_preds_scaled = []
+    all_targets_scaled = []
 
     with torch.no_grad():
         for batch in tqdm(val_loader, desc="Val", leave=False, dynamic_ncols=True):
@@ -148,20 +152,44 @@ def validate(model, val_loader, criterion, device, variance_lambda=0.5):
 
             # Handle both scalar and vector predictions
             if y_pred.dim() == 0:
-                all_preds.append(y_pred.cpu().numpy().item())
-                all_targets.append(y_true.cpu().numpy().item())
+                all_preds_scaled.append(y_pred.cpu().numpy().item())
+                all_targets_scaled.append(y_true.cpu().numpy().item())
             else:
-                all_preds.extend(y_pred.cpu().numpy().tolist())
-                all_targets.extend(y_true.cpu().numpy().tolist())
+                all_preds_scaled.extend(y_pred.cpu().numpy().tolist())
+                all_targets_scaled.extend(y_true.cpu().numpy().tolist())
 
-    # Calculate R² score
-    all_preds = np.array(all_preds)
-    all_targets = np.array(all_targets)
-    r2 = r2_score(all_targets, all_preds)
+    # Convert to numpy arrays
+    all_preds_scaled = np.array(all_preds_scaled)
+    all_targets_scaled = np.array(all_targets_scaled)
 
-    # Calculate variance ratio
-    pred_std = np.std(all_preds)
-    target_std = np.std(all_targets)
+    # Unscale predictions and targets for R² calculation (if scaler provided)
+    if y_scaler is not None:
+        all_preds_unscaled = y_scaler.inverse_transform(
+            all_preds_scaled.reshape(-1, 1)
+        ).flatten()
+        all_targets_unscaled = y_scaler.inverse_transform(
+            all_targets_scaled.reshape(-1, 1)
+        ).flatten()
+        r2 = r2_score(all_targets_unscaled, all_preds_unscaled)
+
+        # Debug logging
+        print(
+            f"  DEBUG: Scaled pred range: [{all_preds_scaled.min():.3f}, {all_preds_scaled.max():.3f}]"
+        )
+        print(
+            f"  DEBUG: Unscaled pred range: [{all_preds_unscaled.min():.3f}, {all_preds_unscaled.max():.3f}] km"
+        )
+        print(
+            f"  DEBUG: Unscaled target range: [{all_targets_unscaled.min():.3f}, {all_targets_unscaled.max():.3f}] km"
+        )
+    else:
+        # Fallback: calculate R² on scaled values (not recommended)
+        r2 = r2_score(all_targets_scaled, all_preds_scaled)
+        print("  WARNING: No y_scaler provided, calculating R² on scaled values")
+
+    # Calculate variance ratio (on scaled values, as this is what the loss uses)
+    pred_std = np.std(all_preds_scaled)
+    target_std = np.std(all_targets_scaled)
     variance_ratio = pred_std / (target_std + 1e-8)
 
     return (
@@ -169,7 +197,7 @@ def validate(model, val_loader, criterion, device, variance_lambda=0.5):
         r2,
         variance_ratio,
         pred_std,
-        all_preds.max() - all_preds.min(),
+        all_preds_scaled.max() - all_preds_scaled.min(),
     )
 
 
@@ -238,8 +266,16 @@ def train_model(
             grad_clip_value=config.get("grad_clip_value", None),
             variance_lambda=variance_lambda,
         )
+        # Extract y_scaler from scaler dict if provided
+        y_scaler = scaler.get("y") if scaler and isinstance(scaler, dict) else None
+
         avg_val_loss, val_r2, variance_ratio, pred_std, pred_range = validate(
-            model, val_loader, criterion, device, variance_lambda=variance_lambda
+            model,
+            val_loader,
+            criterion,
+            device,
+            variance_lambda=variance_lambda,
+            y_scaler=y_scaler,
         )
         epoch_duration = time.time() - epoch_start_time
 

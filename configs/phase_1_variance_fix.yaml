@@ -28,7 +28,7 @@ scheduler: "ReduceLROnPlateau"
 temporal_frames: 3
 loss_type: "huber"
 loss_alpha: 0.5
-variance_lambda: 2.0 # ACTIVELY PENALIZE VARIANCE COLLAPSE
+variance_lambda: 0.5 # PHASE 1B: Reduced from 2.0 to prevent loss explosion
 min_variance_ratio: 0.1 # SAFETY NET - STOP IF VARIANCE < 10%
 early_stopping_patience: 5 # Shorter patience for 10-epoch run
 filter_type: "basic"
