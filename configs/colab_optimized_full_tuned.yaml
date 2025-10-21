@@ -25,7 +25,8 @@ scheduler: "ReduceLROnPlateau"
 temporal_frames: 3 # PHASE 1 FIX: Reduced from 7 to 3 (7 frames caused over-averaging/variance collapse)
 loss_type: "huber"
 loss_alpha: 0.5
-variance_lambda: 0.5 # PHASE 1 FIX: Variance-preserving loss weight (prevents collapse to constant predictions)
+variance_lambda: 2.0 # RUN 5 FIX: Increased from 0.5 (was too weak - variance still collapsed 46%→8%)
+min_variance_ratio: 0.35 # RUN 5 FIX: Minimum variance ratio required to save model (prevents collapsed models)
 early_stopping_patience: 10 # TUNED: Reduced from 15 (stop sooner when not improving)
 filter_type: "basic"
 early_stopping_min_delta: 0.0005 # TUNED: Increased from 0.00025 (require more significant improvement)

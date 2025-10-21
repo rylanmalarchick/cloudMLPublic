@@ -271,15 +271,24 @@ def train_model(
             }
         )
 
-        # Early stopping based on R² (we want to maximize R², so track best R²)
+        # Early stopping based on R² with minimum variance ratio requirement
+        # RUN 5 FIX: Only save model if variance ratio is acceptable (>35%)
+        min_variance_ratio = config.get("min_variance_ratio", 0.35)
         if val_r2 > best_r2 + config["early_stopping_min_delta"]:
-            best_r2 = val_r2
-            best_val_loss = avg_val_loss
-            patience_counter = 0
-            print(
-                f"New best model saved! (R²: {best_r2:.4f}, val_loss: {best_val_loss:.4f})"
-            )
-            save_model_and_scaler(model, scaler, save_path)
+            if variance_ratio >= min_variance_ratio:
+                best_r2 = val_r2
+                best_val_loss = avg_val_loss
+                patience_counter = 0
+                print(
+                    f"New best model saved! (R²: {best_r2:.4f}, var_ratio: {variance_ratio:.1%}, val_loss: {best_val_loss:.4f})"
+                )
+                save_model_and_scaler(model, scaler, save_path)
+            else:
+                patience_counter += 1
+                print(
+                    f"R² improved but variance too low ({variance_ratio:.1%} < {min_variance_ratio:.1%}), not saving. "
+                    f"patience_counter={patience_counter}/{config['early_stopping_patience']}"
+                )
         else:
             patience_counter += 1
             print(
