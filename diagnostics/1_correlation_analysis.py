@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-Diagnostic 1: Correlation Analysis
-==================================
+Diagnostic 1: Correlation Analysis (Batch-Processed)
+=====================================================
 
 Goal: Determine if ANY simple features correlate with optical depth.
-This will tell us if the task is fundamentally learnable from the data.
+This version processes data in batches to avoid OOM errors.
 
-Expected runtime: ~30 minutes
+Expected runtime: ~15-20 minutes
 
 Success criteria:
 - If ANY feature has r² > 0.1 → Signal exists, proceed to D2
@@ -24,6 +24,7 @@ from scipy.stats import pearsonr, spearmanr
 from pathlib import Path
 import json
 import torch
+from torch.utils.data import DataLoader
 from tqdm import tqdm
 import yaml
 
@@ -38,19 +39,10 @@ def load_config(config_path):
         return yaml.safe_load(f)
 
 
-def extract_simple_features(images, sza, saa):
+def extract_simple_features_batch(images, sza, saa):
     """
-    Extract simple hand-crafted features from images and metadata.
-
-    Args:
-        images: (N, T, H, W) tensor of IR images
-        sza: (N,) tensor of solar zenith angles
-        saa: (N,) tensor of solar azimuth angles
-
-    Returns:
-        dict of feature arrays
+    Extract simple hand-crafted features from a BATCH of images and metadata.
     """
-    # Convert to numpy if needed
     if torch.is_tensor(images):
         images = images.cpu().numpy()
     if torch.is_tensor(sza):
@@ -61,7 +53,6 @@ def extract_simple_features(images, sza, saa):
     N = images.shape[0]
     features = {}
 
-    print("Extracting intensity statistics...")
     # Mean frame (average over temporal dimension)
     mean_frame = np.mean(images, axis=1)  # (N, H, W)
 
@@ -72,7 +63,6 @@ def extract_simple_features(images, sza, saa):
     features["max_intensity"] = np.max(mean_frame, axis=(1, 2))
     features["median_intensity"] = np.median(mean_frame, axis=(1, 2))
 
-    print("Extracting spatial features...")
     # Spatial gradients
     grad_x = np.abs(np.diff(mean_frame, axis=2))
     grad_y = np.abs(np.diff(mean_frame, axis=1))
@@ -81,22 +71,6 @@ def extract_simple_features(images, sza, saa):
     features["std_grad_x"] = np.std(grad_x, axis=(1, 2))
     features["std_grad_y"] = np.std(grad_y, axis=(1, 2))
 
-    print("Extracting texture features...")
-    # Texture (local variance)
-    local_std = []
-    for i in range(N):
-        # Simple local variance (5x5 windows)
-        kernel_size = 5
-        H, W = mean_frame[i].shape
-        local_vars = []
-        for y in range(0, H - kernel_size, kernel_size):
-            for x in range(0, W - kernel_size, kernel_size):
-                patch = mean_frame[i, y : y + kernel_size, x : x + kernel_size]
-                local_vars.append(np.std(patch))
-        local_std.append(np.mean(local_vars))
-    features["texture_local_std"] = np.array(local_std)
-
-    print("Extracting temporal features...")
     # Temporal variation
     if images.shape[1] > 1:
         features["temporal_std"] = np.std(images, axis=1).mean(axis=(1, 2))
@@ -107,70 +81,27 @@ def extract_simple_features(images, sza, saa):
         features["temporal_std"] = np.zeros(N)
         features["temporal_range"] = np.zeros(N)
 
-    print("Extracting spatial distribution features...")
     # Percentiles
     features["p25_intensity"] = np.percentile(mean_frame, 25, axis=(1, 2))
     features["p75_intensity"] = np.percentile(mean_frame, 75, axis=(1, 2))
     features["iqr_intensity"] = features["p75_intensity"] - features["p25_intensity"]
 
-    # Skewness (simple)
-    mean_vals = features["mean_intensity"][:, None, None]
-    std_vals = features["std_intensity"][:, None, None]
-    skewness = np.mean(((mean_frame - mean_vals) / (std_vals + 1e-8)) ** 3, axis=(1, 2))
-    features["skewness"] = skewness
-
-    # Center vs edge intensity
-    H, W = mean_frame.shape[1], mean_frame.shape[2]
-    center_h, center_w = H // 2, W // 2
-    margin = min(H, W) // 4
-    center_region = mean_frame[
-        :, center_h - margin : center_h + margin, center_w - margin : center_w + margin
-    ]
-    features["center_intensity"] = np.mean(center_region, axis=(1, 2))
-
-    edge_width = 20
-    edge_regions = np.concatenate(
-        [
-            mean_frame[:, :edge_width, :],  # top
-            mean_frame[:, -edge_width:, :],  # bottom
-            mean_frame[:, :, :edge_width],  # left
-            mean_frame[:, :, -edge_width:],  # right
-        ],
-        axis=1,
-    )
-    features["edge_intensity"] = np.mean(edge_regions, axis=(1, 2))
-    features["center_edge_diff"] = (
-        features["center_intensity"] - features["edge_intensity"]
-    )
-
-    print("Adding metadata features...")
     # Metadata
     features["sza"] = sza.flatten()
     features["saa"] = saa.flatten()
-
-    # Derived angle features
     features["sza_cos"] = np.cos(np.deg2rad(sza.flatten()))
     features["sza_sin"] = np.sin(np.deg2rad(sza.flatten()))
     features["saa_cos"] = np.cos(np.deg2rad(saa.flatten()))
     features["saa_sin"] = np.sin(np.deg2rad(saa.flatten()))
 
-    print(f"Extracted {len(features)} features from {N} samples")
     return features
 
 
 def compute_correlations(features, targets):
     """
     Compute Pearson and Spearman correlations for all features.
-
-    Args:
-        features: dict of feature arrays
-        targets: array of target values (optical depth)
-
-    Returns:
-        DataFrame with correlation results
     """
     results = []
-
     for feature_name, feature_values in tqdm(
         features.items(), desc="Computing correlations"
     ):
@@ -203,31 +134,28 @@ def compute_correlations(features, targets):
 
 def main():
     print("=" * 70)
-    print("DIAGNOSTIC 1: CORRELATION ANALYSIS")
+    print("DIAGNOSTIC 1: CORRELATION ANALYSIS (BATCHED)")
     print("=" * 70)
     print()
 
-    # Load config - use local config if on local machine, Colab config if on Colab
+    # Load config
     if Path("/content/drive/MyDrive").exists():
-        # Running on Colab
         config_path = (
             Path(__file__).parent.parent / "configs" / "colab_optimized_full_tuned.yaml"
         )
-        print(f"Running on Colab")
+        print("Running on Colab")
     else:
-        # Running locally
         config_path = Path(__file__).parent.parent / "configs" / "local_diagnostic.yaml"
-        print(f"Running locally")
+        print("Running locally")
 
     print(f"Loading config: {config_path}")
     config = load_config(config_path)
     print(f"Data directory: {config['data_directory']}")
 
-    # Create output directory
     output_dir = Path(__file__).parent / "results"
     output_dir.mkdir(exist_ok=True, parents=True)
 
-    # Prepend data_directory to flight file paths (like main.py does)
+    # Prepend data_directory to flight file paths
     print("\nLoading flight metadata for scalers...")
     data_dir = config["data_directory"]
     flight_configs = []
@@ -252,19 +180,17 @@ def main():
         cbh_max=config.get("cbh_max"),
     )
 
-    # Fit scalers on the global data
     sza_scaler = StandardScaler().fit(global_sza)
     saa_scaler = StandardScaler().fit(global_saa)
     y_scaler = StandardScaler().fit(global_y)
-
     print(f"Scalers fitted on {len(global_sza)} samples")
 
-    # Load dataset
+    # Create dataset
     print("\nLoading dataset...")
     dataset = HDF5CloudDataset(
         flight_configs=flight_configs,
         swath_slice=config.get("swath_slice", (40, 480)),
-        augment=False,  # No augmentation for diagnostics
+        augment=False,
         temporal_frames=config.get("temporal_frames", 3),
         filter_type=config.get("filter_type", "basic"),
         cbh_min=config.get("cbh_min"),
@@ -277,43 +203,52 @@ def main():
         zscore_normalize=config.get("zscore_normalize", True),
         angles_mode=config.get("angles_mode", "both"),
     )
-
     print(f"\nDataset size: {len(dataset)} samples")
 
-    # Collect all data
-    print("\nLoading all samples (this may take a few minutes)...")
-    all_images = []
-    all_sza = []
-    all_saa = []
-    all_targets = []
+    # Create DataLoader for batch processing
+    dataloader = DataLoader(
+        dataset,
+        batch_size=32,
+        shuffle=False,
+        num_workers=2,
+        pin_memory=True,
+    )
 
-    for i in tqdm(range(len(dataset)), desc="Loading samples"):
-        # Dataset returns: (img_stack, sza_tensor, saa_tensor, y_tensor, global_idx, local_idx)
-        img_stack, sza_tensor, saa_tensor, y_tensor, _, _ = dataset[i]
-        all_images.append(img_stack)
-        all_sza.append(sza_tensor)
-        all_saa.append(saa_tensor)
-        all_targets.append(y_tensor)
+    # Process in batches
+    print("\nExtracting features in batches to conserve memory...")
+    all_features_list = []
+    all_targets_list = []
 
-    # Stack into arrays
-    images = torch.stack(all_images)  # (N, T, H, W)
-    sza = torch.stack(all_sza)  # (N, 1)
-    saa = torch.stack(all_saa)  # (N, 1)
-    targets = torch.stack(all_targets).numpy()  # (N,)
+    for batch in tqdm(dataloader, desc="Processing batches"):
+        img_stack, sza_tensor, saa_tensor, y_tensor, _, _ = batch
 
-    print(f"\nData shapes:")
-    print(f"  Images: {images.shape}")
-    print(f"  SZA: {sza.shape}")
-    print(f"  SAA: {saa.shape}")
-    print(f"  Targets: {targets.shape}")
+        # Extract features for the current batch
+        batch_features = extract_simple_features_batch(
+            img_stack, sza_tensor, saa_tensor
+        )
+        all_features_list.append(batch_features)
 
-    # Extract features
-    print("\nExtracting hand-crafted features...")
-    features = extract_simple_features(images, sza, saa)
+        # Store targets
+        all_targets_list.append(y_tensor.cpu().numpy())
+
+    # Consolidate features from all batches
+    print("\nConsolidating features...")
+    consolidated_features = {}
+    if all_features_list:
+        feature_names = all_features_list[0].keys()
+        for name in feature_names:
+            consolidated_features[name] = np.concatenate(
+                [f[name] for f in all_features_list]
+            )
+
+    # Consolidate targets
+    targets = np.concatenate(all_targets_list).flatten()
+
+    print(f"Features extracted for {len(targets)} samples.")
 
     # Compute correlations
     print("\nComputing correlations with target (optical depth)...")
-    correlation_df = compute_correlations(features, targets)
+    correlation_df = compute_correlations(consolidated_features, targets)
 
     # Save results
     csv_path = output_dir / "correlation_results.csv"
@@ -365,8 +300,7 @@ def main():
             "  - Simple models: R² = 0.0-0.15\n"
             "  - Neural nets: R² = 0.0-0.20 (if training works)\n"
             "  - Low performance overall\n"
-            "  Consider if this level of accuracy is useful for your application,\n"
-            "  but don't expect high performance (R² will be low)."
+            "  - Consider if this level of accuracy is useful for your application"
         )
     else:
         decision = "PROCEED"
