@@ -209,6 +209,8 @@ logs/
 tensorboard/
 results/
 .benchmarks/
+outputs/
+data_ssl/
 
 # Sensitive files
 keyss.txt

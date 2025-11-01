@@ -1,0 +1,231 @@
+# ================================================================================
+# PHASE 3: FINE-TUNING FOR CBH REGRESSION
+# ================================================================================
+# This config is for fine-tuning the pre-trained MAE encoder for Cloud Base Height
+# (CBH) estimation using the labeled CPL-aligned dataset.
+#
+# Two-stage fine-tuning strategy:
+#   Stage 1: Freeze encoder, train regression head only
+#   Stage 2: Unfreeze encoder, fine-tune end-to-end
+#
+# Target: Beat classical baseline (GradientBoosting R² = 0.7464)
+# ================================================================================
+
+# ================================================================================
+# EXPERIMENT METADATA
+# ================================================================================
+experiment_name: "mae_finetune_cbh"
+description: "Fine-tune pre-trained MAE encoder for CBH regression"
+random_seed: 42
+
+# ================================================================================
+# DATA PATHS
+# ================================================================================
+data:
+  # Flight configurations (same as original experiments)
+  flights:
+    - name: "10Feb25"
+      iFileName: "/home/rylan/Documents/research/NASA/programDirectory/data/10Feb25/GLOVE2025_IRAI_L1B_Rev-_20250210-003.h5"
+      cFileName: "/home/rylan/Documents/research/NASA/programDirectory/data/10Feb25/CPL_L2_V1-02_01kmLay_259015_10feb25.hdf5"
+      nFileName: "/home/rylan/Documents/research/NASA/programDirectory/data/10Feb25/CRS_20250210_nav.hdf"
+
+    - name: "30Oct24"
+      iFileName: "/home/rylan/Documents/research/NASA/programDirectory/data/30Oct24/WHYMSIE2024_IRAI_L1B_Rev-_20241030-008.h5"
+      cFileName: "/home/rylan/Documents/research/NASA/programDirectory/data/30Oct24/CPL_L2_V1-02_01kmLay_259006_30oct24.hdf5"
+      nFileName: "/home/rylan/Documents/research/NASA/programDirectory/data/30Oct24/CRS_20241030_nav.hdf"
+
+    - name: "23Oct24"
+      iFileName: "/home/rylan/Documents/research/NASA/programDirectory/data/23Oct24/WHYMSIE2024_IRAI_L1B_Rev-_20241023-007.h5"
+      cFileName: "/home/rylan/Documents/research/NASA/programDirectory/data/23Oct24/CPL_L2_V1-02_01kmLay_259004_23oct24.hdf5"
+      nFileName: "/home/rylan/Documents/research/NASA/programDirectory/data/23Oct24/CRS_20241023_nav.hdf"
+
+    - name: "18Feb25"
+      iFileName: "/home/rylan/Documents/research/NASA/programDirectory/data/18Feb25/GLOVE2025_IRAI_L1B_Rev-_20250218-002.h5"
+      cFileName: "/home/rylan/Documents/research/NASA/programDirectory/data/18Feb25/CPL_L2_V1-02_01kmLay_259017_18feb25.hdf5"
+      nFileName: "/home/rylan/Documents/research/NASA/programDirectory/data/18Feb25/CRS_20250218_nav.hdf"
+
+    - name: "12Feb25"
+      iFileName: "/home/rylan/Documents/research/NASA/programDirectory/data/12Feb25/GLOVE2025_IRAI_L1B_Rev-_20250212-005.h5"
+      cFileName: "/home/rylan/Documents/research/NASA/programDirectory/data/12Feb25/CPL_L2_V1-02_01kmLay_259016_12feb25.hdf5"
+      nFileName: "/home/rylan/Documents/research/NASA/programDirectory/data/12Feb25/CRS_20250212_nav.hdf"
+
+  # Data preprocessing settings (match original pipeline)
+  swath_slice: [40, 480] # [start, end] pixels
+  temporal_frames: 1 # Single frame (must match MAE pre-training)
+  filter_type: "basic" # CPL filtering mode
+  cbh_min: null # Auto from filter_type
+  cbh_max: null # Auto from filter_type
+
+  # Preprocessing flags
+  flat_field_correction: true
+  clahe_clip_limit: 0.01
+  zscore_normalize: true
+
+  # Angle features
+  angles_mode: "both" # "both", "sza_only", "saa_only", "none"
+
+  # Train/val/test split
+  train_ratio: 0.7
+  val_ratio: 0.15
+  test_ratio: 0.15
+
+  # Data loading
+  num_workers: 4
+  pin_memory: true
+  persistent_workers: true
+
+# ================================================================================
+# MODEL CONFIGURATION
+# ================================================================================
+model:
+  # Pre-trained encoder
+  encoder_weights: "outputs/mae_pretrain/mae_encoder_pretrained.pth"
+  model_size: "small" # Must match pre-training config
+
+  # Encoder architecture params (must match pre-training)
+  patch_size: 16
+  img_width: 440 # Swath width
+  embed_dim: 192 # small model (MUST match pre-trained encoder)
+  depth: 4 # MUST match pre-trained encoder
+  num_heads: 3
+  mlp_ratio: 4.0
+
+  # Regression head architecture (match original successful config)
+  head:
+    hidden_dims: [512, 256, 128] # Original config that achieved R²=0.48
+    dropout: 0.3
+    activation: "gelu" # "relu", "gelu", "silu"
+    use_batch_norm: true
+
+  # Feature inputs
+  use_angles: true # Include SZA/SAA as features (if angles_mode != "none")
+
+# ================================================================================
+# TRAINING CONFIGURATION
+# ================================================================================
+training:
+  # Two-stage fine-tuning
+  stage1:
+    name: "freeze_encoder"
+    description: "Train regression head with frozen encoder"
+    epochs: 30
+    freeze_encoder: true
+    batch_size: 512 # Aggressive batch size for GPU utilization (653 samples / 512 = ~2 batches)
+
+    optimizer:
+      name: "adamw"
+      lr: 1.0e-3
+      weight_decay: 0.01
+      betas: [0.9, 0.999]
+
+    scheduler:
+      name: "cosine"
+      warmup_epochs: 5
+      min_lr: 1.0e-6
+
+    early_stopping:
+      patience: 15
+      min_delta: 0.0001
+
+  stage2:
+    name: "finetune_all"
+    description: "Fine-tune entire model end-to-end"
+    epochs: 50
+    freeze_encoder: false
+    batch_size: 384 # Aggressive batch size (653 samples / 384 = ~2 batches, better for stability)
+
+    optimizer:
+      name: "adamw"
+      lr: 1.0e-4 # Lower LR for fine-tuning
+      weight_decay: 0.01
+      betas: [0.9, 0.999]
+
+    scheduler:
+      name: "cosine"
+      warmup_epochs: 3
+      min_lr: 1.0e-7
+
+    early_stopping:
+      patience: 20
+      min_delta: 0.0001
+
+  # Loss function
+  loss: "mse" # "mse", "mae", "huber", "smooth_l1"
+
+  # Gradient clipping
+  grad_clip: 1.0
+
+  # Mixed precision training
+  use_amp: true # Enabled for faster training and better memory efficiency
+
+  # Logging
+  log_interval: 10 # Log every N batches
+  save_best_only: false # Save best + latest checkpoints
+
+  # Evaluation metrics
+  metrics:
+    - "r2"
+    - "mae"
+    - "rmse"
+    - "mse"
+
+# ================================================================================
+# EVALUATION CONFIGURATION
+# ================================================================================
+evaluation:
+  # Classical baseline to beat
+  baseline:
+    name: "GradientBoosting"
+    r2: 0.7464
+    mae: 0.1265 # km
+    rmse: 0.1929 # km
+
+  # Success thresholds
+  thresholds:
+    excellent: 0.75 # R² >= 0.75
+    good: 0.60 # R² >= 0.60
+    acceptable: 0.40 # R² >= 0.40
+
+  # Per-flight evaluation
+  per_flight_eval: true
+
+  # Visualization
+  plot:
+    scatter: true # Predicted vs True scatter plot
+    residuals: true # Residual histogram
+    per_flight: true # Per-flight performance
+    save_format: "png" # "png", "pdf", "svg"
+
+# ================================================================================
+# OUTPUT CONFIGURATION
+# ================================================================================
+output:
+  base_dir: "outputs/cbh_finetune"
+  subdirs:
+    checkpoints: "checkpoints"
+    logs: "logs"
+    plots: "plots"
+    predictions: "predictions"
+
+  # Save predictions for analysis
+  save_predictions: true
+  save_embeddings: false # Save encoder embeddings for visualization
+
+# ================================================================================
+# HARDWARE CONFIGURATION
+# ================================================================================
+hardware:
+  device: "cuda" # "cuda", "cpu", "mps"
+  gpu_id: 0 # Which GPU to use (if multiple)
+  deterministic: true # Reproducible results (may be slower)
+  benchmark: false # cuDNN benchmark (faster but non-deterministic)
+
+# ================================================================================
+# DEBUGGING & DEVELOPMENT
+# ================================================================================
+debug:
+  enabled: false
+  max_samples: 100 # Limit dataset size for quick testing
+  overfit_batch: false # Train on single batch to test overfitting
+  print_model: false # Print model architecture
+  profile: false # Profile training loop

@@ -1,0 +1,124 @@
+# --- DIAGNOSTIC EXPERIMENT A: SIMPLEST POSSIBLE MODEL ---
+# Purpose: Test if architectural complexity is preventing learning
+# This is the most minimal viable deep learning configuration
+
+# --- File Paths ---
+data_directory: "/home/rylan/Documents/research/NASA/programDirectory/data/"
+output_directory: "./results/"
+models_directory: "./models/"
+log_dir: "./logs/"
+
+# --- Experiment Parameters ---
+pretrain_flight: "30Oct24"
+overweight_flight: "30Oct24"
+overweight_factor: 1.0
+validation_flight: "12Feb25"
+
+# --- Training Parameters ---
+learning_rate: 0.001 # Fixed, standard starting point
+weight_decay: 0.0001 # Minimal regularization
+epochs: 20
+optimizer: "Adam" # Simpler than AdamW
+scheduler: "none" # No scheduling - constant LR
+temporal_frames: 1 # Single frame for SimpleCNN (avoids channel mismatch)
+loss_type: "mse" # Simplest loss
+loss_alpha: 0.5
+variance_lambda: 0.0 # NO variance penalty - pure regression
+min_variance_ratio: 0.0 # Disabled
+early_stopping_patience: 20 # Disabled - let it run full 20 epochs
+filter_type: "basic"
+early_stopping_min_delta: 0.0
+huber_delta: 1.0
+gamma: 1.5
+under_weight: 1.0
+loo: false
+loo_epochs: 30
+batch_size: 32 # Standard batch size
+warmup_steps: 0 # No warmup
+hard_mining_k: 1.0 # Disabled
+hard_mining_factor: 1.0 # Disabled
+swath_slice: [40, 480]
+hpc_mode: false
+
+# --- Memory & Performance Optimization ---
+memory_optimized: false
+gradient_checkpointing: false # Disabled for simplicity
+torch_compile: false
+torch_compile_mode: "default"
+
+# --- Data Loading Optimization ---
+num_workers: 2
+pin_memory: true
+prefetch_factor: 2
+
+# --- Model Architecture - SIMPLEST POSSIBLE ---
+use_spatial_attention: false # DISABLED - no attention
+use_temporal_attention: false # DISABLED - no attention
+use_multiscale_temporal: false # DISABLED - no attention
+attention_heads: 1
+flat_field_correction: true
+clahe_clip_limit: 0.01
+zscore_normalize: true
+augment: false # DISABLED - no augmentation
+angles_mode: "both"
+
+architecture:
+  name: "cnn" # Simple CNN, not transformer
+
+# --- Flight Information - ONLY VERIFIED FLIGHTS ---
+flights:
+  - name: "10Feb25"
+    iFileName: "10Feb25/GLOVE2025_IRAI_L1B_Rev-_20250210-003.h5"
+    cFileName: "10Feb25/CPL_L2_V1-02_01kmLay_259015_10feb25.hdf5"
+    nFileName: "10Feb25/CRS_20250210_nav.hdf"
+  - name: "30Oct24"
+    iFileName: "30Oct24/WHYMSIE2024_IRAI_L1B_Rev-_20241030-008.h5"
+    cFileName: "30Oct24/CPL_L2_V1-02_01kmLay_259006_30oct24.hdf5"
+    nFileName: "30Oct24/CRS_20241030_nav.hdf"
+  - name: "23Oct24"
+    iFileName: "23Oct24/WHYMSIE2024_IRAI_L1B_Rev-_20241023-007.h5"
+    cFileName: "23Oct24/CPL_L2_V1-02_01kmLay_259004_23oct24.hdf5"
+    nFileName: "23Oct24/CRS_20241023_nav.hdf"
+  - name: "18Feb25"
+    iFileName: "18Feb25/GLOVE2025_IRAI_L1B_Rev-_20250218-002.h5"
+    cFileName: "18Feb25/CPL_L2_V1-02_01kmLay_259017_18feb25.hdf5"
+    nFileName: "18Feb25/CRS_20250218_nav.hdf"
+  - name: "12Feb25"
+    iFileName: "12Feb25/GLOVE2025_IRAI_L1B_Rev-_20250212-005.h5"
+    cFileName: "12Feb25/CPL_L2_V1-02_01kmLay_259016_12feb25.hdf5"
+    nFileName: "12Feb25/CRS_20250212_nav.hdf"
+
+# --- Self-Supervised Pre-training ---
+pretraining:
+  enabled: false # DISABLED
+  epochs: 20
+  learning_rate: 0.0001
+  batch_size: 8
+  save_checkpoints: false
+  checkpoint_dir: "./models/pretrained/"
+# --- DIAGNOSTIC EXPERIMENT A NOTES ---
+# OBJECTIVE: Establish if neural network can learn ANYTHING
+#
+# SIMPLIFICATIONS:
+#   - No attention mechanisms (spatial, temporal, multiscale)
+#   - No variance loss (pure MSE regression)
+#   - No augmentation
+#   - No learning rate scheduling
+#   - No hard mining
+#   - Simple CNN architecture
+#   - Standard Adam optimizer
+#   - No early stopping (run full 20 epochs)
+#
+# SUCCESS CRITERIA:
+#   - R² > 0 (beats random guessing)
+#   - Ideally R² > 0.1 (shows meaningful learning)
+#   - Loss decreases consistently
+#   - Predictions show some variance
+#
+# IF SUCCESSFUL:
+#   - Problem is architectural complexity
+#   - Proceed with simplified Section 3
+#
+# IF UNSUCCESSFUL:
+#   - Deeper issue with data pipeline or model fundamentals
+#   - Run Experiment B (linear model) to isolate PyTorch vs architecture

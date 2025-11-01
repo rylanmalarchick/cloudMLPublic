@@ -1,0 +1,59 @@
+# === PHASE 1: SSL DATA EXTRACTION CONFIGURATION ===
+# This config is used by scripts/extract_all_images.py to extract
+# all IR images from flight HDF5 files for self-supervised pre-training
+
+# --- Base Data Directory ---
+data_directory: "/home/rylan/Documents/research/NASA/programDirectory/data/"
+
+# --- Output Configuration ---
+output_directory: "data_ssl/images"
+format: "hdf5"  # Options: "hdf5" or "npz" (hdf5 recommended for large datasets)
+
+# --- Data Split ---
+train_split: 0.95  # 95% train, 5% validation for SSL
+
+# --- Image Processing ---
+swath_slice: [40, 480]  # Standard swath slice
+apply_vignetting_correction: true
+
+# --- Reproducibility ---
+random_seed: 42
+
+# --- Flight Information ---
+# All available flights - we extract ALL images for SSL
+flights:
+  - name: "10Feb25"
+    iFileName: "10Feb25/GLOVE2025_IRAI_L1B_Rev-_20250210-003.h5"
+    cFileName: "10Feb25/CPL_L2_V1-02_01kmLay_259015_10feb25.hdf5"
+    nFileName: "10Feb25/CRS_20250210_nav.hdf"
+
+  - name: "30Oct24"
+    iFileName: "30Oct24/WHYMSIE2024_IRAI_L1B_Rev-_20241030-008.h5"
+    cFileName: "30Oct24/CPL_L2_V1-02_01kmLay_259006_30oct24.hdf5"
+    nFileName: "30Oct24/CRS_20241030_nav.hdf"
+
+  - name: "23Oct24"
+    iFileName: "23Oct24/WHYMSIE2024_IRAI_L1B_Rev-_20241023-007.h5"
+    cFileName: "23Oct24/CPL_L2_V1-02_01kmLay_259004_23oct24.hdf5"
+    nFileName: "23Oct24/CRS_20241023_nav.hdf"
+
+  - name: "18Feb25"
+    iFileName: "18Feb25/GLOVE2025_IRAI_L1B_Rev-_20250218-002.h5"
+    cFileName: "18Feb25/CPL_L2_V1-02_01kmLay_259017_18feb25.hdf5"
+    nFileName: "18Feb25/CRS_20250218_nav.hdf"
+
+  - name: "12Feb25"
+    iFileName: "12Feb25/GLOVE2025_IRAI_L1B_Rev-_20250212-005.h5"
+    cFileName: "12Feb25/CPL_L2_V1-02_01kmLay_259016_12feb25.hdf5"
+    nFileName: "12Feb25/CRS_20250212_nav.hdf"
+
+# Note: 04Nov24 is excluded due to missing CPL file (as identified in diagnostics)
+# For SSL we only need the IR images, but we skip this flight to avoid errors
+
+# --- Extraction Notes ---
+# - This extracts ALL frames from each flight (labeled + unlabeled)
+# - Expected total: ~75,000 images across all flights
+# - Images are averaged across the 3-pixel dimension (nadir + 2 views)
+# - Vignetting correction is applied using flat-field reference
+# - Metadata saved: flight_idx, frame_idx, SZA, SAA
+# - Train/val split is stratified by flight (each flight represented in both sets)

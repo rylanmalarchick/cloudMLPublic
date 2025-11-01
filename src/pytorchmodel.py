@@ -589,6 +589,7 @@ class SimpleCNNModel(nn.Module):
     def forward(self, image_input, param1_input, param2_input):
         # Simple CNN: average over temporal frames, ignore scalars for baseline
         x = torch.mean(image_input, dim=1)  # Average temporal frames
+        x = x.unsqueeze(1)  # Add channel dimension: (batch, H, W) -> (batch, 1, H, W)
         for layer in self.cnn_layers:
             x = layer(x)
         x = x.flatten(1)
@@ -617,6 +618,9 @@ class CustomLoss(nn.Module):
         if y_true.dim() > 1 and y_true.shape[-1] == 1:
             y_true = y_true.squeeze(-1)
         # --- NEW: Added reduction parameter ---
+        if self.loss_type == "mse":
+            return F.mse_loss(y_pred, y_true, reduction=reduction)
+
         if self.loss_type == "huber":
             return F.huber_loss(
                 y_pred, y_true, delta=self.huber_delta, reduction=reduction

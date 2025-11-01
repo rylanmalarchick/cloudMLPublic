@@ -1,0 +1,83 @@
+# === PHASE 2: MAE SELF-SUPERVISED PRE-TRAINING CONFIGURATION ===
+# This config is used by scripts/pretrain_mae.py for SSL pre-training
+
+# --- Data Configuration ---
+data_dir: "data_ssl/images"  # Directory with train.h5 and val.h5 from Phase 1
+
+# --- Output Configuration ---
+output_dir: "outputs/mae_pretrain"
+
+# --- Model Architecture ---
+model_size: "small"  # Options: "tiny", "small", or "custom"
+
+# Custom model settings (used if model_size = "custom")
+img_width: 440
+patch_size: 16
+embed_dim: 192
+depth: 4
+num_heads: 3
+decoder_embed_dim: 96
+decoder_depth: 2
+decoder_num_heads: 3
+mlp_ratio: 4.0
+mask_ratio: 0.75  # Percentage of patches to mask (0.75 = 75%)
+
+# --- Training Hyperparameters ---
+epochs: 100
+batch_size: 64  # Adjust based on GPU memory (GTX 1070 Ti: 64-128)
+learning_rate: 1.0e-3  # 1e-3 recommended for MAE
+weight_decay: 0.05
+min_lr: 1.0e-6
+
+# --- Optimizer & Scheduler ---
+optimizer: "AdamW"
+scheduler: "cosine"  # Options: "cosine", "step", "none"
+scheduler_step: 30  # For step scheduler
+scheduler_gamma: 0.1  # For step scheduler
+
+# --- Regularization ---
+grad_clip: 1.0  # Gradient clipping (0 = disabled)
+
+# --- Data Loading ---
+num_workers: 4
+augment: true  # Enable data augmentation for SSL
+
+# --- Logging & Checkpointing ---
+log_interval: 10  # Log every N batches
+vis_interval: 5   # Visualize reconstructions every N epochs
+save_interval: 20 # Save periodic checkpoint every N epochs
+
+# --- Early Stopping ---
+early_stopping_patience: 20  # Stop if no improvement for N epochs
+
+# --- Hardware Optimization ---
+# These are automatically handled by PyTorch
+use_amp: false  # Automatic Mixed Precision (experimental, may cause issues)
+pin_memory: true
+persistent_workers: false
+
+# === NOTES ===
+
+# Model Size Guide:
+# - "tiny":  ~0.5M params, faster training, good for testing
+# - "small": ~1.5M params, better performance, recommended for GTX 1070 Ti
+# - "custom": Use custom architecture settings above
+
+# Batch Size Guide (GTX 1070 Ti with 8GB VRAM):
+# - model_size="tiny":  128-256
+# - model_size="small": 64-128
+# If OOM error, reduce batch_size
+
+# Training Time Estimate:
+# - "tiny" + 100 epochs + batch_size=128: ~8-12 hours
+# - "small" + 100 epochs + batch_size=64: ~12-24 hours
+
+# Expected Results:
+# - Training loss should decrease steadily
+# - Validation loss should decrease and stabilize
+# - Reconstructions should improve visually over epochs
+# - Best val loss typically achieved around epoch 60-80
+
+# After Training:
+# - Encoder weights saved to: outputs/mae_pretrain/mae_encoder_pretrained.pth
+# - Use these weights for Phase 3 (fine-tuning)

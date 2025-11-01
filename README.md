@@ -1,6 +1,38 @@
 # Cloud-ML Model Training
 
-This project addresses the challenge of accurate cloud base height (CBH) prediction from NASA satellite data, critical for climate modeling and aviation safety. It trains a deep learning model using a multimodal approach, combining a Convolutional Neural Network (CNN) for image analysis with dense layers for processing scalar data like solar zenith and azimuth angles. The model incorporates spatial and temporal attention mechanisms to focus on relevant image regions and time steps, enabling robust performance across diverse atmospheric conditions.
+This project addresses the challenge of accurate cloud base height (CBH) prediction from NASA satellite data, critical for climate modeling and aviation safety.
+
+## Current Approach: Self-Supervised Learning (SSL) Pipeline
+
+**Latest Update:** Nov 1, 2024 - SSL pipeline complete and validated
+
+We use a three-phase approach leveraging Masked Autoencoder (MAE) pre-training:
+
+1. **Phase 1:** Extract unlabeled images from satellite data (61,946 images)
+2. **Phase 2:** Self-supervised pre-training with MAE (learn representations without labels)
+3. **Phase 3:** Fine-tune on CPL-labeled CBH data (933 labeled samples)
+
+**Current Performance:** Test R² = 0.37, MAE = 0.22 km, RMSE = 0.30 km
+
+📖 **See [SSL_PIPELINE_SUMMARY.md](SSL_PIPELINE_SUMMARY.md) for complete documentation**
+
+### Quick Start (SSL Pipeline)
+
+```bash
+# Run complete pipeline
+./scripts/run_phase1.sh          # Extract images
+./scripts/run_phase2_pretrain.sh # MAE pre-training
+./scripts/run_phase3_finetune.sh # Fine-tune for CBH
+
+# Monitor training
+tensorboard --logdir outputs/cbh_finetune/logs/
+```
+
+---
+
+## Legacy Supervised Approach
+
+The original approach trains a deep learning model using a multimodal architecture, combining a Convolutional Neural Network (CNN) for image analysis with dense layers for processing scalar data like solar zenith and azimuth angles. The model incorporates spatial and temporal attention mechanisms to focus on relevant image regions and time steps.
 
 ## Technologies and Libraries
 

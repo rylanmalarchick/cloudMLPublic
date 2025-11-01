@@ -1,0 +1,125 @@
+# --- SECTION 2.1: BASELINE COLLAPSE EXPERIMENT ---
+# This config replicates the model collapse failure mode by setting
+# variance_lambda = 0, providing a quantitative baseline for comparison.
+#
+# Purpose: Establish control measurement showing variance collapse without
+# the variance-preserving regularizer.
+#
+# Key settings:
+#   - epochs: 15 (sufficient to observe collapse)
+#   - variance_lambda: 0.0 (NO variance penalty - this is the control)
+#   - Otherwise identical to phase_1_variance_fix.yaml
+
+# --- File Paths ---
+data_directory: "/home/rylan/Documents/research/NASA/programDirectory/data/"
+output_directory: "./results/"
+models_directory: "./models/"
+log_dir: "./logs/"
+
+# --- Experiment Parameters ---
+pretrain_flight: "30Oct24"
+overweight_flight: "30Oct24"
+overweight_factor: 1.0
+validation_flight: "12Feb25"
+
+# --- Training Parameters ---
+learning_rate: 0.0005
+weight_decay: 0.04
+epochs: 15
+optimizer: "AdamW"
+scheduler: "ReduceLROnPlateau"
+temporal_frames: 3
+loss_type: "huber"
+loss_alpha: 0.5
+variance_lambda: 0.0 # *** BASELINE: NO VARIANCE PENALTY ***
+min_variance_ratio: 0.0 # Disabled for baseline measurement
+early_stopping_patience: 15 # Disabled effectively - let it collapse
+filter_type: "basic"
+early_stopping_min_delta: 0.0005
+huber_delta: 1.0
+gamma: 1.5
+under_weight: 1.0
+loo: false
+loo_epochs: 30
+batch_size: 20
+warmup_steps: 500
+hard_mining_k: 0.35
+hard_mining_factor: 1.5
+swath_slice: [40, 480]
+hpc_mode: false
+
+# --- Memory & Performance Optimization ---
+memory_optimized: false
+gradient_checkpointing: true
+torch_compile: false
+torch_compile_mode: "default"
+
+# --- Data Loading Optimization ---
+num_workers: 2
+pin_memory: true
+prefetch_factor: 3
+
+# --- Model Architecture ---
+use_spatial_attention: true
+use_temporal_attention: true
+use_multiscale_temporal: true
+attention_heads: 4
+flat_field_correction: true
+clahe_clip_limit: 0.01
+zscore_normalize: true
+augment: true
+angles_mode: "both"
+
+architecture:
+  name: "transformer"
+
+# --- Flight Information ---
+flights:
+  - name: "10Feb25"
+    iFileName: "10Feb25/GLOVE2025_IRAI_L1B_Rev-_20250210-003.h5"
+    cFileName: "10Feb25/CPL_L2_V1-02_01kmLay_259015_10feb25.hdf5"
+    nFileName: "10Feb25/CRS_20250210_nav.hdf"
+  - name: "30Oct24"
+    iFileName: "30Oct24/WHYMSIE2024_IRAI_L1B_Rev-_20241030-008.h5"
+    cFileName: "30Oct24/CPL_L2_V1-02_01kmLay_259006_30oct24.hdf5"
+    nFileName: "30Oct24/CRS_20241030_nav.hdf"
+  - name: "04Nov24"
+    iFileName: "04Nov24/WHYMSIE2024_IRAI_L1B_Rev-_20241104.h5"
+    cFileName: "04Nov24/CPL_L2_V1-02_01kmLay_259008_04nov24.hdf5"
+    nFileName: "04Nov24/CRS_20241104_nav.hdf"
+  - name: "23Oct24"
+    iFileName: "23Oct24/WHYMSIE2024_IRAI_L1B_Rev-_20241023-007.h5"
+    cFileName: "23Oct24/CPL_L2_V1-02_01kmLay_259004_23oct24.hdf5"
+    nFileName: "23Oct24/CRS_20241023_nav.hdf"
+  - name: "18Feb25"
+    iFileName: "18Feb25/GLOVE2025_IRAI_L1B_Rev-_20250218-002.h5"
+    cFileName: "18Feb25/CPL_L2_V1-02_01kmLay_259017_18feb25.hdf5"
+    nFileName: "18Feb25/CRS_20250218_nav.hdf"
+  - name: "12Feb25"
+    iFileName: "12Feb25/GLOVE2025_IRAI_L1B_Rev-_20250212-005.h5"
+    cFileName: "12Feb25/CPL_L2_V1-02_01kmLay_259016_12feb25.hdf5"
+    nFileName: "12Feb25/CRS_20250212_nav.hdf"
+
+# --- Self-Supervised Pre-training ---
+pretraining:
+  enabled: false
+  epochs: 20
+  learning_rate: 0.0001
+  batch_size: 8
+  save_checkpoints: true
+  checkpoint_dir: "./models/pretrained/"
+# --- SECTION 2.1 EXPERIMENT NOTES ---
+# OBJECTIVE: Quantify model collapse as baseline for variance-preserving experiments
+#
+# EXPECTED BEHAVIOR:
+#   - Validation R² will be negative or near zero
+#   - Variance ratio (σ_pred / σ_true) will drop toward ~0%
+#   - Model will learn to predict near-constant value (close to mean)
+#
+# DELIVERABLES:
+#   - Final negative R² score
+#   - Plot showing variance_ratio decreasing over epochs
+#   - Histogram showing collapsed prediction distribution
+#
+# NEXT STEP:
+#   - Section 2.2: Hyperparameter sweep of variance_lambda values

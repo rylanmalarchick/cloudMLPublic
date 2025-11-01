@@ -1,0 +1,118 @@
+# --- DIAGNOSTIC EXPERIMENT C: SINGLE FLIGHT OVERFITTING TEST ---
+# Purpose: Test if model can learn ANYTHING from a single flight
+# Strategy: Train AND validate on the same flight to test pure memorization
+# If this fails, the model/pipeline is fundamentally broken
+
+# --- File Paths ---
+data_directory: "/home/rylan/Documents/research/NASA/programDirectory/data/"
+output_directory: "./results/"
+models_directory: "./models/"
+log_dir: "./logs/"
+
+# --- Experiment Parameters ---
+pretrain_flight: "30Oct24" # Train on 30Oct24
+overweight_flight: "30Oct24"
+overweight_factor: 1.0
+validation_flight: "30Oct24" # *** VALIDATE ON SAME FLIGHT - OVERFITTING TEST ***
+
+# --- Training Parameters ---
+learning_rate: 0.0001 # Lower LR for careful learning
+weight_decay: 0.0 # NO regularization - we WANT overfitting
+epochs: 50 # More epochs to ensure full memorization
+optimizer: "Adam"
+scheduler: "none" # No scheduling
+temporal_frames: 1 # Single frame for SimpleCNN (avoids channel mismatch)
+loss_type: "mse" # Simple MSE
+loss_alpha: 0.5
+variance_lambda: 0.0 # NO variance penalty
+min_variance_ratio: 0.0
+early_stopping_patience: 50 # Disabled - run all 50 epochs
+filter_type: "basic"
+early_stopping_min_delta: 0.0
+huber_delta: 1.0
+gamma: 1.5
+under_weight: 1.0
+loo: false
+loo_epochs: 30
+batch_size: 16 # Smaller batches for more gradient updates
+warmup_steps: 0
+hard_mining_k: 1.0 # Disabled
+hard_mining_factor: 1.0
+swath_slice: [40, 480]
+hpc_mode: false
+
+# --- Memory & Performance Optimization ---
+memory_optimized: false
+gradient_checkpointing: false
+torch_compile: false
+torch_compile_mode: "default"
+
+# --- Data Loading Optimization ---
+num_workers: 2
+pin_memory: true
+prefetch_factor: 2
+
+# --- Model Architecture - MINIMAL ---
+use_spatial_attention: false
+use_temporal_attention: false
+use_multiscale_temporal: false
+attention_heads: 1
+flat_field_correction: true
+clahe_clip_limit: 0.01
+zscore_normalize: true
+augment: false # NO augmentation - we want to memorize exact samples
+angles_mode: "both"
+
+architecture:
+  name: "cnn"
+
+# --- Flight Information - SINGLE FLIGHT ONLY ---
+flights:
+  - name: "30Oct24"
+    iFileName: "30Oct24/WHYMSIE2024_IRAI_L1B_Rev-_20241030-008.h5"
+    cFileName: "30Oct24/CPL_L2_V1-02_01kmLay_259006_30oct24.hdf5"
+    nFileName: "30Oct24/CRS_20241030_nav.hdf"
+
+# --- Self-Supervised Pre-training ---
+pretraining:
+  enabled: false
+  epochs: 20
+  learning_rate: 0.0001
+  batch_size: 8
+  save_checkpoints: false
+  checkpoint_dir: "./models/pretrained/"
+# --- DIAGNOSTIC EXPERIMENT C NOTES ---
+# OBJECTIVE: Test if model can memorize a single flight's data
+#
+# SETUP:
+#   - Train on 30Oct24 ONLY
+#   - Validate on 30Oct24 (SAME flight)
+#   - No regularization (weight_decay=0)
+#   - No augmentation
+#   - 50 epochs (plenty of time to overfit)
+#
+# EXPECTED BEHAVIOR IF MODEL WORKS:
+#   - Training loss → 0
+#   - Validation loss → 0 (same data!)
+#   - R² → 1.0 (perfect fit)
+#   - Model should memorize the ~500 samples
+#
+# SUCCESS CRITERIA:
+#   - R² > 0.8 by epoch 50
+#   - Loss < 0.1
+#   - Proves model CAN learn when task is trivial
+#
+# IF SUCCESSFUL:
+#   - Model architecture is functional
+#   - Problem is generalization/multi-flight training
+#   - Need to investigate data distribution differences
+#
+# IF UNSUCCESSFUL (R² < 0.5):
+#   - FUNDAMENTAL PROBLEM with model or data pipeline
+#   - Check:
+#     * Data loading (are inputs/targets aligned?)
+#     * Model forward pass (does it output correct shape?)
+#     * Loss calculation (is it actually measuring what we think?)
+#     * Gradient flow (are gradients reaching all layers?)
+#
+# THIS IS THE SIMPLEST POSSIBLE TEST - IF THIS FAILS, EVERYTHING IS BROKEN
