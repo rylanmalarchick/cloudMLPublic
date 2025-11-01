@@ -14,7 +14,7 @@ We use a three-phase approach leveraging Masked Autoencoder (MAE) pre-training:
 
 **Current Performance:** Test R² = 0.37, MAE = 0.22 km, RMSE = 0.30 km
 
-📖 **See [SSL_PIPELINE_SUMMARY.md](SSL_PIPELINE_SUMMARY.md) for complete documentation**
+📖 **See [docs/SSL_PIPELINE_SUMMARY.md](docs/SSL_PIPELINE_SUMMARY.md) for complete documentation**
 
 ### Quick Start (SSL Pipeline)
 
