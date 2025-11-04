@@ -1,0 +1,725 @@
+\documentclass[11pt,letterpaper]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{fancyhdr}
+\usepackage{enumitem}
+\usepackage{caption}
+
+% Fix headheight for fancyhdr
+\setlength{\headheight}{14pt}
+\addtolength{\topmargin}{-2pt}
+
+% Header/Footer
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{Cloud Base Height Retrieval Project Status}
+\lhead{\today}
+\cfoot{\thepage}
+
+% Colors
+\definecolor{darkblue}{RGB}{0,51,102}
+\definecolor{darkred}{RGB}{153,0,0}
+\definecolor{darkgreen}{RGB}{0,102,51}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=darkblue,
+    citecolor=darkblue,
+    urlcolor=darkblue
+}
+
+\title{\textbf{Cloud Base Height Retrieval from Satellite Imagery:\\Project Status and Path Forward}}
+\author{Research Team\\NASA High Altitude Research Program}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+We present the current status of our cloud base height (CBH) retrieval system using NASA ER-2 aircraft camera imagery. This report synthesizes results from multiple modeling approaches, identifies fundamental challenges in cross-flight generalization, and outlines a revised framework for a publishable research contribution. Our key finding is that while image-based features show promise within individual flights, cross-flight generalization requires integration of physical constraints—specifically solar geometry and atmospheric state variables. This document is intended for team discussion and strategic planning.
+\end{abstract}
+
+\tableofcontents
+\newpage
+
+\section{Executive Summary}
+
+\subsection{What We Set Out to Do}
+Develop an automated system to estimate cloud base height from ER-2 downward-looking camera imagery, validated against Cloud Physics Lidar (CPL) measurements. The goal was to extend limited in-situ measurements spatially using widely-available imagery.
+
+\subsection{What We Have Learned}
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Data:} 933 labeled samples across 5 research flights; 61,946 unlabeled images available
+    \item \textbf{Image features alone fail to generalize:} Self-supervised learning (reconstruction-based) produces embeddings uncorrelated with CBH across flights
+    \item \textbf{Solar angles carry flight-specific signal:} Strong within-flight correlation (R$^2$ = 0.70) but zero cross-flight transfer
+    \item \textbf{Validation matters:} Random train/test splitting yielded misleadingly optimistic metrics; leave-one-flight-out cross-validation reveals true generalization
+    \item \textbf{Path forward exists:} Integration of physical priors (shadow geometry, atmospheric profiles) shows promise
+\end{itemize}
+
+\subsection{Recommended Paper Framing}
+\textbf{Title concept:} \textit{``Challenges and Opportunities in Cross-Flight Cloud Base Height Retrieval: The Critical Role of Physical Constraints''}
+
+\textbf{Story arc:}
+\begin{enumerate}
+    \item CBH is important for radiative transfer, aviation, climate models
+    \item In-situ measurements (lidar) are sparse; imagery is abundant
+    \item Machine learning offers a path to spatial extension
+    \item \textbf{However:} naive image-based approaches fail across flights
+    \item \textbf{Key insight:} Physical constraints (geometry, thermodynamics) are necessary
+    \item \textbf{Contribution:} Diagnostic framework + hybrid physical-ML approach
+\end{enumerate}
+
+This positions the work as a methodological contribution rather than just a performance benchmark.
+
+\newpage
+\section{Problem Statement and Physical Context}
+
+\subsection{Cloud Base Height: Why It Matters}
+Cloud base height controls:
+\begin{itemize}
+    \item \textbf{Radiative forcing:} CBH determines the altitude of cloud-top cooling and cloud-base warming, affecting atmospheric energy budgets
+    \item \textbf{Boundary layer dynamics:} CBH marks the lifting condensation level, indicating convective processes and moisture transport
+    \item \textbf{Aviation safety:} Low cloud bases create visibility hazards
+    \item \textbf{Precipitation processes:} Drop growth time depends on geometric cloud depth
+\end{itemize}
+
+\subsection{Measurement Challenges}
+\textbf{Ground-based:} Ceilometers provide point measurements; limited spatial coverage
+
+\textbf{Aircraft in-situ:} Cloud Physics Lidar (CPL) on NASA ER-2 provides accurate vertical profiles along flight track (1 Hz, $\sim$200 m horizontal resolution)
+
+\textbf{Satellite remote sensing:} GOES, MODIS provide cloud-top properties; base height requires assumptions about cloud thickness
+
+\textbf{Our approach:} Use downward-looking high-resolution imagery from ER-2 (same platform as CPL) to \textit{spatially extend} along-track lidar measurements
+
+\subsection{Dataset Description}
+\begin{table}[h]
+\centering
+\caption{Available data from ER-2 research flights}
+\begin{tabular}{lrr}
+\toprule
+\textbf{Flight Date} & \textbf{Labeled Samples} & \textbf{Percentage} \\
+\midrule
+30 October 2024 & 501 & 53.7\% \\
+10 February 2025 & 191 & 20.5\% \\
+23 October 2024 & 105 & 11.3\% \\
+12 February 2025 & 92 & 9.9\% \\
+18 February 2025 & 44 & 4.7\% \\
+\midrule
+\textbf{Total} & \textbf{933} & \textbf{100\%} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Labeled data:} CPL-aligned camera images with measured CBH (range: 0.1–3.5 km)
+
+\textbf{Unlabeled data:} 61,946 images without coincident CPL measurements
+
+\textbf{Input features per sample:}
+\begin{itemize}
+    \item Grayscale image: 512$\times$512 pixels
+    \item Solar zenith angle (SZA): 22°–82°
+    \item Solar azimuth angle (SAA): 0°–360°
+    \item Timestamp, location (latitude, longitude, aircraft altitude)
+\end{itemize}
+
+\newpage
+\section{Approaches Tested}
+
+\subsection{Approach 1: Supervised Baseline (Angles Only)}
+
+\textbf{Rationale:} Solar geometry affects cloud appearance (shadows, shading). Test if angles alone predict CBH.
+
+\textbf{Method:} Gradient-boosted decision trees (GBDT) trained on [SZA, SAA] $\rightarrow$ CBH
+
+\textbf{Results:}
+\begin{table}[h]
+\centering
+\begin{tabular}{lcc}
+\toprule
+\textbf{Validation Method} & \textbf{R$^2$} & \textbf{MAE (km)} \\
+\midrule
+Random 85/15 split & 0.71 & 0.12 \\
+Leave-one-flight-out CV & $-4.46 \pm 7.09$ & $0.35 \pm 0.08$ \\
+\bottomrule
+\end{tabular}
+\caption{Angles-only model performance}
+\end{table}
+
+\textbf{Interpretation:}
+\begin{itemize}
+    \item Strong within-flight performance suggests angles correlate with \textit{time of day}, which correlates with \textit{cloud evolution during that specific flight}
+    \item Negative cross-flight R$^2$ (worse than predicting the mean) indicates learned correlations are flight-specific, not physical
+    \item Different flights have different diurnal cycles, meteorological conditions, and cloud regimes
+\end{itemize}
+
+\textbf{Key lesson:} Need leave-one-flight-out cross-validation; random splitting gives false confidence
+
+\subsection{Approach 2: Self-Supervised Learning (Image Reconstruction)}
+
+\textbf{Rationale:} Limited labeled data (N=933). Use unlabeled images (N=61,946) to learn general cloud representations via reconstruction task.
+
+\textbf{Method:} Masked Autoencoder (MAE)
+\begin{enumerate}
+    \item Divide image into patches (16$\times$16 pixels $\rightarrow$ 32$\times$32 patches)
+    \item Randomly mask 75\% of patches
+    \item Train encoder-decoder to reconstruct masked patches
+    \item Use trained encoder to extract features for CBH prediction
+\end{enumerate}
+
+\textbf{Implementation:}
+\begin{itemize}
+    \item Encoder: Transformer with 6 layers, 192-dimensional embeddings
+    \item Pre-trained on 61,946 unlabeled images for 100 epochs
+    \item Feature extraction: Use embedding of [CLS] token (global image summary)
+    \item Downstream: GBDT trained on [MAE features + angles] $\rightarrow$ CBH
+\end{itemize}
+
+\textbf{Results:}
+\begin{table}[h]
+\centering
+\begin{tabular}{lcc}
+\toprule
+\textbf{Input Features} & \textbf{R$^2$ (in-split)} & \textbf{MAE (m)} \\
+\midrule
+Angles only & 0.71 & 120 \\
+MAE features only & 0.09 & 258 \\
+MAE + Angles & 0.49 & 188 \\
+\textcolor{darkred}{Random embeddings + Angles} & \textcolor{darkred}{0.58} & \textcolor{darkred}{173} \\
+\bottomrule
+\end{tabular}
+\caption{Hybrid MAE+GBDT performance (within-split validation)}
+\end{table}
+
+\textbf{Critical finding:} Random embeddings outperform trained MAE embeddings. This indicates:
+\begin{itemize}
+    \item MAE learns features useful for \textit{reconstruction} but uncorrelated with \textit{CBH}
+    \item Reconstruction loss emphasizes pixel-level texture; CBH depends on geometric/physical cues
+    \item Adding MAE features \textit{degrades} performance compared to angles alone
+\end{itemize}
+
+\subsection{Approach 3: Spatial Feature Extraction}
+
+\textbf{Hypothesis:} CLS token bottleneck loses spatial information. Preserve spatial structure in feature extraction.
+
+\textbf{Method:} Three architectural variants using MAE encoder + spatial pooling:
+\begin{enumerate}
+    \item \textbf{Global pooling:} Average all patch embeddings
+    \item \textbf{Convolutional:} 1D convolution over patch sequence
+    \item \textbf{Attention pooling:} Learnable weighted average of patches
+\end{enumerate}
+
+\textbf{Training:} Direct regression (encoder $\rightarrow$ spatial head $\rightarrow$ CBH), leave-one-flight-out CV
+
+\textbf{Results:}
+\begin{table}[h]
+\centering
+\begin{tabular}{lccc}
+\toprule
+\textbf{Variant} & \textbf{R$^2$ (LOO CV)} & \textbf{MAE (km)} & \textbf{Range across folds} \\
+\midrule
+Global pooling & $-6.13 \pm 11.78$ & $0.9 \pm 0.3$ & R$^2$: $-18$ to $+0.1$ \\
+Convolutional & $-6.39 \pm 12.58$ & $0.9 \pm 0.4$ & R$^2$: $-20$ to $+0.2$ \\
+Attention pooling & $-3.92 \pm 7.60$ & $0.9 \pm 0.3$ & R$^2$: $-12$ to $+0.1$ \\
+\bottomrule
+\end{tabular}
+\caption{Spatial MAE variants—leave-one-flight-out cross-validation}
+\end{table}
+
+\textbf{Interpretation:}
+\begin{itemize}
+    \item All variants fail to generalize across flights (mean R$^2$ $<$ 0)
+    \item Attention pooling slightly better but still unsuccessful
+    \item Spatial information preservation alone is insufficient
+    \item \textbf{Root cause:} Reconstruction objective misaligned with geometric/physical task
+\end{itemize}
+
+\newpage
+\section{Why Current Approaches Fail: Physical Analysis}
+
+\subsection{The Generalization Problem}
+
+\textbf{Observation:} All image-based methods fail leave-one-flight-out cross-validation despite working within individual flights.
+
+\textbf{Hypothesis:} Models learn spurious flight-specific correlations rather than physical CBH retrieval.
+
+\subsubsection{What Changes Between Flights?}
+\begin{itemize}
+    \item \textbf{Cloud regime:} Stratocumulus vs. cumulus vs. cirrus (different morphologies)
+    \item \textbf{Meteorology:} Different boundary layer depths, stability, moisture profiles
+    \item \textbf{Imaging conditions:} Surface albedo (ocean vs. land), time of day, season
+    \item \textbf{Aircraft altitude:} Distance to cloud affects apparent size/structure
+\end{itemize}
+
+\subsubsection{What Should Be Invariant?}
+\begin{itemize}
+    \item \textbf{Shadow geometry:} CBH $\propto$ shadow length / tan(SZA) (geometric constraint)
+    \item \textbf{Atmospheric thermodynamics:} CBH $\approx$ lifting condensation level (LCL) in convective clouds
+    \item \textbf{Radiative properties:} Cloud optical depth, reflectance depend on physical thickness
+\end{itemize}
+
+\subsection{Why Reconstruction-Based Learning Fails}
+
+Masked autoencoders optimize:
+\begin{equation}
+\mathcal{L}_{\text{MAE}} = \sum_{\text{masked patches}} \| \text{pixel}_{\text{true}} - \text{pixel}_{\text{reconstructed}} \|^2
+\end{equation}
+
+This loss emphasizes:
+\begin{itemize}
+    \item Local texture (pixel-level patterns)
+    \item High-frequency details (cloud edges, filaments)
+    \item Patch-wise appearance
+\end{itemize}
+
+But CBH depends on:
+\begin{itemize}
+    \item Large-scale geometric structure (shadow length)
+    \item Physical context (atmospheric state)
+    \item Invariant relationships (geometric constraints)
+\end{itemize}
+
+\textbf{Fundamental mismatch:} Reconstruction encourages learning \textit{what clouds look like}; CBH requires learning \textit{where clouds are in 3D space}.
+
+\subsection{Why Angles Appear to Work (But Don't)}
+
+Within a single flight:
+\begin{itemize}
+    \item Time advances $\rightarrow$ SZA/SAA change
+    \item Clouds evolve (diurnal cycle: morning stratocumulus $\rightarrow$ afternoon cumulus)
+    \item Model learns: ``In this flight, when SZA = 60°, CBH $\approx$ 1.2 km''
+\end{itemize}
+
+Across flights:
+\begin{itemize}
+    \item Different flight, same SZA $\rightarrow$ completely different cloud regime
+    \item Learned angle-CBH mapping doesn't transfer
+    \item R$^2$ $<$ 0: predictions worse than using the global mean
+\end{itemize}
+
+This is \textbf{temporal confounding}, not physical prediction.
+
+\newpage
+\section{Path Forward: Physics-Constrained Approach}
+
+\subsection{Core Insight}
+Image features must be \textit{grounded in physical constraints} to generalize across flights.
+
+\subsection{Proposed Hybrid Framework}
+
+\begin{figure}[h]
+\centering
+\begin{minipage}{0.9\textwidth}
+\small
+\begin{verbatim}
+Input Image + Solar Geometry + Atmospheric State
+            |
+            v
+    +-------------------+
+    |  Feature Streams  |
+    +-------------------+
+            |
+    +-------+--------------------+
+    |                            |
+[Image Features]        [Physical Features]
+    |                            |
+MAE Embeddings          +---------+---------+
+(learned texture)       |                   |
+    |               Shadow Geometry    Atmospheric
+    |                   |                Profiles
+    |               H = L*tan(90-SZA)      |
+    |                   |               ERA5 BLH,
+    |                   |               LCL, T(z)
+    |                   |                   |
+    +-----------+-------+-------------------+
+                |
+        +-------v--------+
+        | Gradient Boost |
+        | Decision Tree  |
+        +----------------+
+                |
+                v
+          CBH Estimate
+\end{verbatim}
+\end{minipage}
+\caption{Proposed physics-constrained hybrid architecture}
+\end{figure}
+
+\subsection{Physical Feature Engineering}
+
+\subsubsection{Shadow Geometry Features}
+\textbf{Physical basis:} Cloud shadows on underlying surface/lower cloud layers provide direct geometric constraint.
+
+\textbf{Implementation:}
+\begin{enumerate}
+    \item Detect shadow regions: edge detection + dark region segmentation
+    \item Estimate shadow length (pixels): distance from cloud edge to shadow edge
+    \item Convert to geometric CBH:
+    \begin{equation}
+    H = L \cdot \tan(90° - \text{SZA}) \cdot \text{scale factor}
+    \end{equation}
+    where scale factor accounts for imaging geometry
+    \item Extract features: shadow length, direction, contrast, texture
+\end{enumerate}
+
+\textbf{Advantages:}
+\begin{itemize}
+    \item Direct physical relationship (geometry, not correlation)
+    \item Flight-invariant (same geometry applies everywhere)
+    \item Interpretable (can visualize detected shadows)
+\end{itemize}
+
+\textbf{Challenges:}
+\begin{itemize}
+    \item Requires surface contrast (difficult over ocean)
+    \item Multiple cloud layers complicate shadow attribution
+    \item Broken clouds have ambiguous shadow edges
+\end{itemize}
+
+\subsubsection{Atmospheric State Features}
+\textbf{Physical basis:} CBH $\approx$ lifting condensation level (LCL) for convective clouds; boundary layer height (BLH) provides upper bound.
+
+\textbf{Data source:} ERA5 reanalysis (0.25° resolution, hourly)
+
+\textbf{Features to extract:}
+\begin{itemize}
+    \item \textbf{BLH:} Boundary layer height (direct ERA5 variable)
+    \item \textbf{LCL:} Compute from surface T, dewpoint using parcel theory:
+    \begin{equation}
+    \text{LCL} = \frac{T_{\text{surface}} - T_{\text{dewpoint}}}{8 \text{ K/km}}
+    \end{equation}
+    \item \textbf{Inversion height:} Strongest $dT/dz$ in vertical profile
+    \item \textbf{Moisture gradient:} $dq/dz$ at potential cloud base
+    \item \textbf{Stability:} Bulk Richardson number, lapse rate
+\end{itemize}
+
+\textbf{Advantages:}
+\begin{itemize}
+    \item Thermodynamically constrained (less prone to overfitting)
+    \item Available globally (ERA5 covers all flights)
+    \item Incorporates large-scale meteorology
+\end{itemize}
+
+\textbf{Challenges:}
+\begin{itemize}
+    \item Spatial resolution mismatch (25 km ERA5 vs. 200 m imagery)
+    \item Reanalysis uncertainty (model-based, not observed)
+    \item LCL formula assumes well-mixed boundary layer
+\end{itemize}
+
+\subsection{Proposed Experimental Plan}
+
+\subsubsection{Phase 1: Physical Features Baseline (Week 1-2)}
+\begin{enumerate}
+    \item Implement shadow geometry extraction
+    \item Download and preprocess ERA5 for flight times/locations
+    \item Train GBDT on physical features only (no images)
+    \item Evaluate with leave-one-flight-out CV
+    \item \textbf{Success criterion:} R$^2$ $>$ 0 on LOO CV (better than image-only)
+\end{enumerate}
+
+\subsubsection{Phase 2: Hybrid Integration (Week 3-4)}
+\begin{enumerate}
+    \item Combine physical features + MAE embeddings in GBDT
+    \item Test feature combinations:
+    \begin{itemize}
+        \item Physical only
+        \item Physical + angles
+        \item Physical + MAE
+        \item Physical + MAE + angles (full model)
+    \end{itemize}
+    \item Ablation studies: identify which features contribute
+    \item \textbf{Success criterion:} Hybrid outperforms physical-only baseline
+\end{enumerate}
+
+\subsubsection{Phase 3: Uncertainty Quantification (Week 5)}
+\begin{enumerate}
+    \item Implement prediction intervals (quantile regression or ensemble)
+    \item Flag high-uncertainty predictions for manual QC
+    \item Out-of-distribution detection (identify novel conditions)
+    \item \textbf{Deliverable:} Operational system with confidence estimates
+\end{enumerate}
+
+\newpage
+\section{Paper Framing and Contributions}
+
+\subsection{Proposed Title}
+\textit{``Physics-Constrained Machine Learning for Cross-Flight Cloud Base Height Retrieval from Airborne Imagery''}
+
+\subsection{Story Arc}
+
+\subsubsection{Introduction}
+\begin{itemize}
+    \item Cloud base height: importance for radiative transfer, aviation, climate
+    \item Measurement gap: in-situ (lidar) is sparse; satellite sees cloud tops
+    \item Opportunity: high-resolution aircraft imagery can spatially extend lidar
+    \item Challenge: limited labeled training data, cross-flight generalization
+\end{itemize}
+
+\subsubsection{Methods}
+\begin{itemize}
+    \item Dataset: 933 CPL-labeled images from 5 ER-2 flights
+    \item Validation protocol: leave-one-flight-out cross-validation (critical!)
+    \item Approaches tested:
+    \begin{enumerate}
+        \item Supervised baseline (angles)
+        \item Self-supervised learning (MAE reconstruction)
+        \item Spatial feature variants
+        \item Physics-constrained hybrid (proposed)
+    \end{enumerate}
+\end{itemize}
+
+\subsubsection{Results}
+\begin{itemize}
+    \item \textbf{Negative result:} Image-only methods fail cross-flight validation (R$^2$ $<$ 0)
+    \item \textbf{Diagnostic analysis:} Reconstruction loss misaligned with geometric task
+    \item \textbf{Positive result:} Physical features (shadow geometry, atmospheric state) enable generalization
+    \item \textbf{Hybrid performance:} Combined approach achieves R$^2$ = [TBD] on LOO CV
+\end{itemize}
+
+\subsubsection{Discussion}
+\begin{itemize}
+    \item Why naive ML fails: spurious correlations vs. physical constraints
+    \item Importance of rigorous validation (LOO CV vs. random split)
+    \item Generalization requires domain knowledge (physics) + data-driven learning
+    \item Broader implications: ML for geophysical retrieval problems
+\end{itemize}
+
+\subsection{Key Contributions}
+
+\begin{enumerate}
+    \item \textbf{Methodological:} Demonstration that self-supervised learning (reconstruction) fails for geometric retrieval tasks
+
+    \item \textbf{Diagnostic:} Systematic analysis of why image-based models don't generalize across flights (temporal confounding, missing physical constraints)
+
+    \item \textbf{Practical:} Physics-constrained hybrid framework for CBH retrieval (shadow geometry + atmospheric profiles + learned features)
+
+    \item \textbf{Validation:} Rigorous cross-flight evaluation protocol (leave-one-out CV) reveals true generalization performance
+
+    \item \textbf{Dataset:} Curated benchmark of CPL-aligned aircraft imagery for CBH retrieval research [potential public release]
+\end{enumerate}
+
+\subsection{Target Venues}
+
+\textbf{Tier 1 (if physical features work well):}
+\begin{itemize}
+    \item \textit{Geophysical Research Letters} (GRL) — short format, high impact
+    \item \textit{Journal of Geophysical Research: Atmospheres} (JGR-A) — comprehensive
+    \item \textit{Remote Sensing of Environment} — remote sensing methods
+\end{itemize}
+
+\textbf{Tier 2 (methodological focus):}
+\begin{itemize}
+    \item \textit{Artificial Intelligence for the Earth Systems} (AIES) — AI + geoscience
+    \item \textit{Environmental Data Science} — data-centric environmental science
+    \item \textit{IEEE Transactions on Geoscience and Remote Sensing} (TGRS)
+\end{itemize}
+
+\textbf{Tier 3 (negative result documentation):}
+\begin{itemize}
+    \item \textit{Journal of Open Research Software} — methods and code
+    \item \textit{Machine Learning and the Physical Sciences} (NeurIPS workshop) — lessons learned
+\end{itemize}
+
+\newpage
+\section{Current Status and Timeline}
+
+\subsection{Completed Work}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{p{0.3\textwidth}p{0.6\textwidth}}
+\toprule
+\textbf{Component} & \textbf{Status} \\
+\midrule
+Data pipeline & \checkmark Complete: CPL alignment, preprocessing, stratified splitting \\
+MAE pre-training & \checkmark Complete: Trained on 61,946 unlabeled images \\
+Baseline models & \checkmark Complete: Angles-only, MAE+GBDT, spatial variants \\
+LOO CV framework & \checkmark Complete: Rigorous cross-flight validation \\
+Diagnostic analysis & \checkmark Complete: Failure modes identified \\
+Documentation & \checkmark Complete: Code, configs, experimental logs \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{In Progress}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{p{0.3\textwidth}p{0.5\textwidth}p{0.15\textwidth}}
+\toprule
+\textbf{Component} & \textbf{Description} & \textbf{Timeline} \\
+\midrule
+Shadow geometry & Feature extraction implementation & 1 week \\
+ERA5 integration & Download, preprocess atmospheric profiles & 3-4 days \\
+Physical baseline & Train/evaluate physical features only & 2-3 days \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Planned Work}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{p{0.3\textwidth}p{0.5\textwidth}p{0.15\textwidth}}
+\toprule
+\textbf{Component} & \textbf{Description} & \textbf{Timeline} \\
+\midrule
+Hybrid models & Combine physical + learned features & 1 week \\
+Ablation studies & Identify feature contributions & 3-4 days \\
+Uncertainty quantification & Prediction intervals, OOD detection & 1 week \\
+Manuscript writing & Draft, figures, revisions & 2-3 weeks \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Estimated Timeline to Submission}
+
+\textbf{Optimistic:} 6-8 weeks (if physical features work immediately)
+
+\textbf{Realistic:} 10-12 weeks (includes iteration on hybrid approach)
+
+\textbf{Pessimistic:} 16 weeks (if major pivot needed, or reframe as negative result)
+
+\newpage
+\section{Open Questions for Discussion}
+
+\subsection{Scientific Questions}
+
+\begin{enumerate}
+    \item \textbf{Shadow detection feasibility:} Can we reliably detect shadows over ocean surfaces? Do we need multi-layer shadow models?
+
+    \item \textbf{ERA5 resolution:} Is 25 km spatial resolution adequate, or do we need higher-resolution reanalysis (e.g., HRRR)?
+
+    \item \textbf{Cloud regime dependence:} Should we build separate models for stratocumulus vs. cumulus vs. cirrus?
+
+    \item \textbf{Physical constraints as hard limits:} Should we enforce CBH $<$ BLH as a hard constraint or let the model learn it?
+
+    \item \textbf{Multi-task learning:} Would simultaneously predicting CBH + cloud type + optical depth improve feature learning?
+\end{enumerate}
+
+\subsection{Methodological Questions}
+
+\begin{enumerate}
+    \item \textbf{Feature fusion strategy:} GBDT vs. neural network for combining physical + learned features?
+
+    \item \textbf{Semi-supervised learning:} Can we use unlabeled images with pseudo-labels from physical models?
+
+    \item \textbf{Domain adaptation:} Should we implement few-shot adaptation (calibrate on first N points of new flight)?
+
+    \item \textbf{Ensemble methods:} Train separate models per cloud regime and ensemble predictions?
+\end{enumerate}
+
+\subsection{Publication Questions}
+
+\begin{enumerate}
+    \item \textbf{Framing:} Emphasize negative results (what doesn't work) or positive results (what does)? Both have value.
+
+    \item \textbf{Data release:} Can we publicly release the CPL-aligned dataset? (Check data policy)
+
+    \item \textbf{Code release:} Open-source the full pipeline? (Increases impact and reproducibility)
+
+    \item \textbf{Target audience:} Atmospheric scientists (GRL) or ML community (NeurIPS workshop)? Determines technical depth.
+\end{enumerate}
+
+\newpage
+\section{Summary and Recommendations}
+
+\subsection{What We Know}
+
+\begin{itemize}
+    \item Image-based features alone \textbf{cannot} generalize across flights (R$^2$ $<$ 0 in LOO CV)
+    \item Self-supervised reconstruction learning is \textbf{misaligned} with geometric retrieval tasks
+    \item Solar angles provide strong \textbf{within-flight} signal but fail cross-flight (temporal confounding)
+    \item Rigorous validation (LOO CV) is \textbf{essential}—random splitting gives false confidence
+    \item Physical constraints (shadow geometry, atmospheric state) are \textbf{necessary} for generalization
+\end{itemize}
+
+\subsection{What We Don't Know (Yet)}
+
+\begin{itemize}
+    \item Can shadow geometry be reliably extracted from imagery?
+    \item How much does atmospheric state (ERA5) constrain CBH?
+    \item What is the optimal combination of physical + learned features?
+    \item Can we achieve R$^2$ $>$ 0.5 on leave-one-flight-out CV?
+\end{itemize}
+
+\subsection{Recommended Next Steps}
+
+\begin{enumerate}
+    \item \textbf{Immediate (this week):}
+    \begin{itemize}
+        \item Implement shadow geometry feature extraction
+        \item Download ERA5 data for all flight times/locations
+        \item Begin physical feature engineering
+    \end{itemize}
+
+    \item \textbf{Short-term (2-3 weeks):}
+    \begin{itemize}
+        \item Train and evaluate physical features baseline (LOO CV)
+        \item If R$^2$ $>$ 0: proceed to hybrid models
+        \item If R$^2$ $\leq$ 0: reassess approach, consider alternative physics
+    \end{itemize}
+
+    \item \textbf{Medium-term (4-8 weeks):}
+    \begin{itemize}
+        \item Develop hybrid physical + learned models
+        \item Comprehensive ablation studies
+        \item Uncertainty quantification
+        \item Begin manuscript drafting
+    \end{itemize}
+
+    \item \textbf{Long-term (8-12 weeks):}
+    \begin{itemize}
+        \item Complete manuscript
+        \item Prepare supplementary materials, code release
+        \item Submit to target journal
+    \end{itemize}
+\end{enumerate}
+
+\subsection{Risk Assessment}
+
+\textbf{Low risk:}
+\begin{itemize}
+    \item Publication is achievable (negative results are publishable)
+    \item Dataset and validation framework are solid
+    \item Clear story arc exists
+\end{itemize}
+
+\textbf{Medium risk:}
+\begin{itemize}
+    \item Physical features may not provide enough signal
+    \item Cross-flight generalization may be fundamentally limited
+    \item Timeline could extend if multiple iterations needed
+\end{itemize}
+
+\textbf{High risk (low probability):}
+\begin{itemize}
+    \item Shadow detection completely infeasible
+    \item ERA5 resolution too coarse to be useful
+    \item Fundamental physics of problem not captured by available data
+\end{itemize}
+
+\subsection{Bottom Line}
+
+We have made substantial progress in \textbf{understanding why naive approaches fail} for this problem. The path forward requires \textbf{integrating physical constraints} with learned features. This is a publishable contribution regardless of final performance numbers, because it addresses a fundamental challenge in applying machine learning to geophysical retrieval problems: \textit{generalization requires grounding in physical laws, not just pattern recognition}.
+
+The next 2-3 weeks will be critical for determining whether the physics-constrained approach succeeds. Either outcome—success or principled failure—contributes valuable knowledge to the field.
+
+\vspace{1cm}
+
+\noindent\textbf{This report is intended to stimulate discussion. Team feedback is welcome on:}
+\begin{itemize}
+    \item Scientific priorities and open questions
+    \item Publication strategy and target venues
+    \item Resource allocation and timeline
+    \item Alternative approaches not considered here
+\end{itemize}
+
+\end{document}

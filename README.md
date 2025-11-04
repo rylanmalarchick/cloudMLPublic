@@ -1,38 +1,92 @@
-# Cloud-ML Model Training
+# Cloud Base Height Retrieval from Airborne Imagery
 
-This project addresses the challenge of accurate cloud base height (CBH) prediction from NASA satellite data, critical for climate modeling and aviation safety.
+This project develops machine learning approaches for cloud base height (CBH) retrieval from NASA ER-2 aircraft camera imagery, validated against Cloud Physics Lidar (CPL) measurements.
 
-## Current Approach: Self-Supervised Learning (SSL) Pipeline
+## 📊 Project Status (November 2024)
 
-**Latest Update:** Nov 1, 2024 - SSL pipeline complete and validated
+**Current Phase:** Physics-constrained hybrid model development
 
-We use a three-phase approach leveraging Masked Autoencoder (MAE) pre-training:
+**Key Findings:**
+- Image-only ML fails cross-flight validation (R² < 0)
+- Self-supervised learning (MAE) misaligned with geometric retrieval
+- Physics constraints (shadow geometry + atmospheric profiles) necessary for generalization
 
-1. **Phase 1:** Extract unlabeled images from satellite data (61,946 images)
-2. **Phase 2:** Self-supervised pre-training with MAE (learn representations without labels)
-3. **Phase 3:** Fine-tune on CPL-labeled CBH data (933 labeled samples)
+**📄 Full Status Report:** [docs/project_status_report.pdf](docs/project_status_report.pdf) (16 pages)  
+**📝 Quick Summary:** [docs/ONE_PAGE_SUMMARY.md](docs/ONE_PAGE_SUMMARY.md) (3 min read)
 
-**Current Performance:** Test R² = 0.37, MAE = 0.22 km, RMSE = 0.30 km
+## Dataset
 
-📖 **See [docs/SSL_PIPELINE_SUMMARY.md](docs/SSL_PIPELINE_SUMMARY.md) for complete documentation**
+- **Labeled:** 933 CPL-aligned samples across 5 flights
+- **Unlabeled:** 61,946 images for self-supervised learning
+- **Input:** 512×512 grayscale images + solar geometry (SZA, SAA)
+- **Target:** Cloud base height (0.1–3.5 km)
 
-### Quick Start (SSL Pipeline)
+## Quick Start
+
+### Self-Supervised Learning Pipeline
 
 ```bash
-# Run complete pipeline
-./scripts/run_phase1.sh          # Extract images
-./scripts/run_phase2_pretrain.sh # MAE pre-training
-./scripts/run_phase3_finetune.sh # Fine-tune for CBH
+# Phase 1: Extract unlabeled images
+./scripts/run_phase1.sh
+
+# Phase 2: MAE pre-training
+./scripts/run_phase2_pretrain.sh
+
+# Phase 3: Fine-tune for CBH
+./scripts/run_phase3_finetune.sh
 
 # Monitor training
 tensorboard --logdir outputs/cbh_finetune/logs/
 ```
 
+📖 **See [docs/SSL_PIPELINE_SUMMARY.md](docs/SSL_PIPELINE_SUMMARY.md) for complete SSL documentation**
+
+### Validation & Analysis
+
+```bash
+# Leave-one-flight-out cross-validation
+./scripts/run_loo_validation.sh
+
+# Ablation studies
+./scripts/run_ablation_studies.sh
+
+# Feature analysis
+./scripts/run_feature_importance.sh
+```
+
 ---
 
-## Legacy Supervised Approach
+## Documentation
 
-The original approach trains a deep learning model using a multimodal architecture, combining a Convolutional Neural Network (CNN) for image analysis with dense layers for processing scalar data like solar zenith and azimuth angles. The model incorporates spatial and temporal attention mechanisms to focus on relevant image regions and time steps.
+### Key Documents
+- **[Project Status Report](docs/project_status_report.pdf)** - Comprehensive 16-page technical overview
+- **[One-Page Summary](docs/ONE_PAGE_SUMMARY.md)** - Quick executive summary
+- **[SSL Pipeline Guide](docs/SSL_PIPELINE_SUMMARY.md)** - Self-supervised learning documentation
+
+### Archived Documentation
+- Historical findings and implementation notes in `docs/archive/`
+
+## Approaches Tested
+
+### 1. Self-Supervised Learning (MAE)
+- Pre-trained masked autoencoder on 61,946 unlabeled images
+- **Result:** Embeddings uncorrelated with CBH (R² = 0.09)
+- **Issue:** Reconstruction optimizes for texture, not geometry
+
+### 2. Solar Angles Only
+- GBDT trained on [SZA, SAA] → CBH
+- **Within-flight:** R² = 0.70
+- **Cross-flight (LOO CV):** R² = -4.46
+- **Issue:** Temporal confounding, not physical
+
+### 3. Spatial Feature Extraction
+- Tested pooling, CNN, and attention variants
+- **Result:** All R² < 0 on cross-flight validation
+- **Issue:** Missing physical constraints
+
+### 4. Physics-Constrained Hybrid (In Progress)
+- Shadow geometry + atmospheric profiles (ERA5) + learned features
+- **Status:** Under development
 
 ## Technologies and Libraries
 

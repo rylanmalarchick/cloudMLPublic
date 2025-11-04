@@ -215,6 +215,12 @@ data_ssl/
 # Sensitive files
 keyss.txt
 
+# LaTeX auxiliary files
+*.aux
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+
 
 
 # System files

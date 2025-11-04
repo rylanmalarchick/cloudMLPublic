@@ -25,6 +25,11 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from torch.utils.data import DataLoader, Subset, Dataset
 from torch.utils.tensorboard import SummaryWriter
 from torch.amp import autocast, GradScaler
+from src.split_utils import (
+    stratified_split_by_flight,
+    analyze_split_balance,
+    check_split_leakage,
+)
 
 # Add project root to path
 import sys
@@ -283,19 +288,17 @@ class CBHTrainer:
         total_samples = len(dataset)
         print(f"Total CPL-aligned samples: {total_samples}")
 
-        # Split into train/val/test
+        # Split into train/val/test using stratified splitting
         train_ratio = self.config["data"]["train_ratio"]
         val_ratio = self.config["data"]["val_ratio"]
 
-        indices = np.arange(total_samples)
-        np.random.shuffle(indices)
+        print("\nCreating stratified train/val/test splits...")
+        train_indices, val_indices, test_indices = stratified_split_by_flight(
+            dataset, train_ratio=train_ratio, val_ratio=val_ratio, seed=42, verbose=True
+        )
 
-        train_end = int(train_ratio * total_samples)
-        val_end = train_end + int(val_ratio * total_samples)
-
-        train_indices = indices[:train_end]
-        val_indices = indices[train_end:val_end]
-        test_indices = indices[val_end:]
+        # Verify no leakage
+        check_split_leakage(train_indices, val_indices, test_indices)
 
         # Create subsets for train/val/test
         train_subset = Subset(dataset, train_indices)
