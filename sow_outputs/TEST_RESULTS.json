@@ -1,0 +1,177 @@
+{
+  "test_metadata": {
+    "date": "2025",
+    "tester": "Autonomous Agent",
+    "dataset": "Real CPL/IRAI observational data",
+    "total_samples": 933,
+    "flights": ["10Feb25", "30Oct24", "23Oct24", "18Feb25", "12Feb25"],
+    "data_sources": {
+      "cpl_lidar": "Real cloud base heights",
+      "irai_imagery": "Real RGB nadir camera",
+      "era5_reanalysis": "Real atmospheric data (1.04 GB)"
+    },
+    "synthetic_data_used": false
+  },
+  
+  "workpackage_results": {
+    "wp1_geometric": {
+      "status": "FAIL",
+      "data_quality": "real",
+      "samples_processed": 933,
+      "samples_valid": 932,
+      "critical_issues": [
+        {
+          "issue": "Physically impossible CBH values",
+          "details": {
+            "range": [-103182.90, 25793.58],
+            "expected_range": [0.1, 2.0],
+            "negative_values": 503,
+            "unrealistic_values": 429,
+            "percent_invalid": 100.0
+          }
+        }
+      ],
+      "what_works": {
+        "shadow_detection_confidence": 0.786,
+        "high_confidence_samples": 921,
+        "shadow_lengths_plausible": true
+      },
+      "blocking": true
+    },
+    
+    "wp2_atmospheric": {
+      "status": "PASS",
+      "data_quality": "real",
+      "samples_processed": 933,
+      "samples_valid": 933,
+      "nan_values": 0,
+      "features_extracted": 9,
+      "feature_statistics": {
+        "blh_km": {"min": 0.0658, "max": 1.4564, "mean": 0.8494, "std": 0.3478},
+        "lcl_km": {"min": 0.0538, "max": 3.7831, "mean": 1.1779, "std": 0.8888},
+        "inversion_height_km": {"min": 0.0578, "max": 4.9820, "mean": 1.6433, "std": 1.0150},
+        "stability_index_K_per_km": {"min": -7.2172, "max": -3.5329, "mean": -4.9968, "std": 0.8655},
+        "t2m_K": {"min": 264.7056, "max": 297.3289, "mean": 287.6770, "std": 6.7442},
+        "d2m_K": {"min": 258.8116, "max": 290.4258, "mean": 278.2536, "std": 9.0460},
+        "sp_Pa": {"min": 74280.9375, "max": 102774.3750, "mean": 96832.8224, "std": 7486.4005},
+        "tcwv_kg_per_m2": {"min": 2.6706, "max": 31.4785, "mean": 13.8425, "std": 7.7317}
+      },
+      "data_source": {
+        "path": "/media/rylan/two/research/NASA/ERA5_data_root",
+        "files": 240,
+        "size_gb": 1.04,
+        "temporal_range": ["2024-10-23", "2025-02-19"]
+      },
+      "issues": [
+        {
+          "issue": "Moisture gradient all zero",
+          "severity": "LOW",
+          "blocking": false
+        }
+      ]
+    },
+    
+    "wp3_baseline": {
+      "status": "FAIL",
+      "data_quality": "WP1+WP2 outputs",
+      "validation_method": "Leave-One-Flight-Out CV",
+      "folds": 5,
+      "results": {
+        "mean_r2": -7.1392,
+        "std_r2": 12.3429,
+        "mean_mae_km": 0.3846,
+        "std_mae_km": 0.1082,
+        "mean_rmse_km": 0.4787,
+        "std_rmse_km": 0.1196
+      },
+      "per_fold_results": [
+        {"fold": 0, "flight": "30Oct24", "n_test": 501, "r2": -0.9883, "mae_km": 0.3661, "rmse_km": 0.4691},
+        {"fold": 1, "flight": "10Feb25", "n_test": 163, "r2": -2.2050, "mae_km": 0.2038, "rmse_km": 0.2550},
+        {"fold": 2, "flight": "23Oct24", "n_test": 101, "r2": -0.2914, "mae_km": 0.4143, "rmse_km": 0.5097},
+        {"fold": 3, "flight": "12Feb25", "n_test": 144, "r2": -0.4235, "mae_km": 0.3979, "rmse_km": 0.5760},
+        {"fold": 4, "flight": "18Feb25", "n_test": 24, "r2": -31.7879, "mae_km": 0.5408, "rmse_km": 0.5836}
+      ],
+      "gate_decision": {
+        "threshold": 0.0,
+        "achieved": -7.1392,
+        "passed": false,
+        "hypothesis_rejected": true
+      },
+      "critical_issues": [
+        {
+          "issue": "Negative R² on all folds",
+          "cause": "WP1 corrupted features (±100k km values)",
+          "blocking": true
+        },
+        {
+          "issue": "Missing atmospheric features",
+          "details": "Loaded 3/12 features (0/9 atmospheric)",
+          "blocking": true
+        }
+      ]
+    },
+    
+    "wp4_hybrid": {
+      "status": "BLOCKED",
+      "reason": "WP-3 gate failed (R² < 0)",
+      "dependencies": {
+        "wp1_geometric": "BROKEN",
+        "wp2_atmospheric": "WORKING",
+        "wp3_validation": "FAILED",
+        "gate_threshold": 0.0,
+        "gate_achieved": -7.1392
+      }
+    }
+  },
+  
+  "critical_issues": {
+    "issue_1_wp1_height_calculation": {
+      "severity": "CRITICAL",
+      "blocking": true,
+      "description": "Geometric CBH calculation produces impossible values (±100,000 km)",
+      "impact": "Blocks WP-3 and WP-4",
+      "affected_workpackages": ["WP-1", "WP-3", "WP-4"],
+      "estimated_fix_time_hours": "2-4"
+    },
+    "issue_2_wp3_feature_loading": {
+      "severity": "HIGH",
+      "blocking": true,
+      "description": "WP-3 failed to load atmospheric features from WP-2",
+      "impact": "Model trained on incomplete feature set (3/12)",
+      "affected_workpackages": ["WP-3"],
+      "estimated_fix_time_hours": "1-2"
+    },
+    "issue_3_moisture_gradient": {
+      "severity": "LOW",
+      "blocking": false,
+      "description": "All moisture gradient values are zero",
+      "impact": "One feature contributes no information",
+      "affected_workpackages": ["WP-2"],
+      "estimated_fix_time_hours": "0-1"
+    }
+  },
+  
+  "action_plan": {
+    "immediate": [
+      "Fix WP-1 geometric height calculation",
+      "Fix WP-3 atmospheric feature loading",
+      "Re-run WP-1 validation",
+      "Re-run WP-3 validation"
+    ],
+    "conditional": [
+      "If WP-3 R² > 0: proceed to WP-4",
+      "If WP-3 R² < 0: revisit research hypothesis"
+    ],
+    "estimated_total_time_hours": "4-8"
+  },
+  
+  "overall_status": {
+    "project_status": "BLOCKED",
+    "blocking_issue": "WP-1 geometric height calculation",
+    "workpackages_passing": 1,
+    "workpackages_failing": 2,
+    "workpackages_blocked": 1,
+    "data_verification": "100% real observational data",
+    "gate_status": "CLOSED (WP-3 failed)"
+  }
+}
