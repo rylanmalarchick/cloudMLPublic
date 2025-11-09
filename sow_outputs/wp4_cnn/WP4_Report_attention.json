@@ -1,0 +1,67 @@
+{
+  "model_variant": "attention",
+  "description": "2D CNN + physical features (attention fusion)",
+  "validation_protocol": "Stratified K-Fold Cross-Validation",
+  "fold_results": [
+    {
+      "fold_id": 0,
+      "test_flight": "Fold_1",
+      "n_train": 596,
+      "n_test": 187,
+      "r2": 0.42815524339675903,
+      "mae_km": 0.21263787150382996,
+      "rmse_km": 0.2829261346004327,
+      "epoch_trained": 40
+    },
+    {
+      "fold_id": 1,
+      "test_flight": "Fold_2",
+      "n_train": 596,
+      "n_test": 187,
+      "r2": 0.25751250982284546,
+      "mae_km": 0.23575933277606964,
+      "rmse_km": 0.3188210282006784,
+      "epoch_trained": 17
+    },
+    {
+      "fold_id": 2,
+      "test_flight": "Fold_3",
+      "n_train": 596,
+      "n_test": 187,
+      "r2": 0.26420533657073975,
+      "mae_km": 0.2289121448993683,
+      "rmse_km": 0.31502289420142204,
+      "epoch_trained": 20
+    },
+    {
+      "fold_id": 3,
+      "test_flight": "Fold_4",
+      "n_train": 597,
+      "n_test": 186,
+      "r2": 0.2694721817970276,
+      "mae_km": 0.23172718286514282,
+      "rmse_km": 0.3250808743573983,
+      "epoch_trained": 38
+    },
+    {
+      "fold_id": 4,
+      "test_flight": "Fold_5",
+      "n_train": 597,
+      "n_test": 186,
+      "r2": 0.411138653755188,
+      "mae_km": 0.19828058779239655,
+      "rmse_km": 0.27940003950655307,
+      "epoch_trained": 40
+    }
+  ],
+  "aggregate_metrics": {
+    "mean_r2": 0.326096785068512,
+    "std_r2": 0.07666648322420838,
+    "mean_mae_km": 0.22146342396736146,
+    "std_mae_km": 0.014003824251278017,
+    "mean_rmse_km": 0.30425019417329685,
+    "std_rmse_km": 0.019154755079143836,
+    "n_folds": 5
+  },
+  "timestamp": "2025-11-07T01:51:50.153641"
+}

@@ -1,0 +1,67 @@
+{
+  "model_variant": "image_only",
+  "description": "2D CNN baseline (image features only)",
+  "validation_protocol": "Stratified K-Fold Cross-Validation",
+  "fold_results": [
+    {
+      "fold_id": 0,
+      "test_flight": "Fold_1",
+      "n_train": 596,
+      "n_test": 187,
+      "r2": 0.21205627918243408,
+      "mae_km": 0.2503817081451416,
+      "rmse_km": 0.3321097337303118,
+      "epoch_trained": 11
+    },
+    {
+      "fold_id": 1,
+      "test_flight": "Fold_2",
+      "n_train": 596,
+      "n_test": 187,
+      "r2": 0.3155818581581116,
+      "mae_km": 0.2156185805797577,
+      "rmse_km": 0.3060998826047877,
+      "epoch_trained": 24
+    },
+    {
+      "fold_id": 2,
+      "test_flight": "Fold_3",
+      "n_train": 596,
+      "n_test": 187,
+      "r2": 0.39206981658935547,
+      "mae_km": 0.20561349391937256,
+      "rmse_km": 0.28634569236498747,
+      "epoch_trained": 39
+    },
+    {
+      "fold_id": 3,
+      "test_flight": "Fold_4",
+      "n_train": 597,
+      "n_test": 186,
+      "r2": 0.2509387731552124,
+      "mae_km": 0.2466982901096344,
+      "rmse_km": 0.3291786737404904,
+      "epoch_trained": 26
+    },
+    {
+      "fold_id": 4,
+      "test_flight": "Fold_5",
+      "n_train": 597,
+      "n_test": 186,
+      "r2": 0.2254709005355835,
+      "mae_km": 0.2461613118648529,
+      "rmse_km": 0.32043416341119996,
+      "epoch_trained": 11
+    }
+  ],
+  "aggregate_metrics": {
+    "mean_r2": 0.2792235255241394,
+    "std_r2": 0.06671884988510698,
+    "mean_mae_km": 0.23289467692375182,
+    "std_mae_km": 0.018520615819076727,
+    "mean_rmse_km": 0.31483362917035546,
+    "std_rmse_km": 0.01687276473353896,
+    "n_folds": 5
+  },
+  "timestamp": "2025-11-06T23:29:51.189170"
+}

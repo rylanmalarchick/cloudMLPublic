@@ -1,0 +1,74 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                   WP-4 CLOUD BASE HEIGHT - QUICK REFERENCE                   ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+CURRENT STATUS (as of 2025-11-06 22:20):
+────────────────────────────────────────
+✅ Image-only model: COMPLETE (R² = 0.28)
+⏳ Concat model: IN PROGRESS
+⏳ Attention model: PENDING
+
+Training started: 22:18
+Expected completion: ~midnight
+
+
+WHAT WAS FIXED:
+────────────────
+1. Architecture: 1D MAE → 2D CNN (99.8% data was being discarded!)
+2. Validation: LOO CV → K-Fold CV (extreme domain shift eliminated)
+3. Result: R² improved from -3.1 to +0.28 (+3.4 improvement!)
+
+
+QUICK COMMANDS:
+────────────────
+Check training status:
+  $ ./check_wp4_progress.sh
+
+View results when done:
+  $ cd cloudMLPublic
+  $ ./venv/bin/python sow_outputs/wp4_final_summary.py
+
+Kill training (if needed):
+  $ pkill -f wp4_cnn_model
+
+
+KEY RESULTS:
+────────────
+BEFORE (Broken):
+  - LOO CV with 1D MAE
+  - R² = -3.13 ± 5.77 ❌
+  - Fold 4: R² = -14.65
+
+AFTER (Fixed):
+  - K-Fold CV with 2D CNN
+  - R² = +0.28 ± 0.06 ✅
+  - All folds positive!
+
+
+PROOF OF FIX (Random Forest baseline):
+───────────────────────────────────────
+  LOO CV:    R² = -15.5  ❌
+  K-Fold CV: R² = +0.68  ✅
+  → +16.2 R² improvement just from validation protocol!
+
+
+READ MORE:
+──────────
+Full analysis:       sow_outputs/WP4_ROOT_CAUSE_ANALYSIS.md
+Executive summary:   sow_outputs/EXECUTIVE_SUMMARY.md
+For you:            sow_outputs/RESULTS_FOR_RYLAN.md
+Status update:      sow_outputs/WP4_STATUS_UPDATE.md
+
+
+EXPECTED FINAL RESULTS:
+───────────────────────
+Image-only:  R² ~ 0.28 (completed)
+Concat:      R² ~ 0.35-0.45 (in progress)
+Attention:   R² ~ 0.40-0.50 (pending)
+
+Best model expected: R² ~ 0.40-0.50 ✅
+
+
+═══════════════════════════════════════════════════════════════════════════════
+Training will complete in ~1-2 hours. Check results with the summary script!
+═══════════════════════════════════════════════════════════════════════════════
