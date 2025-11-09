@@ -1,0 +1,74 @@
+{
+  "model_name": "physical_baseline",
+  "description": "GBDT baseline (geometric + atmospheric features)",
+  "validation": "Stratified K-Fold Cross-Validation",
+  "n_folds": 5,
+  "random_state": 42,
+  "hyperparameters": {
+    "objective": "reg:squarederror",
+    "max_depth": 6,
+    "learning_rate": 0.1,
+    "n_estimators": 100,
+    "subsample": 0.8,
+    "colsample_bytree": 0.8,
+    "min_child_weight": 3,
+    "gamma": 0.1,
+    "reg_alpha": 0.01,
+    "reg_lambda": 1.0,
+    "random_state": 42,
+    "n_jobs": -1,
+    "verbosity": 0
+  },
+  "results": {
+    "n_folds": 5,
+    "mean_r2": 0.6681015277402248,
+    "std_r2": 0.03448666328998885,
+    "mean_mae_km": 0.13656582984779647,
+    "std_mae_km": 0.004569653231821455,
+    "mean_rmse_km": 0.21340688157602453,
+    "std_rmse_km": 0.01054472930742839,
+    "per_fold": [
+      {
+        "fold": 0,
+        "n_train": 746,
+        "n_test": 187,
+        "r2": 0.6183075391883353,
+        "mae_km": 0.14315987489918336,
+        "rmse_km": 0.21935310691894686
+      },
+      {
+        "fold": 1,
+        "n_train": 746,
+        "n_test": 187,
+        "r2": 0.6982602937584408,
+        "mae_km": 0.13242077620271692,
+        "rmse_km": 0.20791503448363827
+      },
+      {
+        "fold": 2,
+        "n_train": 746,
+        "n_test": 187,
+        "r2": 0.6622368664206544,
+        "mae_km": 0.1408433753618582,
+        "rmse_km": 0.22309468179320027
+      },
+      {
+        "fold": 3,
+        "n_train": 747,
+        "n_test": 186,
+        "r2": 0.7140037016435961,
+        "mae_km": 0.13201403113142138,
+        "rmse_km": 0.19519895034273121
+      },
+      {
+        "fold": 4,
+        "n_train": 747,
+        "n_test": 186,
+        "r2": 0.6476992376900977,
+        "mae_km": 0.13439109164380258,
+        "rmse_km": 0.22147263434160594
+      }
+    ]
+  },
+  "timestamp": "2025-11-09T17:07:25.032512"
+}
