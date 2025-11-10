@@ -1,0 +1,119 @@
+{
+  "model_name": "ResNet-50 Baseline",
+  "sprint_work_package": "WP-1: Pre-Trained Backbones",
+  "script_path": "sow_outputs/wp5/wp5_resnet_baseline.py",
+  "baseline_to_beat": {
+    "model": "Physical GBDT (Real ERA5)",
+    "r2": 0.668,
+    "mae_km": 0.137
+  },
+  "validation_protocol": {
+    "name": "Stratified 5-Fold Cross-Validation",
+    "n_folds": 5,
+    "stratify_by": "CBH Target",
+    "forbidden_protocol": "Leave-One-Flight-Out (LOO) CV",
+    "justification": "LOO CV failed (R2=-3.13) on F4 due to extreme domain shift."
+  },
+  "aggregate_metrics": {
+    "mean_r2": 0.5235918283462524,
+    "std_r2": 0.05072876733699011,
+    "mean_mae_km": 0.17110346555709838,
+    "std_mae_km": 0.011975933406019766,
+    "mean_rmse_km": 0.255744467976995,
+    "std_rmse_km": 0.013845281555766755
+  },
+  "per_fold_results": [
+    {
+      "fold_id": 0,
+      "n_train": 596,
+      "n_val": 150,
+      "n_test": 187,
+      "r2": 0.6207323670387268,
+      "mae_km": 0.14842545986175537,
+      "rmse_km": 0.23041294521433017,
+      "best_epoch": 10,
+      "train_loss": 0.018992815501987934,
+      "val_loss": 0.051561386396105476
+    },
+    {
+      "fold_id": 1,
+      "n_train": 596,
+      "n_val": 150,
+      "n_test": 187,
+      "r2": 0.5273445248603821,
+      "mae_km": 0.1723531186580658,
+      "rmse_km": 0.25437518611873033,
+      "best_epoch": 26,
+      "train_loss": 0.013118172991089522,
+      "val_loss": 0.06945568405521604
+    },
+    {
+      "fold_id": 2,
+      "n_train": 596,
+      "n_val": 150,
+      "n_test": 187,
+      "r2": 0.49368685483932495,
+      "mae_km": 0.1725793182849884,
+      "rmse_km": 0.2613204515867289,
+      "best_epoch": 4,
+      "train_loss": 0.023040114832110704,
+      "val_loss": 0.06094872206449509
+    },
+    {
+      "fold_id": 3,
+      "n_train": 597,
+      "n_val": 150,
+      "n_test": 186,
+      "r2": 0.48925918340682983,
+      "mae_km": 0.18095310032367706,
+      "rmse_km": 0.2718149409330353,
+      "best_epoch": 22,
+      "train_loss": 0.015289842006750405,
+      "val_loss": 0.037669692045220964
+    },
+    {
+      "fold_id": 4,
+      "n_train": 597,
+      "n_val": 150,
+      "n_test": 186,
+      "r2": 0.48693621158599854,
+      "mae_km": 0.1812063306570053,
+      "rmse_km": 0.26079881603215027,
+      "best_epoch": 10,
+      "train_loss": 0.019111704686656593,
+      "val_loss": 0.05533440668995564
+    }
+  ],
+  "hardware_config": {
+    "gpu": "NVIDIA GTX 1070 Ti",
+    "vram": "8 GB",
+    "vram_mitigation_used": "None (batch_size sufficient)"
+  },
+  "timestamp": "2025-11-09T18:31:22.476888",
+  "architecture": {
+    "backbone": "ResNet-50 (ImageNet pre-trained)",
+    "input_channels": 1,
+    "input_handling": "Grayscale duplicated 3x to RGB",
+    "frozen_layers": [
+      "conv1",
+      "bn1",
+      "layer1",
+      "layer2",
+      "layer3"
+    ],
+    "trainable_layers": [
+      "layer4",
+      "regression_head"
+    ],
+    "regression_head": "Linear(2048->512), ReLU, Dropout(0.3), Linear(512->1)"
+  },
+  "training": {
+    "optimizer": "AdamW",
+    "learning_rate": 0.0001,
+    "weight_decay": 0.0001,
+    "loss_function": "MSELoss",
+    "early_stopping_patience": 10,
+    "batch_size": 12,
+    "accumulation_steps": 1
+  }
+}
