@@ -2,14 +2,10 @@
 
 This project develops machine learning approaches for cloud base height (CBH) retrieval from NASA ER-2 aircraft camera imagery, validated against Cloud Physics Lidar (CPL) measurements.
 
-## 🎉 Breakthrough Achievement (January 2026)
-
 **First deep learning model to beat physical baseline!**
 - **Temporal ViT + Consistency Loss:** R² = 0.728 (vs. 0.668 baseline = +9% improvement)
 - **Mean Absolute Error:** 126 m (vs. 137 m baseline = 11 m better)
 - **Status:** Production-ready model validated on real operational data
-
-**📄 Full Report:** [Sprint 3-5 Status Report](docs/sprint_3_4_5_status_report.pdf) (30 pages)
 
 **Key Findings:**
 - Temporal information is critical: +26% R² improvement over single-frame models
@@ -56,12 +52,12 @@ python wp3_kfold.py                # XGBoost GBDT: R²=0.668
 
 | Model | R² | MAE (m) | Status |
 |-------|-----|---------|--------|
-| **Temporal ViT + Consistency (λ=0.1)** | **0.728** | **126** | ✅ **Production** |
-| Temporal ViT | 0.727 | 126 | ✅ |
-| Physical GBDT (baseline) | 0.668 | 137 | ✅ |
-| ViT-Tiny | 0.577 | 166 | ⚠️ |
-| FiLM Fusion | 0.542 | 166 | ⚠️ |
-| ResNet-50 | 0.524 | 171 | ⚠️ |
+| **Temporal ViT + Consistency (λ=0.1)** | **0.728** | **126** |
+| Temporal ViT | 0.727 | 126 |
+| Physical GBDT (baseline) | 0.668 | 137 |
+| ViT-Tiny | 0.577 | 166 |
+| FiLM Fusion | 0.542 | 166 |
+| ResNet-50 | 0.524 | 171 | 
 
 ## Model Evolution (Sprints 3-5)
 
@@ -69,12 +65,11 @@ python wp3_kfold.py                # XGBoost GBDT: R²=0.668
 - **Approach:** XGBoost GBDT with geometric + atmospheric features
 - **Features:** 10 geometric (shadow detection) + 9 atmospheric (real ERA5)
 - **Result:** R² = 0.668, MAE = 137 m
-- **Status:** ✅ Production baseline
 
 ### Sprint 4: Hybrid CNNs
-- Image-only CNN: R² = 0.279 ❌
-- Concatenation fusion: R² = 0.180 ❌ (degraded!)
-- Attention fusion: R² = 0.326 ⚠️
+- Image-only CNN: R² = 0.279 
+- Concatenation fusion: R² = 0.180 (degraded!)
+- Attention fusion: R² = 0.326 
 - **Finding:** CNNs from scratch cannot beat physical baseline
 
 ### Sprint 5: Advanced Deep Learning (Breakthrough!)
@@ -83,8 +78,8 @@ python wp3_kfold.py                # XGBoost GBDT: R²=0.668
    - ViT-Tiny (ImageNet-21k): R² = 0.577 (+107% vs Sprint 4)
 
 2. **Temporal Modeling:**
-   - Temporal ViT (5-frame): R² = 0.727 ✅ **BEATS BASELINE!**
-   - + Consistency Loss (λ=0.1): R² = 0.728 ✅✅ **BEST MODEL**
+   - Temporal ViT (5-frame): R² = 0.727 
+   - + Consistency Loss (λ=0.1): R² = 0.728 
 
 3. **Advanced Fusion:**
    - FiLM (ERA5 integration): R² = 0.542
