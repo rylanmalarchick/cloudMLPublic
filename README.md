@@ -2,17 +2,12 @@
 
 This project develops machine learning approaches for cloud base height (CBH) retrieval from NASA ER-2 aircraft camera imagery, validated against Cloud Physics Lidar (CPL) measurements.
 
-## 📊 Project Status (November 2024)
-
 **Current Phase:** Physics-constrained hybrid model development
 
 **Key Findings:**
 - Image-only ML fails cross-flight validation (R² < 0)
 - Self-supervised learning (MAE) misaligned with geometric retrieval
 - Physics constraints (shadow geometry + atmospheric profiles) necessary for generalization
-
-**📄 Full Status Report:** [docs/project_status_report.pdf](docs/project_status_report.pdf) (16 pages)  
-**📝 Quick Summary:** [docs/ONE_PAGE_SUMMARY.md](docs/ONE_PAGE_SUMMARY.md) (3 min read)
 
 ## Dataset
 
@@ -38,9 +33,6 @@ This project develops machine learning approaches for cloud base height (CBH) re
 # Monitor training
 tensorboard --logdir outputs/cbh_finetune/logs/
 ```
-
-📖 **See [docs/SSL_PIPELINE_SUMMARY.md](docs/SSL_PIPELINE_SUMMARY.md) for complete SSL documentation**
-
 ### Validation & Analysis
 
 ```bash
@@ -57,11 +49,6 @@ tensorboard --logdir outputs/cbh_finetune/logs/
 ---
 
 ## Documentation
-
-### Key Documents
-- **[Project Status Report](docs/project_status_report.pdf)** - Comprehensive 16-page technical overview
-- **[One-Page Summary](docs/ONE_PAGE_SUMMARY.md)** - Quick executive summary
-- **[SSL Pipeline Guide](docs/SSL_PIPELINE_SUMMARY.md)** - Self-supervised learning documentation
 
 ### Archived Documentation
 - Historical findings and implementation notes in `docs/archive/`
