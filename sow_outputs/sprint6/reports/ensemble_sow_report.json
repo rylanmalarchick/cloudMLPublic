@@ -1,0 +1,61 @@
+{
+  "task": "2.1_ensemble_methods",
+  "timestamp": "2025-11-11T20:50:41.365870",
+  "baseline_models": {
+    "gbdt": {
+      "name": "GBDT (Tabular)",
+      "mean_r2": 0.7266749106066678,
+      "std_r2": 0.11214291018432067,
+      "mean_mae_km": 0.118534278979409,
+      "std_mae_km": 0.015835492559340122
+    },
+    "cnn": {
+      "name": "CNN (Image)",
+      "mean_r2": 0.35124795751609905,
+      "std_r2": 0.07473463192099829,
+      "mean_mae_km": 0.2368431362693795,
+      "std_mae_km": 0.01665069029581053
+    }
+  },
+  "ensemble_strategies": {
+    "simple_averaging": {
+      "mean_r2": 0.6616421268644938,
+      "std_r2": 0.07278019397952147,
+      "mean_mae_km": 0.1614706889369432,
+      "std_mae_km": 0.013962118954157483,
+      "improvement_over_best_base": -0.06503278374217403
+    },
+    "weighted_averaging": {
+      "mean_r2": 0.7390579344500801,
+      "std_r2": 0.09555095742932897,
+      "mean_mae_km": 0.12249360699193096,
+      "std_mae_km": 0.019831499632192363,
+      "optimal_weights": {
+        "w_gbdt": 0.8875260059352582,
+        "w_cnn": 0.11247399406474182
+      },
+      "improvement_over_best_base": 0.012383023843412277
+    },
+    "stacking": {
+      "mean_r2": 0.7244613982112045,
+      "std_r2": 0.1148461541918888,
+      "mean_mae_km": 0.11799273181168288,
+      "std_mae_km": 0.016185127788505956,
+      "meta_learner": "Ridge Regression",
+      "improvement_over_best_base": -0.002213512395463302
+    }
+  },
+  "best_ensemble": {
+    "strategy": "weighted_averaging",
+    "achieved_target": false,
+    "mean_r2": 0.7390579344500801,
+    "mean_mae_km": 0.12249360699193096,
+    "std_r2": 0.09555095742932897
+  },
+  "validation_protocol": {
+    "method": "Stratified K-Fold Cross-Validation",
+    "n_folds": 5,
+    "random_seed": 42
+  },
+  "conclusion": "Target not achieved: Weighted averaging ensemble achieves R\u00b2 = 0.7391, below the target of 0.74. Improvement over baseline: 1.70%. Further improvements needed through better image feature extraction or alternative fusion strategies."
+}

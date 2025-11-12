@@ -1,0 +1,313 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # Run daily at 2 AM UTC
+    - cron: '0 2 * * *'
+
+jobs:
+  lint:
+    name: Code Quality Checks
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+
+    - name: Cache pip packages
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install black ruff mypy pylint isort
+
+    - name: Check code formatting with Black
+      run: black --check --diff sow_outputs/sprint6/
+
+    - name: Lint with Ruff
+      run: ruff check sow_outputs/sprint6/
+
+    - name: Type check with mypy
+      run: mypy sow_outputs/sprint6/ --ignore-missing-imports --allow-untyped-calls
+      continue-on-error: true
+
+    - name: Lint with pylint
+      run: pylint sow_outputs/sprint6/ --disable=all --enable=E,F
+      continue-on-error: true
+
+    - name: Check import sorting
+      run: isort --check-only --diff sow_outputs/sprint6/
+
+  test:
+    name: Unit Tests
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        python-version: ['3.10', '3.11', '3.12']
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Cache pip packages
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-${{ matrix.python-version }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-${{ matrix.python-version }}-pip-
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest pytest-cov pytest-benchmark pytest-xdist
+
+    - name: Run unit tests
+      run: |
+        cd sow_outputs/sprint6
+        pytest tests/ -v --tb=short --cov=. --cov-report=xml --cov-report=term-missing -n auto
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./sow_outputs/sprint6/coverage.xml
+        flags: unittests
+        name: codecov-${{ matrix.os }}-py${{ matrix.python-version }}
+        fail_ci_if_error: false
+
+  model-validation:
+    name: Model Validation
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+
+    - name: Cache pip packages
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Validate model artifacts exist
+      run: |
+        test -f sow_outputs/sprint6/checkpoints/production_model.joblib || echo "Model file not found"
+        test -f sow_outputs/sprint6/checkpoints/production_scaler.joblib || echo "Scaler file not found"
+
+    - name: Validate model loading
+      run: |
+        python -c "
+        import joblib
+        import sys
+        try:
+            model = joblib.load('sow_outputs/sprint6/checkpoints/production_model.joblib')
+            scaler = joblib.load('sow_outputs/sprint6/checkpoints/production_scaler.joblib')
+            print('Model and scaler loaded successfully')
+            print(f'Model type: {type(model).__name__}')
+            print(f'Scaler type: {type(scaler).__name__}')
+        except Exception as e:
+            print(f'Error loading model: {e}')
+            sys.exit(1)
+        "
+
+    - name: Test inference pipeline
+      run: |
+        python -c "
+        import joblib
+        import numpy as np
+        import sys
+
+        try:
+            model = joblib.load('sow_outputs/sprint6/checkpoints/production_model.joblib')
+            scaler = joblib.load('sow_outputs/sprint6/checkpoints/production_scaler.joblib')
+
+            # Test prediction
+            X_test = np.random.randn(10, 18)
+            X_scaled = scaler.transform(X_test)
+            predictions = model.predict(X_scaled)
+
+            assert predictions.shape == (10,), f'Wrong shape: {predictions.shape}'
+            assert not np.any(np.isnan(predictions)), 'NaN predictions detected'
+
+            print(f'Inference test passed: {len(predictions)} predictions generated')
+            print(f'Prediction range: [{predictions.min():.2f}, {predictions.max():.2f}]')
+        except Exception as e:
+            print(f'Inference test failed: {e}')
+            sys.exit(1)
+        "
+
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+
+    - name: Install security tools
+      run: |
+        python -m pip install --upgrade pip
+        pip install safety pip-audit bandit
+
+    - name: Check dependencies for vulnerabilities (safety)
+      run: safety check --json || true
+      continue-on-error: true
+
+    - name: Audit dependencies (pip-audit)
+      run: pip-audit --requirement requirements.txt || true
+      continue-on-error: true
+
+    - name: Security scan with Bandit
+      run: bandit -r sow_outputs/sprint6/ -f json -o bandit-report.json || true
+      continue-on-error: true
+
+    - name: Upload Bandit report
+      uses: actions/upload-artifact@v3
+      with:
+        name: bandit-security-report
+        path: bandit-report.json
+      if: always()
+
+  documentation:
+    name: Documentation Build
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+
+    - name: Check documentation files exist
+      run: |
+        test -f sow_outputs/sprint6/MODEL_CARD.md || (echo "MODEL_CARD.md missing" && exit 1)
+        test -f sow_outputs/sprint6/DEPLOYMENT_GUIDE.md || (echo "DEPLOYMENT_GUIDE.md missing" && exit 1)
+        test -f sow_outputs/sprint6/README.md || (echo "README.md missing" && exit 1)
+
+    - name: Validate Markdown syntax
+      uses: DavidAnson/markdownlint-cli2-action@v11
+      with:
+        globs: 'sow_outputs/sprint6/*.md'
+      continue-on-error: true
+
+  performance:
+    name: Performance Benchmarks
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest pytest-benchmark
+
+    - name: Run benchmarks
+      run: |
+        cd sow_outputs/sprint6
+        pytest tests/ -v --benchmark-only --benchmark-autosave --benchmark-json=benchmark.json
+      continue-on-error: true
+
+    - name: Upload benchmark results
+      uses: actions/upload-artifact@v3
+      with:
+        name: benchmark-results
+        path: sow_outputs/sprint6/benchmark.json
+      if: always()
+
+  build-artifacts:
+    name: Build Model Artifacts
+    runs-on: ubuntu-latest
+    needs: [lint, test, model-validation]
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+
+    - name: Create release package
+      run: |
+        mkdir -p release/cbh-model-v1.0.0
+        cp sow_outputs/sprint6/checkpoints/production_model.joblib release/cbh-model-v1.0.0/
+        cp sow_outputs/sprint6/checkpoints/production_scaler.joblib release/cbh-model-v1.0.0/
+        cp sow_outputs/sprint6/MODEL_CARD.md release/cbh-model-v1.0.0/
+        cp sow_outputs/sprint6/DEPLOYMENT_GUIDE.md release/cbh-model-v1.0.0/
+        cp requirements.txt release/cbh-model-v1.0.0/
+
+        cd release
+        tar -czf cbh-model-v1.0.0.tar.gz cbh-model-v1.0.0/
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: cbh-model-package
+        path: release/cbh-model-v1.0.0.tar.gz
+        retention-days: 90
+
+  notify:
+    name: Notify Results
+    runs-on: ubuntu-latest
+    needs: [lint, test, model-validation, security]
+    if: always()
+
+    steps:
+    - name: Check job status
+      run: |
+        echo "Lint: ${{ needs.lint.result }}"
+        echo "Test: ${{ needs.test.result }}"
+        echo "Model Validation: ${{ needs.model-validation.result }}"
+        echo "Security: ${{ needs.security.result }}"

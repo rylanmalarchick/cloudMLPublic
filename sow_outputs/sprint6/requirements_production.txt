@@ -1,0 +1,89 @@
+# Sprint 6 CBH Model - Production Requirements
+# Pinned versions for reproducibility
+# Last updated: 2025-11-11
+# Python: 3.12
+
+# Core ML Dependencies
+scikit-learn==1.7.0
+numpy==2.2.6
+pandas==2.3.0
+scipy==1.15.3
+
+# Data I/O
+h5py==3.14.0
+joblib==1.5.1
+
+# Visualization (for reports and figures)
+matplotlib==3.10.3
+seaborn==0.13.2
+plotly==6.1.2
+
+# Utilities
+tqdm==4.67.1
+pyyaml==6.0.2
+
+# API/Deployment (optional)
+flask==3.1.0
+requests==2.32.4
+
+# Testing
+pytest==8.4.1
+pytest-cov==0.15.0
+pytest-benchmark==5.1.0
+pytest-xdist==3.6.1
+
+# Code Quality
+black==25.1.0
+ruff==0.12.4
+mypy==1.17.0
+pylint==3.3.7
+isort==6.0.1
+
+# Security
+safety==3.2.0
+
+# Deep Learning (CPU-only for inference)
+torch==2.7.1
+torchvision==0.22.1
+
+# Type hints
+typing-extensions==4.14.0
+
+# Date/time utilities
+python-dateutil==2.9.0.post0
+
+# System utilities
+psutil==7.0.0
+
+# Monitoring (optional)
+prometheus-client==0.22.1
+
+# Configuration
+tomlkit==0.13.3
+
+# CLI tools
+click==8.2.1
+
+# Image processing
+opencv-python==4.12.0.88
+pillow==11.2.1
+imageio==2.37.0
+scikit-image==0.25.2
+
+# Network utilities
+urllib3==2.5.0
+
+# Jupyter (for exploration)
+jupyter==1.1.1
+ipython==9.3.0
+notebook==7.4.3
+
+# Data processing
+netCDF4==1.7.2
+
+# Benchmarking
+py-cpuinfo==9.0.0
+
+# Build tools
+wheel==0.44.0
+setuptools==75.6.0

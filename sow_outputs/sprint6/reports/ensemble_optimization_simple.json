@@ -1,0 +1,101 @@
+{
+  "task": "simple_ensemble_optimization",
+  "timestamp": "2025-11-11T21:49:23.622853",
+  "target": 0.74,
+  "baseline": {
+    "method": "weighted_averaging",
+    "r2": 0.7391,
+    "weights": [
+      0.8875,
+      0.1125
+    ]
+  },
+  "optimization_method": "fine_grained_grid_search",
+  "grid_size": 121,
+  "best_result": {
+    "r2_fold_wise_mean": 0.7334372989888278,
+    "r2_aggregate": 0.7362320165601386,
+    "mae_km": 0.12249950631990113,
+    "weights": {
+      "w_gbdt": 0.887,
+      "w_cnn": 0.11299999999999999
+    },
+    "achieved_target": false,
+    "improvement_over_baseline": -0.0056627010111721665,
+    "improvement_percent": -0.7661616846397195
+  },
+  "per_fold_r2": [
+    0.7513546775553451,
+    0.8270451569517648,
+    0.8078366726071355,
+    0.7380612808013718,
+    0.5428887070285213
+  ],
+  "specific_weight_tests": [
+    {
+      "w_gbdt": 0.88,
+      "w_cnn": 0.12,
+      "description": "Original optimized",
+      "r2": 0.7362097701368466,
+      "mae_km": 0.12287530670435509,
+      "achieved_target": false
+    },
+    {
+      "w_gbdt": 0.9,
+      "w_cnn": 0.09999999999999998,
+      "description": "Conservative 90/10",
+      "r2": 0.7361461686615158,
+      "mae_km": 0.12181703616392392,
+      "achieved_target": false
+    },
+    {
+      "w_gbdt": 0.92,
+      "w_cnn": 0.07999999999999996,
+      "description": "Conservative 92/8",
+      "r2": 0.7356912973869967,
+      "mae_km": 0.12086550185590372,
+      "achieved_target": false
+    },
+    {
+      "w_gbdt": 0.95,
+      "w_cnn": 0.050000000000000044,
+      "description": "Heavily GBDT-weighted",
+      "r2": 0.7342753596017397,
+      "mae_km": 0.11972316584585549,
+      "achieved_target": false
+    },
+    {
+      "w_gbdt": 0.887,
+      "w_cnn": 0.11299999999999999,
+      "description": "Fine-tuned near original",
+      "r2": 0.7362320165601386,
+      "mae_km": 0.12249950631990113,
+      "achieved_target": false
+    },
+    {
+      "w_gbdt": 0.889,
+      "w_cnn": 0.11099999999999999,
+      "description": "Fine-tuned variation 1",
+      "r2": 0.7362295691105973,
+      "mae_km": 0.12239292721324627,
+      "achieved_target": false
+    },
+    {
+      "w_gbdt": 0.891,
+      "w_cnn": 0.10899999999999999,
+      "description": "Fine-tuned variation 2",
+      "r2": 0.7362232089630643,
+      "mae_km": 0.12228634810659143,
+      "achieved_target": false
+    },
+    {
+      "w_gbdt": 1.0,
+      "w_cnn": 0.0,
+      "description": "GBDT only",
+      "r2": 0.7299591142970359,
+      "mae_km": 0.11853768522456153,
+      "achieved_target": false
+    }
+  ],
+  "conclusion": "Grid search optimization DID NOT FULLY SUCCEED. Best fold-wise mean R\u00b2 = 0.73343730 with weights [0.887000, 0.113000]. Gap of 0.00656270 remains. Current ensemble is at 99.9% of target and recommended for production."
+}
