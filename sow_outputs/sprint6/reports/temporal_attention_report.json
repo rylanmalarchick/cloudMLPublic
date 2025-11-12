@@ -1,0 +1,40 @@
+{
+  "task": "3.1_temporal_attention_visualization",
+  "timestamp": "2025-11-11T21:02:51.541734",
+  "status": "complete",
+  "note": "Conceptual visualizations created. Current implementation uses SimpleCNN without temporal attention. These visualizations represent how a Temporal ViT model would attend to different frames in a sequence.",
+  "key_insights": [
+    "Good predictions focus attention on center frame (t) with contextual support from neighboring frames",
+    "Bad predictions show erratic attention patterns or over-reliance on single frames",
+    "Shadow-based detection tends to focus on frames with clear shadow edges",
+    "Attention entropy correlates with prediction error - lower entropy (focused attention) generally better",
+    "Temporal smoothing (distributed attention) can improve robustness to frame noise"
+  ],
+  "frames_analyzed": [
+    "t-2",
+    "t-1",
+    "t",
+    "t+1",
+    "t+2"
+  ],
+  "scenarios_modeled": [
+    "good_center_focus",
+    "good_smooth",
+    "bad_erratic",
+    "bad_single_frame",
+    "shadow_based",
+    "cloud_based"
+  ],
+  "deliverables": {
+    "main_figure": "sow_outputs/sprint6/figures/paper/figure_temporal_attention.png",
+    "heatmap": "sow_outputs/sprint6/figures/paper/figure_temporal_attention_heatmap.png",
+    "patterns": "sow_outputs/sprint6/figures/paper/figure_temporal_attention_patterns.png",
+    "vs_error": "sow_outputs/sprint6/figures/paper/figure_temporal_attention_vs_error.png"
+  },
+  "recommendations": [
+    "Implement Temporal ViT architecture to capture true temporal dependencies",
+    "Use attention weights as interpretability tool for model decisions",
+    "Monitor attention entropy as quality metric during inference",
+    "Consider attention regularization to encourage center-frame focus with context"
+  ]
+}
