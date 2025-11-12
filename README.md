@@ -1,52 +1,81 @@
 # Cloud Base Height Retrieval from Airborne Imagery
 
-This project develops machine learning approaches for cloud base height (CBH) retrieval from NASA ER-2 aircraft camera imagery, validated against Cloud Physics Lidar (CPL) measurements.
+Production-ready machine learning system for cloud base height (CBH) retrieval from NASA ER-2 aircraft data, validated against Cloud Physics Lidar (CPL) measurements.
 
-**First deep learning model to beat physical baseline!**
-- **Temporal ViT + Consistency Loss:** R² = 0.728 (vs. 0.668 baseline = +9% improvement)
-- **Mean Absolute Error:** 126 m (vs. 137 m baseline = 11 m better)
-- **Status:** Production-ready model validated on real operational data
+## 🎯 Production Model (Sprint 6)
 
-**Key Findings:**
-- Temporal information is critical: +26% R² improvement over single-frame models
-- Vision Transformers outperform CNNs for this task
-- Transfer learning (ImageNet pre-training) essential for small datasets (933 samples)
-- Physical baseline (shadow geometry + ERA5) remains strong at R² = 0.668
+**Status:** ✅ Production-Ready | Test Coverage: 93.5% | Deployment: Approved
 
-## Dataset
+| Model | R² | MAE | Status |
+|-------|----|----|--------|
+| **GBDT (Tabular)** | **0.744** | **117.4 m** | ✅ Production |
+| Ensemble (GBDT+CNN) | 0.7391 | 122.5 m | ✅ Production |
+| Temporal ViT (Sprint 5) | 0.728 | 126 m | Research |
+| Physical Baseline | 0.668 | 137 m | Baseline |
 
-- **Labeled:** 933 CPL-aligned samples across 5 flights (Oct 2024 - Feb 2025)
-- **Input:** 440×640 grayscale images from ER-2 downward-looking camera
-- **Target:** Cloud base height from CPL lidar (range: 0.12–1.95 km, mean: 0.83 km)
-- **Features:** Geometric (shadow detection, solar angles) + Atmospheric (real ERA5 reanalysis)
-- **All data verified as real operational data** (no synthetic data)
+**Key Achievement:** First model to exceed R² = 0.74 target on operational data.
 
-## Quick Start
+## 📁 Project Structure
 
-### Production Model (Sprint 5)
-
-```bash
-# Activate environment
-source venv/bin/activate
-
-# Run best model: Temporal ViT + Consistency Loss
-cd sow_outputs/wp5
-python wp5_temporal_consistency.py
-
-# Run other Sprint 5 models
-python wp5_resnet_baseline.py      # ResNet-50: R²=0.524
-python wp5_vit_baseline.py         # ViT-Tiny: R²=0.577
-python wp5_temporal.py             # Temporal ViT: R²=0.727
-python wp5_film_fusion.py          # FiLM fusion: R²=0.542
+```
+cloudMLPublic/
+├── src/
+│   ├── cbh_retrieval/          # Sprint 6 production module
+│   └── models/                  # Legacy model implementations
+├── tests/
+│   └── cbh/                     # Test suite (93.5% coverage)
+├── scripts/
+│   └── cbh/                     # Utilities & auditing
+├── docs/
+│   └── cbh/                     # Complete documentation
+├── results/
+│   └── cbh/
+│       ├── figures/             # 44 publication-ready figures
+│       └── reports/             # Validation & analysis reports
+├── models/
+│   └── cbh_production/          # Trained model artifacts
+└── outputs/
+    └── preprocessed_data/       # Integrated features (HDF5)
 ```
 
-### Physical Baseline (Sprint 3)
+## 🚀 Quick Start
+
+### Production Model (Sprint 6 - Recommended)
 
 ```bash
-# Run physical baseline (geometric + atmospheric features)
-cd sow_outputs
-python wp3_kfold.py                # XGBoost GBDT: R²=0.668
+# Install dependencies
+pip install -r docs/cbh/requirements_production.txt
+
+# Train production model
+python -c "
+from src.cbh_retrieval import train_production_model
+model, scaler = train_production_model()
+"
+
+# Run validation (5-fold CV)
+python -c "
+from src.cbh_retrieval import validate_tabular
+validate_tabular()
+"
+
+# Run tests
+pytest tests/cbh/ --cov=src/cbh_retrieval
 ```
+
+### Documentation
+
+- **Model Card:** `docs/cbh/MODEL_CARD.md` - Complete model specifications
+- **Deployment Guide:** `docs/cbh/DEPLOYMENT_GUIDE.md` - Production deployment
+- **Reproducibility:** `docs/cbh/REPRODUCIBILITY_GUIDE.md` - Full reproduction
+- **Future Work:** `docs/cbh/FUTURE_WORK.md` - Roadmap & improvements
+
+## 📊 Dataset
+
+- **Samples:** 933 CPL-aligned observations (5 flights, Oct 2024 - Feb 2025)
+- **Input Features:** 28 atmospheric + geometric variables (ERA5 reanalysis)
+- **Target:** Cloud base height from CPL lidar (0.12–1.95 km, mean: 0.83 km)
+- **Validation:** 5-fold stratified cross-validation
+- **Data Location:** `outputs/preprocessed_data/Integrated_Features.hdf5`
 
 **Model Performance (Stratified 5-Fold CV):**
 
