@@ -168,8 +168,8 @@ def test_sow_outputs_can_be_deleted():
     assert Path("results/cbh").exists(), "Results migrated"
     assert Path("models/cbh_production").exists(), "Models migrated"
 
-    print("\n✓ All content successfully migrated from sow_outputs/")
-    print("✓ sow_outputs/ can be safely deleted")
+    print("\n All content successfully migrated from sow_outputs/")
+    print(" sow_outputs/ can be safely deleted")
 
 
 def test_no_import_errors_in_init():
@@ -207,7 +207,7 @@ def test_professional_structure():
     assert Path("tests/cbh").is_dir(), "Tests should be a directory"
     assert Path("docs/cbh").is_dir(), "Docs should be a directory"
 
-    print("\n✓ Professional directory structure verified")
+    print("\n Professional directory structure verified")
 
 
 def test_documentation_complete():
@@ -278,13 +278,13 @@ if __name__ == "__main__":
         test_name = test_func.__name__
         try:
             test_func()
-            print(f"✓ {test_name}")
+            print(f" {test_name}")
             passed += 1
         except AssertionError as e:
-            print(f"✗ {test_name}: {e}")
+            print(f" {test_name}: {e}")
             failed.append(test_name)
         except Exception as e:
-            print(f"✗ {test_name}: ERROR - {e}")
+            print(f" {test_name}: ERROR - {e}")
             failed.append(test_name)
 
     print()
@@ -295,5 +295,5 @@ if __name__ == "__main__":
         print(f"\nFailed tests: {', '.join(failed)}")
         sys.exit(1)
     else:
-        print("\n✓ ALL TESTS PASSED - Reorganization successful!")
+        print("\n ALL TESTS PASSED - Reorganization successful!")
         sys.exit(0)

@@ -134,7 +134,7 @@ class ResultsAnalyzer:
         encoder.to(self.device)
         encoder.eval()
 
-        print(f"✓ Encoder loaded successfully")
+        print(f" Encoder loaded successfully")
         print()
 
         return encoder
@@ -352,7 +352,7 @@ class ResultsAnalyzer:
             verbose=0,
         )
         model.fit(X_train_scaled, y_train)
-        print("✓ Training complete")
+        print(" Training complete")
         print()
 
         # Predict
@@ -786,7 +786,7 @@ class ResultsAnalyzer:
         # Save
         save_path = self.run_dir / "comprehensive_analysis.png"
         plt.savefig(save_path, dpi=300, bbox_inches="tight")
-        print(f"✓ Analysis plot saved to {save_path}")
+        print(f" Analysis plot saved to {save_path}")
 
         plt.close()
 
@@ -795,7 +795,7 @@ class ResultsAnalyzer:
         results_path = self.run_dir / "analysis_results.json"
         with open(results_path, "w") as f:
             json.dump(results, f, indent=2)
-        print(f"✓ Results saved to {results_path}")
+        print(f" Results saved to {results_path}")
 
         # Save per-flight as CSV
         if "per_flight" in results and results["per_flight"]:
@@ -813,7 +813,7 @@ class ResultsAnalyzer:
             df = pd.DataFrame(df_data)
             csv_path = self.run_dir / "per_flight_metrics.csv"
             df.to_csv(csv_path, index=False)
-            print(f"✓ Per-flight metrics saved to {csv_path}")
+            print(f" Per-flight metrics saved to {csv_path}")
 
     def run(self):
         """Run complete analysis pipeline."""
@@ -828,11 +828,11 @@ class ResultsAnalyzer:
         # Extract embeddings and metadata
         print("Extracting embeddings for training set...")
         train_data = self.extract_embeddings_with_metadata(encoder, splits["train"])
-        print(f"✓ Train data extracted: {train_data['embeddings'].shape}\n")
+        print(f" Train data extracted: {train_data['embeddings'].shape}\n")
 
         print("Extracting embeddings for test set...")
         test_data = self.extract_embeddings_with_metadata(encoder, splits["test"])
-        print(f"✓ Test data extracted: {test_data['embeddings'].shape}\n")
+        print(f" Test data extracted: {test_data['embeddings'].shape}\n")
 
         # Train and predict
         predictions, model, scaler = self.train_and_predict(train_data, test_data)

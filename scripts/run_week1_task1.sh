@@ -85,9 +85,9 @@ run_variant() {
         2>&1 | tee "$LOG_FILE"
 
     if [ ${PIPESTATUS[0]} -eq 0 ]; then
-        echo "✓ $VARIANT training completed successfully"
+        echo " $VARIANT training completed successfully"
     else
-        echo "✗ $VARIANT training failed (see $LOG_FILE)"
+        echo " $VARIANT training failed (see $LOG_FILE)"
         exit 1
     fi
 }

@@ -157,28 +157,28 @@ def compare_runs(
             print()
 
             if opt_r2 >= 0.60:
-                print("🎉 EXCELLENT! Reached 'GOOD' threshold (R² ≥ 0.60)")
+                print(" EXCELLENT! Reached 'GOOD' threshold (R² ≥ 0.60)")
                 print("   → GPU optimization made a significant difference!")
                 print("   → This is publishable performance")
             elif improvement > 0.02:
-                print("✅ MEANINGFUL IMPROVEMENT!")
+                print(" MEANINGFUL IMPROVEMENT!")
                 print("   → Larger batches + AMP helped convergence")
                 print("   → Still behind classical ML, but progress made")
             elif improvement > 0:
-                print("👍 MODEST IMPROVEMENT")
+                print(" MODEST IMPROVEMENT")
                 print("   → Small gains from better optimization")
                 print("   → Main limiting factor is likely dataset size")
             else:
-                print("➖ NO IMPROVEMENT")
+                print(" NO IMPROVEMENT")
                 print("   → Batch size / AMP didn't help for this task")
                 print(
                     "   → Performance bottleneck is elsewhere (data, architecture, etc.)"
                 )
         else:
-            print("⏳ GPU-Optimized run not completed yet.")
+            print(" GPU-Optimized run not completed yet.")
             print("   Run ./scripts/run_phase3_finetune.sh to generate results.")
     else:
-        print("⏳ GPU-Optimized run not found.")
+        print(" GPU-Optimized run not found.")
         print("   Run ./scripts/run_phase3_finetune.sh to compare results.")
 
     print()

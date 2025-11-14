@@ -41,12 +41,12 @@ ENSEMBLE_RESULTS = PROJECT_ROOT / "./reports/ensemble_results.json"
 OUTPUT_DIR = PROJECT_ROOT / "./reports"
 
 # Load existing results
-print("📂 Loading existing ensemble results...")
+print(" Loading existing ensemble results...")
 with open(ENSEMBLE_RESULTS, "r") as f:
     data = json.load(f)
 
 folds = data["folds"]
-print(f"  ✓ Loaded {len(folds)} folds\n")
+print(f"   Loaded {len(folds)} folds\n")
 
 # Extract predictions from all folds
 all_y_true = []
@@ -72,12 +72,12 @@ pred_simple = np.array(all_pred_simple)
 pred_weighted = np.array(all_pred_weighted)
 pred_stacking = np.array(all_pred_stacking)
 
-print(f"📊 Total samples: {len(y_true)}")
+print(f" Total samples: {len(y_true)}")
 print(f"   GBDT predictions: {pred_gbdt.shape}")
 print(f"   CNN predictions: {pred_cnn.shape}\n")
 
 # Baseline performance
-print("📈 Baseline Performance (from existing results):")
+print(" Baseline Performance (from existing results):")
 r2_gbdt = r2_score(y_true, pred_gbdt)
 r2_cnn = r2_score(y_true, pred_cnn)
 r2_simple = r2_score(y_true, pred_simple)
@@ -92,7 +92,7 @@ print(f"   Stacking (Ridge):  R² = {r2_stacking:.6f}")
 print()
 
 # Strategy 1: Fine-grained weight optimization (high precision)
-print("🔬 Strategy 1: Fine-Grained Weight Optimization")
+print(" Strategy 1: Fine-Grained Weight Optimization")
 print("-" * 80)
 
 
@@ -119,7 +119,7 @@ mae_de = mean_absolute_error(y_true, pred_de)
 print(f"    Weights: [{w_gbdt_de:.6f}, {w_cnn_de:.6f}]")
 print(f"    R² = {r2_de:.8f}")
 print(f"    MAE = {mae_de:.6f} km")
-print(f"    Status: {'✅ ACHIEVED' if r2_de >= 0.74 else '❌ Not reached'}")
+print(f"    Status: {' ACHIEVED' if r2_de >= 0.74 else ' Not reached'}")
 print()
 
 # Method 1b: Multiple local optimizations with different starting points
@@ -150,11 +150,11 @@ print(f"    R² = {best_r2_local:.8f}")
 print(
     f"    MAE = {mean_absolute_error(y_true, best_weights_local[0] * pred_gbdt + best_weights_local[1] * pred_cnn):.6f} km"
 )
-print(f"    Status: {'✅ ACHIEVED' if best_r2_local >= 0.74 else '❌ Not reached'}")
+print(f"    Status: {' ACHIEVED' if best_r2_local >= 0.74 else ' Not reached'}")
 print()
 
 # Strategy 2: Stacking with different meta-learners
-print("🔬 Strategy 2: Stacking with Alternative Meta-Learners")
+print(" Strategy 2: Stacking with Alternative Meta-Learners")
 print("-" * 80)
 
 X_stack = np.column_stack([pred_gbdt, pred_cnn])
@@ -179,7 +179,7 @@ for alpha in [0.001, 0.01, 0.1, 0.5, 1.0, 2.0, 5.0, 10.0]:
 print(f"    Best alpha: {best_alpha_ridge}")
 print(f"    R² = {best_r2_ridge:.8f}")
 print(f"    MAE = {mean_absolute_error(y_true, best_pred_ridge):.6f} km")
-print(f"    Status: {'✅ ACHIEVED' if best_r2_ridge >= 0.74 else '❌ Not reached'}")
+print(f"    Status: {' ACHIEVED' if best_r2_ridge >= 0.74 else ' Not reached'}")
 print()
 
 # Method 2b: ElasticNet with grid search
@@ -203,7 +203,7 @@ for alpha in [0.001, 0.01, 0.1, 0.5, 1.0]:
 print(f"    Best params: {best_params_en}")
 print(f"    R² = {best_r2_en:.8f}")
 print(f"    MAE = {mean_absolute_error(y_true, best_pred_en):.6f} km")
-print(f"    Status: {'✅ ACHIEVED' if best_r2_en >= 0.74 else '❌ Not reached'}")
+print(f"    Status: {' ACHIEVED' if best_r2_en >= 0.74 else ' Not reached'}")
 print()
 
 # Method 2c: Gradient Boosting meta-learner
@@ -218,11 +218,11 @@ mae_gb = mean_absolute_error(y_true, pred_gb)
 
 print(f"    R² = {r2_gb:.8f}")
 print(f"    MAE = {mae_gb:.6f} km")
-print(f"    Status: {'✅ ACHIEVED' if r2_gb >= 0.74 else '❌ Not reached'}")
+print(f"    Status: {' ACHIEVED' if r2_gb >= 0.74 else ' Not reached'}")
 print()
 
 # Strategy 3: Constrained optimization (force GBDT dominance)
-print("🔬 Strategy 3: Constrained Ensemble (GBDT-dominant)")
+print(" Strategy 3: Constrained Ensemble (GBDT-dominant)")
 print("-" * 80)
 
 # Try conservative weights favoring GBDT
@@ -255,7 +255,7 @@ print(f"  R² = {best_conservative_r2:.8f}")
 print(
     f"  MAE = {mean_absolute_error(y_true, best_conservative_weights[0] * pred_gbdt + best_conservative_weights[1] * pred_cnn):.6f} km"
 )
-print(f"  Status: {'✅ ACHIEVED' if best_conservative_r2 >= 0.74 else '❌ Not reached'}")
+print(f"  Status: {' ACHIEVED' if best_conservative_r2 >= 0.74 else ' Not reached'}")
 print()
 
 # Collect all results
@@ -326,9 +326,9 @@ print(
 print()
 
 if best_method_achieved:
-    print("✅ TARGET ACHIEVED: R² ≥ 0.74")
+    print(" TARGET ACHIEVED: R² ≥ 0.74")
 else:
-    print(f"⚠️  Target not reached: R² = {best_method_r2:.8f} < 0.74")
+    print(f"  Target not reached: R² = {best_method_r2:.8f} < 0.74")
     print(f"   Gap remaining: {0.74 - best_method_r2:.8f}")
 
 print()
@@ -339,7 +339,7 @@ print()
 print("All Methods Performance:")
 print("-" * 80)
 for method_name, method_data in sorted(results.items(), key=lambda x: x[1]["r2"], reverse=True):
-    status = "✅" if method_data["achieved_target"] else "❌"
+    status = "" if method_data["achieved_target"] else ""
     print(
         f"{status} {method_name:30s} R² = {method_data['r2']:.8f}  MAE = {method_data['mae_km']:.6f} km"
     )
@@ -373,7 +373,7 @@ output_path = OUTPUT_DIR / "ensemble_optimization_analytical.json"
 with open(output_path, "w") as f:
     json.dump(output, f, indent=2)
 
-print(f"✅ Results saved to: {output_path}")
+print(f" Results saved to: {output_path}")
 print()
 
 # Final recommendation
@@ -382,7 +382,7 @@ print("RECOMMENDATION")
 print("=" * 80)
 print()
 if best_method_achieved:
-    print(f"✅ Use {best_method_name} for production deployment")
+    print(f" Use {best_method_name} for production deployment")
     print(f"   This method achieves R² = {best_method_r2:.8f} ≥ 0.74 target")
 
     if "weights" in best_method[1]:
@@ -390,7 +390,7 @@ if best_method_achieved:
             f"   Optimal weights: GBDT = {best_method[1]['weights'][0]:.6f}, CNN = {best_method[1]['weights'][1]:.6f}"
         )
 else:
-    print(f"⚠️  Best method ({best_method_name}) achieves R² = {best_method_r2:.8f}")
+    print(f"  Best method ({best_method_name}) achieves R² = {best_method_r2:.8f}")
     print(f"   This is {0.74 - best_method_r2:.8f} below target")
     print()
     print("   Recommendations to close the gap:")

@@ -66,7 +66,7 @@ if [ $? -eq 0 ]; then
 
     # Check for encoder weights
     if [ -f "outputs/mae_pretrain/mae_encoder_pretrained.pth" ]; then
-        echo "✅ Encoder weights saved successfully"
+        echo " Encoder weights saved successfully"
         echo ""
         echo "Files created:"
         echo "  - outputs/mae_pretrain/mae_encoder_pretrained.pth (encoder weights)"
@@ -81,10 +81,10 @@ if [ $? -eq 0 ]; then
         echo "Next step: Phase 3 (Fine-tuning for CBH)"
         echo "  ./scripts/run_phase3_finetune.sh"
     else
-        echo "⚠️  Warning: Encoder weights not found at expected location"
+        echo "  Warning: Encoder weights not found at expected location"
     fi
 else
     echo ""
-    echo "❌ Pre-training failed! Please check errors above."
+    echo " Pre-training failed! Please check errors above."
     exit 1
 fi

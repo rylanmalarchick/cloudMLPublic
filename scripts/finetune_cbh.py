@@ -374,7 +374,7 @@ class CBHTrainer:
             weights_only=False,
         )
         encoder.load_state_dict(checkpoint)
-        print("✓ Pre-trained weights loaded successfully")
+        print(" Pre-trained weights loaded successfully")
 
         # Determine number of angle features
         angles_mode = self.config["data"]["angles_mode"]
@@ -417,7 +417,7 @@ class CBHTrainer:
         use_amp = self.config["training"].get("use_amp", False)
         scaler = GradScaler("cuda") if use_amp else None
         if use_amp:
-            print(f"✓ Mixed precision training enabled (AMP)")
+            print(f" Mixed precision training enabled (AMP)")
 
         # Freeze/unfreeze encoder
         if stage_config["freeze_encoder"]:
@@ -425,13 +425,13 @@ class CBHTrainer:
             trainable_params = sum(
                 p.numel() for p in self.model.parameters() if p.requires_grad
             )
-            print(f"✓ Encoder frozen - Trainable parameters: {trainable_params:,}")
+            print(f" Encoder frozen - Trainable parameters: {trainable_params:,}")
         else:
             self.model.unfreeze_encoder()
             trainable_params = sum(
                 p.numel() for p in self.model.parameters() if p.requires_grad
             )
-            print(f"✓ Encoder unfrozen - Trainable parameters: {trainable_params:,}")
+            print(f" Encoder unfrozen - Trainable parameters: {trainable_params:,}")
 
         # Setup optimizer
         opt_config = stage_config["optimizer"]
@@ -554,7 +554,7 @@ class CBHTrainer:
                     checkpoint_path,
                 )
                 print(
-                    f"    💾 Saved best checkpoint (val_loss: {val_loss:.6f}, R²: {val_metrics['r2']:.4f})"
+                    f"     Saved best checkpoint (val_loss: {val_loss:.6f}, R²: {val_metrics['r2']:.4f})"
                 )
             else:
                 patience_counter += 1
@@ -562,7 +562,7 @@ class CBHTrainer:
             # Early stopping
             if patience_counter >= early_stop_config["patience"]:
                 print(
-                    f"\n⚠ Early stopping triggered after {patience_counter} epochs without improvement"
+                    f"\n Early stopping triggered after {patience_counter} epochs without improvement"
                 )
                 break
 
@@ -579,7 +579,7 @@ class CBHTrainer:
             checkpoint_path,
         )
 
-        print(f"\n✓ {stage_name} complete!")
+        print(f"\n {stage_name} complete!")
         print(f"Best validation loss: {best_val_loss:.6f}")
 
         return global_epoch + 1  # Return next epoch number
@@ -793,13 +793,13 @@ class CBHTrainer:
         # Success threshold
         thresholds = self.config["evaluation"]["thresholds"]
         if metrics["r2"] >= thresholds["excellent"]:
-            print(f"\n🎉 EXCELLENT performance! (R² >= {thresholds['excellent']})")
+            print(f"\n EXCELLENT performance! (R² >= {thresholds['excellent']})")
         elif metrics["r2"] >= thresholds["good"]:
-            print(f"\n✅ GOOD performance! (R² >= {thresholds['good']})")
+            print(f"\n GOOD performance! (R² >= {thresholds['good']})")
         elif metrics["r2"] >= thresholds["acceptable"]:
-            print(f"\n👍 ACCEPTABLE performance (R² >= {thresholds['acceptable']})")
+            print(f"\n ACCEPTABLE performance (R² >= {thresholds['acceptable']})")
         else:
-            print(f"\n⚠ Below acceptable threshold (R² < {thresholds['acceptable']})")
+            print(f"\n Below acceptable threshold (R² < {thresholds['acceptable']})")
 
         # Save results
         self.plot_results(all_targets, all_preds, metrics)
@@ -855,7 +855,7 @@ class CBHTrainer:
         plt.savefig(self.plot_dir / "test_results.png", dpi=150, bbox_inches="tight")
         plt.close()
 
-        print(f"\n✓ Plots saved to: {self.plot_dir}")
+        print(f"\n Plots saved to: {self.plot_dir}")
 
     def run(self):
         """Run full two-stage fine-tuning"""
@@ -876,7 +876,7 @@ class CBHTrainer:
             checkpoint_path, map_location=self.device, weights_only=False
         )
         self.model.load_state_dict(checkpoint["model_state_dict"])
-        print(f"\n✓ Loaded best Stage 1 checkpoint from epoch {checkpoint['epoch']}")
+        print(f"\n Loaded best Stage 1 checkpoint from epoch {checkpoint['epoch']}")
 
         # Stage 2: Fine-tune all
         next_epoch = self.train_stage(
@@ -889,7 +889,7 @@ class CBHTrainer:
             checkpoint_path, map_location=self.device, weights_only=False
         )
         self.model.load_state_dict(checkpoint["model_state_dict"])
-        print(f"\n✓ Loaded best Stage 2 checkpoint from epoch {checkpoint['epoch']}")
+        print(f"\n Loaded best Stage 2 checkpoint from epoch {checkpoint['epoch']}")
 
         # Final evaluation
         test_metrics = self.evaluate_test_set()
@@ -897,7 +897,7 @@ class CBHTrainer:
         # Save final model
         final_model_path = self.checkpoint_dir / "final_model.pth"
         torch.save(self.model.state_dict(), final_model_path)
-        print(f"\n✓ Final model saved to: {final_model_path}")
+        print(f"\n Final model saved to: {final_model_path}")
 
         print("\n" + "=" * 80)
         print("PHASE 3 COMPLETE!")

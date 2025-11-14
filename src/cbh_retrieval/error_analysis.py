@@ -58,7 +58,7 @@ REPORTS_DIR.mkdir(parents=True, exist_ok=True)
 print(f"Project Root: {PROJECT_ROOT}")
 print(f"Integrated Features: {INTEGRATED_FEATURES}")
 print(f"Output Directory: {OUTPUT_DIR}")
-print(f"✓ Error analysis output directory: {FIGURES_DIR}")
+print(f" Error analysis output directory: {FIGURES_DIR}")
 
 
 class ComprehensiveErrorAnalyzer:
@@ -101,13 +101,13 @@ class ComprehensiveErrorAnalyzer:
             # Get flight mapping
             flight_mapping = json.loads(f.attrs["flight_mapping"])
 
-        print(f"✓ Loaded {len(cbh_km)} samples")
-        print(f"✓ CBH range: [{cbh_km.min():.3f}, {cbh_km.max():.3f}] km")
+        print(f" Loaded {len(cbh_km)} samples")
+        print(f" CBH range: [{cbh_km.min():.3f}, {cbh_km.max():.3f}] km")
         print(
-            f"✓ Atmospheric features: {len(era5_feature_names)} ({', '.join(era5_feature_names)})"
+            f" Atmospheric features: {len(era5_feature_names)} ({', '.join(era5_feature_names)})"
         )
         print(
-            f"✓ Geometric features: {len(geometric_features)} ({', '.join(geometric_features.keys())})"
+            f" Geometric features: {len(geometric_features)} ({', '.join(geometric_features.keys())})"
         )
 
         # Combine all features
@@ -121,8 +121,8 @@ class ComprehensiveErrorAnalyzer:
         X = np.hstack(feature_list)
         y = cbh_km
 
-        print(f"\n✓ Total feature matrix shape: {X.shape}")
-        print(f"✓ Feature names ({len(feature_names)}): {feature_names}")
+        print(f"\n Total feature matrix shape: {X.shape}")
+        print(f" Feature names ({len(feature_names)}): {feature_names}")
 
         # Create metadata dataframe with all auxiliary features
         metadata = pd.DataFrame(
@@ -175,7 +175,7 @@ class ComprehensiveErrorAnalyzer:
 
         print("Training model...")
         model.fit(X_scaled, y)
-        print("✓ Model trained")
+        print(" Model trained")
 
         # Make predictions
         predictions = model.predict(X_scaled)
@@ -415,7 +415,7 @@ class ComprehensiveErrorAnalyzer:
         )
         plt.savefig(self.figures_dir / "error_distribution.pdf", bbox_inches="tight")
         plt.close()
-        print("✓ Saved error_distribution.png/pdf")
+        print(" Saved error_distribution.png/pdf")
 
         # 2. Error vs. predictions
         fig, ax = plt.subplots(figsize=(8, 6))
@@ -439,7 +439,7 @@ class ComprehensiveErrorAnalyzer:
         )
         plt.savefig(self.figures_dir / "error_vs_predictions.pdf", bbox_inches="tight")
         plt.close()
-        print("✓ Saved error_vs_predictions.png/pdf")
+        print(" Saved error_vs_predictions.png/pdf")
 
         # 3. Per-flight error analysis
         flight_name_to_id = {v: k for k, v in flight_mapping.items()}
@@ -468,7 +468,7 @@ class ComprehensiveErrorAnalyzer:
             )
             plt.savefig(self.figures_dir / "error_by_flight.pdf", bbox_inches="tight")
             plt.close()
-            print("✓ Saved error_by_flight.png/pdf")
+            print(" Saved error_by_flight.png/pdf")
 
         # 4. Error correlation heatmap
         correlation_features = ["sza", "saa", "altitude", "blh", "lcl", "t2m", "d2m"]
@@ -505,7 +505,7 @@ class ComprehensiveErrorAnalyzer:
                     self.figures_dir / "correlation_heatmap.pdf", bbox_inches="tight"
                 )
                 plt.close()
-                print("✓ Saved correlation_heatmap.png/pdf")
+                print(" Saved correlation_heatmap.png/pdf")
 
         # 5. Error vs. specific features
         if "sza" in metadata.columns:
@@ -531,9 +531,9 @@ class ComprehensiveErrorAnalyzer:
             )
             plt.savefig(self.figures_dir / "error_vs_sza.pdf", bbox_inches="tight")
             plt.close()
-            print("✓ Saved error_vs_sza.png/pdf")
+            print(" Saved error_vs_sza.png/pdf")
 
-        print(f"\n✓ All visualizations saved to: {self.figures_dir}")
+        print(f"\n All visualizations saved to: {self.figures_dir}")
 
     def generate_systematic_bias_report(
         self,
@@ -705,7 +705,7 @@ class ComprehensiveErrorAnalyzer:
         with open(report_path, "w") as f:
             f.write("\n".join(report_lines))
 
-        print(f"✓ Systematic bias report saved: {report_path}")
+        print(f" Systematic bias report saved: {report_path}")
 
     def save_error_analysis_report(
         self,
@@ -734,7 +734,7 @@ class ComprehensiveErrorAnalyzer:
         print(f"Correlation Analysis: {len(correlation_results)} features analyzed")
         print(f"Per-Flight Analysis: {len(per_flight_error)} flights")
         print(f"Statistical Tests: {statistical_tests['conclusion']}")
-        print(f"\n✓ Report saved: {report_path}")
+        print(f"\n Report saved: {report_path}")
 
         return report
 
@@ -801,7 +801,7 @@ def main():
     )
 
     print(f"\n{'=' * 80}")
-    print("✓ Task 1.3 Complete: Comprehensive Error Analysis")
+    print(" Task 1.3 Complete: Comprehensive Error Analysis")
     print(f"{'=' * 80}")
     print(f"All outputs saved to:")
     print(f"  Figures: {FIGURES_DIR}")

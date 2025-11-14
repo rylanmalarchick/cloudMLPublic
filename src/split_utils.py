@@ -268,5 +268,5 @@ def check_split_leakage(
             print(f"  Val-Test overlap: {len(val_test_overlap)} samples")
         return False
     else:
-        print("✓ No split leakage detected - all splits are disjoint")
+        print(" No split leakage detected - all splits are disjoint")
         return True

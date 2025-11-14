@@ -20,7 +20,7 @@ echo ""
 # Check if encoder exists
 ENCODER_PATH="outputs/mae_pretrain/mae_encoder_pretrained.pth"
 if [ ! -f "$ENCODER_PATH" ]; then
-    echo "❌ ERROR: Pre-trained encoder not found at $ENCODER_PATH"
+    echo " ERROR: Pre-trained encoder not found at $ENCODER_PATH"
     echo ""
     echo "Please run Phase 2 pre-training first:"
     echo "  ./scripts/run_phase2_pretrain.sh"
@@ -28,7 +28,7 @@ if [ ! -f "$ENCODER_PATH" ]; then
     exit 1
 fi
 
-echo "✓ Found pre-trained encoder: $ENCODER_PATH"
+echo " Found pre-trained encoder: $ENCODER_PATH"
 echo ""
 
 # Activate virtual environment
@@ -39,7 +39,7 @@ elif [ -d ".venv" ]; then
     echo "Activating virtual environment..."
     source .venv/bin/activate
 else
-    echo "⚠ Warning: No virtual environment found"
+    echo " Warning: No virtual environment found"
 fi
 
 # Configuration
@@ -81,7 +81,7 @@ echo "=========================================="
 echo "HYBRID PIPELINE COMPLETE!"
 echo "=========================================="
 echo ""
-echo "✅ Results saved to: outputs/hybrid_mae_gbdt/"
+echo " Results saved to: outputs/hybrid_mae_gbdt/"
 echo ""
 echo "View results:"
 echo "  - Metrics: outputs/hybrid_mae_gbdt/*/metrics.json"
@@ -93,5 +93,5 @@ echo "  - If R² 0.4-0.75: Try Strategy 2 (optimize SSL pipeline)"
 echo "  - If R² < 0.4: Debug and analyze failure modes"
 echo ""
 echo "=========================================="
-echo "STRATEGY 1 COMPLETE! 🚀"
+echo "STRATEGY 1 COMPLETE! "
 echo "=========================================="

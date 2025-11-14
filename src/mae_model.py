@@ -490,4 +490,4 @@ if __name__ == "__main__":
     features = model.forward_encoder(imgs)
     print(f"Encoder output shape: {features.shape}")
 
-    print("\n✅ MAE model tests passed!")
+    print("\n MAE model tests passed!")

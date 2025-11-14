@@ -42,12 +42,12 @@ ENSEMBLE_RESULTS = PROJECT_ROOT / "./reports/ensemble_results.json"
 OUTPUT_DIR = PROJECT_ROOT / "./reports"
 
 # Load existing results
-print("📂 Loading existing ensemble results...")
+print(" Loading existing ensemble results...")
 with open(ENSEMBLE_RESULTS, "r") as f:
     data = json.load(f)
 
 folds = data["folds"]
-print(f"  ✓ Loaded {len(folds)} folds\n")
+print(f"   Loaded {len(folds)} folds\n")
 
 # Extract predictions from all folds
 all_y_true = []
@@ -68,7 +68,7 @@ else:
     pred_gbdt = all_pred_gbdt
     pred_cnn = all_pred_cnn
 
-print(f"📊 Total samples: {len(y_true)}")
+print(f" Total samples: {len(y_true)}")
 print()
 
 
@@ -108,7 +108,7 @@ def ensemble_predict(pred1, pred2, w1):
 
 
 # Baseline performance
-print("📈 Baseline Performance:")
+print(" Baseline Performance:")
 r2_gbdt = r2_score(y_true, pred_gbdt)
 r2_cnn = r2_score(y_true, pred_cnn)
 
@@ -121,7 +121,7 @@ print(f"   Simple avg (0.5): R² = {r2_simple:.8f}")
 print()
 
 # Fine-grained grid search
-print("🔬 Fine-Grained Grid Search over Weights")
+print(" Fine-Grained Grid Search over Weights")
 print("-" * 80)
 
 # Create fine-grained weight grid
@@ -158,7 +158,7 @@ for w_gbdt in weight_grid:
 
 best_w_cnn = 1.0 - best_weight
 
-print(f"\n  ✅ Best weights found:")
+print(f"\n   Best weights found:")
 print(f"     GBDT weight: {best_weight:.6f}")
 print(f"     CNN weight:  {best_w_cnn:.6f}")
 print(f"     R² = {best_r2:.8f}")
@@ -170,12 +170,12 @@ target_achieved = best_r2 >= 0.74
 
 print("=" * 80)
 if target_achieved:
-    print(f"✅ TARGET ACHIEVED: R² = {best_r2:.8f} ≥ 0.74")
+    print(f" TARGET ACHIEVED: R² = {best_r2:.8f} ≥ 0.74")
     improvement = best_r2 - 0.7391
     improvement_pct = (improvement / 0.7391) * 100
     print(f"   Improvement over baseline: {improvement:.8f} ({improvement_pct:.4f}%)")
 else:
-    print(f"⚠️  Target not reached: R² = {best_r2:.8f} < 0.74")
+    print(f"  Target not reached: R² = {best_r2:.8f} < 0.74")
     gap = 0.74 - best_r2
     print(f"   Gap remaining: {gap:.8f}")
     print(f"   This represents {(gap / 0.74) * 100:.4f}% shortfall")
@@ -183,7 +183,7 @@ print("=" * 80)
 print()
 
 # Additional analysis: Test specific weight combinations
-print("🔬 Testing Specific Weight Combinations")
+print(" Testing Specific Weight Combinations")
 print("-" * 80)
 
 specific_weights = [
@@ -213,7 +213,7 @@ for w_gbdt, description in specific_weights:
         }
     )
 
-    status = "✅" if r2 >= 0.74 else "❌"
+    status = "" if r2 >= 0.74 else ""
     print(f"{status} [{w_gbdt:.3f}, {1.0 - w_gbdt:.3f}] {description:25s} R² = {r2:.8f}")
 
 print()
@@ -235,7 +235,7 @@ print("OPTIMIZATION SUMMARY")
 print("=" * 80)
 print()
 # Check fold-wise average (this is what was reported as 0.7391)
-print("🔬 Fold-Wise Optimization")
+print(" Fold-Wise Optimization")
 print("-" * 80)
 fold_r2_scores = []
 for fold in folds:
@@ -282,9 +282,9 @@ print(f"MAE:                              {best_mae:.6f} km")
 print()
 
 if target_achieved:
-    print("✅ TARGET STATUS: ACHIEVED (R² ≥ 0.74)")
+    print(" TARGET STATUS: ACHIEVED (R² ≥ 0.74)")
 else:
-    print("⚠️  TARGET STATUS: NOT REACHED")
+    print("  TARGET STATUS: NOT REACHED")
     print(f"   Gap: {0.74 - mean_fold_r2:.8f}")
     print()
     print("   Recommendations:")
@@ -327,7 +327,7 @@ output_path = OUTPUT_DIR / "ensemble_optimization_simple.json"
 with open(output_path, "w") as f:
     json.dump(output, f, indent=2)
 
-print(f"✅ Results saved to: {output_path}")
+print(f" Results saved to: {output_path}")
 print()
 
 # Final recommendation
@@ -337,17 +337,17 @@ print("=" * 80)
 print()
 
 if target_achieved:
-    print(f"✅ Deploy ensemble with optimized weights:")
+    print(f" Deploy ensemble with optimized weights:")
     print(f"   GBDT weight = {best_weight:.6f}")
     print(f"   CNN weight  = {1.0 - best_weight:.6f}")
     print(f"   Expected fold-wise mean R² ≥ 0.74")
 else:
-    print(f"✅ Deploy ensemble with current best weights:")
+    print(f" Deploy ensemble with current best weights:")
     print(f"   GBDT weight = {best_weight:.6f}")
     print(f"   CNN weight  = {1.0 - best_weight:.6f}")
     print(f"   Expected fold-wise mean R² = {mean_fold_r2:.8f}")
     print()
-    print(f"📝 Note: Current performance is 99.9% of target (0.739 vs 0.74)")
+    print(f" Note: Current performance is 99.9% of target (0.739 vs 0.74)")
     print(f"   The 0.001 gap is negligible for practical applications")
     print(f"   and the model is APPROVED FOR PRODUCTION DEPLOYMENT")
 

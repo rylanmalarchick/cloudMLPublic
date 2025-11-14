@@ -64,7 +64,7 @@ REPORTS_DIR.mkdir(parents=True, exist_ok=True)
 
 # Device
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-print(f"✓ Device: {device}")
+print(f" Device: {device}")
 
 
 class SimpleCNN(nn.Module):
@@ -169,8 +169,8 @@ class EnsembleModel:
         X_tabular = np.hstack(feature_list)
         y = cbh_km
 
-        print(f"✓ Loaded {len(y)} samples")
-        print(f"✓ Tabular features: {X_tabular.shape[1]}")
+        print(f" Loaded {len(y)} samples")
+        print(f" Tabular features: {X_tabular.shape[1]}")
 
         return X_tabular, y, flight_ids, sample_ids
 
@@ -189,7 +189,7 @@ class EnsembleModel:
             return_indices=True,
         )
 
-        print(f"✓ Loaded {len(dataset)} matched samples")
+        print(f" Loaded {len(dataset)} matched samples")
 
         return dataset
 
@@ -222,7 +222,7 @@ class EnsembleModel:
         X_aligned = X_tabular[aligned_tabular_indices]
         y_aligned = y_tabular[aligned_tabular_indices]
 
-        print(f"✓ Aligned samples: {len(y_aligned)}")
+        print(f" Aligned samples: {len(y_aligned)}")
         print(f"  Original tabular: {len(y_tabular)}")
         print(f"  Original images: {len(image_dataset)}")
         print(f"  Match rate: {100 * len(y_aligned) / len(y_tabular):.1f}%")
@@ -524,7 +524,7 @@ class EnsembleModel:
         best_strategy = max(
             self.results["ensemble_strategies"].items(), key=lambda x: x[1]["mean_r2"]
         )
-        print(f"\n✨ Best Ensemble: {best_strategy[1]['name']}")
+        print(f"\n Best Ensemble: {best_strategy[1]['name']}")
         print(f"   R² = {best_strategy[1]['mean_r2']:.4f}")
         print(f"   MAE = {best_strategy[1]['mean_mae_m']:.1f} m")
 
@@ -532,7 +532,7 @@ class EnsembleModel:
         """Save ensemble report."""
         with open(output_path, "w") as f:
             json.dump(self.results, f, indent=2)
-        print(f"\n✓ Ensemble report saved to {output_path}")
+        print(f"\n Ensemble report saved to {output_path}")
 
 
 def main():

@@ -405,7 +405,7 @@ class MAETrainer:
         if is_best:
             best_path = self.checkpoint_dir / "best.pth"
             torch.save(checkpoint, best_path)
-            print(f"    💾 Saved best checkpoint (val_loss: {val_loss:.6f})")
+            print(f"     Saved best checkpoint (val_loss: {val_loss:.6f})")
 
         # Save periodic checkpoints
         if (epoch + 1) % self.config.get("save_interval", 20) == 0:
@@ -416,7 +416,7 @@ class MAETrainer:
         """Save encoder weights for fine-tuning."""
         encoder_path = self.output_dir / "mae_encoder_pretrained.pth"
         torch.save(self.model.encoder.state_dict(), encoder_path)
-        print(f"\n💾 Saved encoder weights: {encoder_path}")
+        print(f"\n Saved encoder weights: {encoder_path}")
 
     def train(self):
         """Main training loop."""
@@ -468,7 +468,7 @@ class MAETrainer:
             patience = self.config.get("early_stopping_patience", 20)
             if self.epochs_without_improvement >= patience:
                 print(
-                    f"\n⚠️  Early stopping triggered after {patience} epochs without improvement"
+                    f"\n  Early stopping triggered after {patience} epochs without improvement"
                 )
                 break
 
@@ -532,7 +532,7 @@ def main():
 
     # Load configuration
     if not os.path.exists(args.config):
-        print(f"❌ Error: Config file not found: {args.config}")
+        print(f" Error: Config file not found: {args.config}")
         sys.exit(1)
 
     with open(args.config, "r") as f:
@@ -555,11 +555,11 @@ def main():
     try:
         trainer.train()
     except KeyboardInterrupt:
-        print("\n\n⚠️  Training interrupted by user")
+        print("\n\n  Training interrupted by user")
         trainer.save_encoder()
         sys.exit(0)
     except Exception as e:
-        print(f"\n\n❌ Error during training: {str(e)}")
+        print(f"\n\n Error during training: {str(e)}")
         import traceback
 
         traceback.print_exc()

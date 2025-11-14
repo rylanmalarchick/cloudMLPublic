@@ -61,7 +61,7 @@ OUTPUT_PDF="${TEX_FILE%.tex}.pdf"
 if [ -f "$OUTPUT_PDF" ]; then
     echo ""
     echo "=================================================="
-    echo "✓ SUCCESS!"
+    echo " SUCCESS!"
     echo "=================================================="
     echo "PDF generated: $OUTPUT_PDF"
     echo ""

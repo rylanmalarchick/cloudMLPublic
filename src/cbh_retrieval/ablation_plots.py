@@ -51,7 +51,7 @@ def load_validation_results():
     with open(validation_report_path, "r") as f:
         validation_data = json.load(f)
 
-    print(f"✓ Loaded validation report: {validation_report_path}")
+    print(f" Loaded validation report: {validation_report_path}")
 
     return validation_data
 
@@ -141,8 +141,8 @@ def plot_feature_importance_detailed(validation_data, output_dir):
     )
     plt.close()
 
-    print("✓ Saved: figure_feature_importance.png")
-    print("✓ Saved: figure_feature_importance.pdf")
+    print(" Saved: figure_feature_importance.png")
+    print(" Saved: figure_feature_importance.pdf")
 
 
 def plot_feature_group_comparison(validation_data, output_dir):
@@ -268,8 +268,8 @@ def plot_feature_group_comparison(validation_data, output_dir):
     )
     plt.close()
 
-    print("✓ Saved: figure_feature_group_comparison.png")
-    print("✓ Saved: figure_feature_group_comparison.pdf")
+    print(" Saved: figure_feature_group_comparison.png")
+    print(" Saved: figure_feature_group_comparison.pdf")
 
 
 def plot_model_evolution(output_dir):
@@ -381,8 +381,8 @@ def plot_model_evolution(output_dir):
     plt.savefig(output_dir / "figure_model_evolution.pdf", dpi=300, bbox_inches="tight")
     plt.close()
 
-    print("✓ Saved: figure_model_evolution.png")
-    print("✓ Saved: figure_model_evolution.pdf")
+    print(" Saved: figure_model_evolution.png")
+    print(" Saved: figure_model_evolution.pdf")
 
 
 def plot_ablation_studies(output_dir):
@@ -509,8 +509,8 @@ def plot_ablation_studies(output_dir):
     )
     plt.close()
 
-    print("✓ Saved: figure_ablation_studies.png")
-    print("✓ Saved: figure_ablation_studies.pdf")
+    print(" Saved: figure_ablation_studies.png")
+    print(" Saved: figure_ablation_studies.pdf")
 
 
 def main():

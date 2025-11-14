@@ -176,7 +176,7 @@ class TemporalAttentionVisualizer:
             bbox_inches="tight",
         )
         plt.close()
-        print("✓ Created temporal attention heatmap")
+        print(" Created temporal attention heatmap")
 
     def plot_attention_patterns(self):
         """Plot representative attention patterns."""
@@ -234,7 +234,7 @@ class TemporalAttentionVisualizer:
             bbox_inches="tight",
         )
         plt.close()
-        print("✓ Created temporal attention patterns")
+        print(" Created temporal attention patterns")
 
     def plot_attention_vs_performance(self):
         """Plot relationship between attention patterns and prediction error."""
@@ -344,7 +344,7 @@ class TemporalAttentionVisualizer:
             bbox_inches="tight",
         )
         plt.close()
-        print("✓ Created attention vs. performance plot")
+        print(" Created attention vs. performance plot")
 
     def create_combined_figure(self):
         """Create main combined figure for temporal attention visualization."""
@@ -529,7 +529,7 @@ class TemporalAttentionVisualizer:
             self.figures_dir / "figure_temporal_attention.pdf", bbox_inches="tight"
         )
         plt.close()
-        print("✓ Created combined temporal attention figure")
+        print(" Created combined temporal attention figure")
 
     def generate_report(self):
         """Generate temporal attention analysis report."""
@@ -577,7 +577,7 @@ class TemporalAttentionVisualizer:
         with open(report_path, "w") as f:
             json.dump(report, f, indent=2)
 
-        print(f"\n✓ Saved temporal attention report to {report_path}")
+        print(f"\n Saved temporal attention report to {report_path}")
         return report
 
 
@@ -604,9 +604,9 @@ def main():
     print("\n" + "=" * 80)
     print("TEMPORAL ATTENTION VISUALIZATION COMPLETE")
     print("=" * 80)
-    print("\n✓ Main figure: figure_temporal_attention.png/pdf")
-    print("✓ Supporting figures: 3 additional visualizations")
-    print("✓ Report: temporal_attention_report.json")
+    print("\n Main figure: figure_temporal_attention.png/pdf")
+    print(" Supporting figures: 3 additional visualizations")
+    print(" Report: temporal_attention_report.json")
     print("\n" + "=" * 80)
 
 

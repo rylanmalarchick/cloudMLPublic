@@ -115,7 +115,7 @@ class ImageExtractor:
                 self.stats["flights_processed"] += 1
             except Exception as e:
                 print(
-                    f"\n  ❌ ERROR: Failed to process flight {flight_config.get('name', 'unknown')}"
+                    f"\n   ERROR: Failed to process flight {flight_config.get('name', 'unknown')}"
                 )
                 print(f"     {str(e)}")
                 self.stats["flights_failed"] += 1
@@ -153,7 +153,7 @@ class ImageExtractor:
         # Print summary
         self._print_summary()
 
-        print("\n✅ Phase 1 extraction complete!\n")
+        print("\n Phase 1 extraction complete!\n")
 
     def _extract_flight(self, config: Dict) -> Tuple[np.ndarray, np.ndarray]:
         """
@@ -224,7 +224,7 @@ class ImageExtractor:
 
             # Concatenate all chunks
             images = np.concatenate(images_list, axis=0)
-            print(f"  ✓ Extracted {len(images):,} images with shape {images.shape[1:]}")
+            print(f"   Extracted {len(images):,} images with shape {images.shape[1:]}")
 
         # Create metadata array: [flight_idx, frame_idx, SZA, SAA]
         flight_idx = config.get("flight_idx", 0)
@@ -323,7 +323,7 @@ class ImageExtractor:
             f.attrs["split"] = split
 
         file_size_mb = output_path.stat().st_size / (1024**2)
-        print(f"  ✓ Saved {split}.h5 ({file_size_mb:.1f} MB)")
+        print(f"   Saved {split}.h5 ({file_size_mb:.1f} MB)")
 
     def _save_npz(self, images: np.ndarray, metadata: np.ndarray, split: str):
         """Save dataset in NPZ format (compressed numpy)."""
@@ -337,7 +337,7 @@ class ImageExtractor:
         )
 
         file_size_mb = output_path.stat().st_size / (1024**2)
-        print(f"  ✓ Saved {split}.npz ({file_size_mb:.1f} MB)")
+        print(f"   Saved {split}.npz ({file_size_mb:.1f} MB)")
 
     def _save_statistics(self):
         """Save extraction statistics to YAML."""
@@ -362,7 +362,7 @@ class ImageExtractor:
         with open(stats_path, "w") as f:
             yaml.dump(extended_stats, f, default_flow_style=False)
 
-        print(f"  ✓ Saved extraction_stats.yaml")
+        print(f"   Saved extraction_stats.yaml")
 
     def _print_summary(self):
         """Print extraction summary."""
@@ -370,19 +370,19 @@ class ImageExtractor:
         print("EXTRACTION SUMMARY")
         print("=" * 80)
         print(
-            f"✓ Flights processed: {self.stats['flights_processed']}/{len(self.flight_configs)}"
+            f" Flights processed: {self.stats['flights_processed']}/{len(self.flight_configs)}"
         )
         if self.stats["flights_failed"] > 0:
-            print(f"✗ Flights failed: {self.stats['flights_failed']}")
-        print(f"✓ Total images: {self.stats['total_images']:,}")
+            print(f" Flights failed: {self.stats['flights_failed']}")
+        print(f" Total images: {self.stats['total_images']:,}")
         print(
             f"  - Training: {self.stats['train_images']:,} ({self.stats['train_images'] / self.stats['total_images']:.1%})"
         )
         print(
             f"  - Validation: {self.stats['val_images']:,} ({self.stats['val_images'] / self.stats['total_images']:.1%})"
         )
-        print(f"\n✓ Output directory: {self.output_dir}")
-        print(f"✓ Files created:")
+        print(f"\n Output directory: {self.output_dir}")
+        print(f" Files created:")
         print(f"  - train.{self.format.replace('hdf5', 'h5')}")
         print(f"  - val.{self.format.replace('hdf5', 'h5')}")
         print(f"  - extraction_stats.yaml")
@@ -507,10 +507,10 @@ def main():
     try:
         extractor.extract_all()
     except KeyboardInterrupt:
-        print("\n\n⚠️  Extraction interrupted by user")
+        print("\n\n  Extraction interrupted by user")
         sys.exit(1)
     except Exception as e:
-        print(f"\n\n❌ ERROR: {str(e)}")
+        print(f"\n\n ERROR: {str(e)}")
         import traceback
 
         traceback.print_exc()

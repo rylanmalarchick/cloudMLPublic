@@ -77,8 +77,8 @@ class DomainAdaptationF4:
         for dir_path in [self.models_dir, self.reports_dir, self.figures_dir]:
             dir_path.mkdir(parents=True, exist_ok=True)
 
-        print(f"✓ Domain adaptation initialized")
-        print(f"✓ Device: {self.device}")
+        print(f" Domain adaptation initialized")
+        print(f" Device: {self.device}")
 
     def load_data(
         self, integrated_features_path: str
@@ -96,9 +96,9 @@ class DomainAdaptationF4:
             [dataset.global_to_local[i][0] for i in range(len(dataset))]
         )
 
-        print(f"✓ Total samples: {len(dataset)}")
-        print(f"✓ CBH range: [{cbh_values.min():.3f}, {cbh_values.max():.3f}] km")
-        print(f"✓ Unique flights: {np.unique(flight_ids)}")
+        print(f" Total samples: {len(dataset)}")
+        print(f" CBH range: [{cbh_values.min():.3f}, {cbh_values.max():.3f}] km")
+        print(f" Unique flights: {np.unique(flight_ids)}")
 
         # Print per-flight statistics
         print(f"\nPer-Flight Statistics:")
@@ -126,10 +126,10 @@ class DomainAdaptationF4:
             print(f"Loading checkpoint: {checkpoint_path}")
             checkpoint = torch.load(checkpoint_path, map_location=self.device)
             model.load_state_dict(checkpoint["model_state_dict"])
-            print(f"✓ Model loaded from checkpoint")
+            print(f" Model loaded from checkpoint")
         else:
-            print(f"⚠ Checkpoint not found: {checkpoint_path}")
-            print(f"⚠ Using freshly initialized model (for testing only)")
+            print(f" Checkpoint not found: {checkpoint_path}")
+            print(f" Using freshly initialized model (for testing only)")
 
         model = model.to(self.device)
         return model
@@ -190,7 +190,7 @@ class DomainAdaptationF4:
         print(f"  RMSE: {baseline_metrics['rmse_km'] * 1000:.1f} m")
 
         if baseline_metrics["r2"] < 0:
-            print(f"  ⚠ Catastrophic failure detected (R² < 0)")
+            print(f"   Catastrophic failure detected (R² < 0)")
 
         return baseline_metrics
 
@@ -318,7 +318,7 @@ class DomainAdaptationF4:
             print(f"\n--- Few-Shot Experiment: {n_shots} samples ---")
 
             if n_shots > len(f4_pool_indices):
-                print(f"  ⚠ Not enough samples in pool, skipping")
+                print(f"   Not enough samples in pool, skipping")
                 continue
 
             # Sample few-shot indices
@@ -385,7 +385,7 @@ class DomainAdaptationF4:
                 },
                 checkpoint_path,
             )
-            print(f"  ✓ Checkpoint saved: {checkpoint_path}")
+            print(f"   Checkpoint saved: {checkpoint_path}")
 
         return results
 
@@ -461,7 +461,7 @@ class DomainAdaptationF4:
         plt.tight_layout()
         plt.savefig(self.figures_dir / "f4_learning_curves.png", dpi=300)
         plt.close()
-        print("✓ Saved: f4_learning_curves.png")
+        print(" Saved: f4_learning_curves.png")
 
         # Bar chart comparison
         fig, ax = plt.subplots(figsize=(10, 6))
@@ -500,7 +500,7 @@ class DomainAdaptationF4:
         plt.tight_layout()
         plt.savefig(self.figures_dir / "f4_improvement_comparison.png", dpi=300)
         plt.close()
-        print("✓ Saved: f4_improvement_comparison.png")
+        print(" Saved: f4_improvement_comparison.png")
 
     def save_domain_adaptation_report(
         self, baseline_metrics: Dict, few_shot_results: Dict
@@ -529,7 +529,7 @@ class DomainAdaptationF4:
                 f"  {key}: R² = {value['r2']:.4f}, Improvement = +{value['improvement_over_baseline']:.4f}"
             )
         print(f"\nConclusion: {report['conclusion']}")
-        print(f"\n✓ Report saved: {report_path}")
+        print(f"\n Report saved: {report_path}")
 
         return report
 
@@ -607,7 +607,7 @@ def main():
     adapter.save_domain_adaptation_report(baseline_metrics, few_shot_results)
 
     print(f"\n{'=' * 80}")
-    print("✓ Task 2.2 Complete: Domain Adaptation for Flight F4")
+    print(" Task 2.2 Complete: Domain Adaptation for Flight F4")
     print(f"{'=' * 80}")
     print(f"All outputs saved to: {output_dir}")
 

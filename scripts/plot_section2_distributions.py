@@ -368,7 +368,7 @@ def main():
     plot_training_curves(experiments_data, curves_path)
 
     print("\n" + "=" * 70)
-    print("✅ VISUALIZATION COMPLETE")
+    print(" VISUALIZATION COMPLETE")
     print("=" * 70)
     print(f"\nGenerated files:")
     print(f"  1. {dist_path}")

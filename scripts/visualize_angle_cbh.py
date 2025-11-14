@@ -139,7 +139,7 @@ class AngleCBHVisualizer:
             }
         )
 
-        print(f"\n✓ Extracted {len(df)} samples total")
+        print(f"\n Extracted {len(df)} samples total")
         print()
 
         return df
@@ -421,7 +421,7 @@ class AngleCBHVisualizer:
         # Save figure
         save_path = self.run_dir / "angle_cbh_analysis.png"
         plt.savefig(save_path, dpi=300, bbox_inches="tight")
-        print(f"✓ Plot saved to {save_path}")
+        print(f" Plot saved to {save_path}")
 
         plt.close()
 
@@ -436,7 +436,7 @@ class AngleCBHVisualizer:
         # Save raw data
         csv_path = self.run_dir / "angle_cbh_data.csv"
         df.to_csv(csv_path, index=False)
-        print(f"✓ Data saved to {csv_path}")
+        print(f" Data saved to {csv_path}")
 
         # Save correlation results (handle NaN values)
         import json
@@ -456,7 +456,7 @@ class AngleCBHVisualizer:
         corr_path = self.run_dir / "correlations.json"
         with open(corr_path, "w") as f:
             json.dump(convert_to_json_safe(correlations), f, indent=2)
-        print(f"✓ Correlations saved to {corr_path}")
+        print(f" Correlations saved to {corr_path}")
 
         # Save summary statistics
         summary_path = self.run_dir / "summary_statistics.txt"
@@ -499,7 +499,7 @@ class AngleCBHVisualizer:
                 f.write(f"    SAA-CBH: r = {stats['saa_cbh']:.4f}\n")
                 f.write(f"    N = {stats['n_samples']}\n")
 
-        print(f"✓ Summary saved to {summary_path}")
+        print(f" Summary saved to {summary_path}")
 
     def run(self):
         """Run complete analysis pipeline."""

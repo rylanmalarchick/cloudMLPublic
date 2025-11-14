@@ -109,8 +109,8 @@ class UncertaintyQuantifier:
                     if data.ndim == 1:
                         geometric_features[key] = data
 
-        print(f"✓ Loaded {len(cbh_km)} samples")
-        print(f"✓ CBH range: [{cbh_km.min():.3f}, {cbh_km.max():.3f}] km")
+        print(f" Loaded {len(cbh_km)} samples")
+        print(f" CBH range: [{cbh_km.min():.3f}, {cbh_km.max():.3f}] km")
 
         # Combine all features
         feature_list = [era5_features]
@@ -123,7 +123,7 @@ class UncertaintyQuantifier:
         X = np.hstack(feature_list)
         y = cbh_km
 
-        print(f"✓ Total feature matrix shape: {X.shape}")
+        print(f" Total feature matrix shape: {X.shape}")
 
         return X, y, flight_ids
 
@@ -430,7 +430,7 @@ class UncertaintyQuantifier:
         # 4. Coverage and interval width across folds
         self._plot_fold_uq_metrics(output_dir)
 
-        print(f"✓ Visualizations saved to {output_dir}")
+        print(f" Visualizations saved to {output_dir}")
 
     def _plot_predictions_with_uncertainty(self, output_dir):
         """Plot predictions with uncertainty bands."""
@@ -482,7 +482,7 @@ class UncertaintyQuantifier:
             bbox_inches="tight",
         )
         plt.close()
-        print("  ✓ predictions_with_uncertainty.png")
+        print("   predictions_with_uncertainty.png")
 
     def _plot_calibration(self, output_dir):
         """Plot calibration curve."""
@@ -540,7 +540,7 @@ class UncertaintyQuantifier:
         plt.tight_layout()
         plt.savefig(output_dir / "calibration_curve.png", dpi=300, bbox_inches="tight")
         plt.close()
-        print("  ✓ calibration_curve.png")
+        print("   calibration_curve.png")
 
     def _plot_uncertainty_vs_error(self, output_dir):
         """Plot uncertainty vs absolute error."""
@@ -583,7 +583,7 @@ class UncertaintyQuantifier:
             output_dir / "uncertainty_vs_error.png", dpi=300, bbox_inches="tight"
         )
         plt.close()
-        print("  ✓ uncertainty_vs_error.png")
+        print("   uncertainty_vs_error.png")
 
     def _plot_fold_uq_metrics(self, output_dir):
         """Plot UQ metrics across folds."""
@@ -638,14 +638,14 @@ class UncertaintyQuantifier:
         plt.tight_layout()
         plt.savefig(output_dir / "fold_uq_metrics.png", dpi=300, bbox_inches="tight")
         plt.close()
-        print("  ✓ fold_uq_metrics.png")
+        print("   fold_uq_metrics.png")
 
     def save_report(self, output_path):
         """Save UQ report as JSON."""
         output_path = Path(output_path)
         with open(output_path, "w") as f:
             json.dump(self.results, f, indent=2)
-        print(f"\n✓ UQ report saved to {output_path}")
+        print(f"\n UQ report saved to {output_path}")
 
 
 def main():

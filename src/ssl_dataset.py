@@ -331,7 +331,7 @@ def test_dataset():
     print(f"View 1 shape: {view1.shape}")
     print(f"View 2 shape: {view2.shape}")
 
-    print("\n✅ Dataset tests passed!")
+    print("\n Dataset tests passed!")
 
 
 if __name__ == "__main__":

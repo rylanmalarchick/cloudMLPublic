@@ -25,24 +25,24 @@ def verify_hdf5_dataset(file_path: Path, split_name: str):
     print("=" * 80)
 
     if not file_path.exists():
-        print(f"❌ ERROR: File not found!")
+        print(f" ERROR: File not found!")
         return False
 
     try:
         with h5py.File(file_path, "r") as f:
             # Check required datasets
             if "images" not in f:
-                print("❌ ERROR: 'images' dataset not found!")
+                print(" ERROR: 'images' dataset not found!")
                 return False
             if "metadata" not in f:
-                print("❌ ERROR: 'metadata' dataset not found!")
+                print(" ERROR: 'metadata' dataset not found!")
                 return False
 
             images = f["images"]
             metadata = f["metadata"]
 
             # Basic info
-            print(f"\n📊 Dataset Information:")
+            print(f"\n Dataset Information:")
             print(f"  Images shape: {images.shape}")
             print(f"  Images dtype: {images.dtype}")
             print(f"  Metadata shape: {metadata.shape}")
@@ -64,7 +64,7 @@ def verify_hdf5_dataset(file_path: Path, split_name: str):
             print(f"  File size: {file_size_mb:.1f} MB")
 
             # Sample statistics
-            print(f"\n📈 Image Statistics:")
+            print(f"\n Image Statistics:")
 
             # Load a sample for quick stats (first 1000 images)
             sample_size = min(1000, len(images))
@@ -81,17 +81,17 @@ def verify_hdf5_dataset(file_path: Path, split_name: str):
             n_inf = np.sum(np.isinf(sample))
 
             if n_nan > 0:
-                print(f"  ⚠️  WARNING: {n_nan} NaN values found in sample!")
+                print(f"    WARNING: {n_nan} NaN values found in sample!")
             else:
-                print(f"  ✓ No NaN values")
+                print(f"   No NaN values")
 
             if n_inf > 0:
-                print(f"  ⚠️  WARNING: {n_inf} Inf values found in sample!")
+                print(f"    WARNING: {n_inf} Inf values found in sample!")
             else:
-                print(f"  ✓ No Inf values")
+                print(f"   No Inf values")
 
             # Metadata statistics
-            print(f"\n📈 Metadata Statistics:")
+            print(f"\n Metadata Statistics:")
 
             meta_sample = metadata[:]
             if "columns" in metadata.attrs:
@@ -113,11 +113,11 @@ def verify_hdf5_dataset(file_path: Path, split_name: str):
                             count = np.sum(col_data == flight_idx)
                             print(f"      Flight {int(flight_idx)}: {count:,}")
 
-            print(f"\n✅ {split_name.upper()} dataset verification passed!")
+            print(f"\n {split_name.upper()} dataset verification passed!")
             return True
 
     except Exception as e:
-        print(f"\n❌ ERROR during verification: {str(e)}")
+        print(f"\n ERROR during verification: {str(e)}")
         import traceback
 
         traceback.print_exc()
@@ -131,7 +131,7 @@ def verify_npz_dataset(file_path: Path, split_name: str):
     print("=" * 80)
 
     if not file_path.exists():
-        print(f"❌ ERROR: File not found!")
+        print(f" ERROR: File not found!")
         return False
 
     try:
@@ -139,17 +139,17 @@ def verify_npz_dataset(file_path: Path, split_name: str):
 
         # Check required arrays
         if "images" not in data:
-            print("❌ ERROR: 'images' array not found!")
+            print(" ERROR: 'images' array not found!")
             return False
         if "metadata" not in data:
-            print("❌ ERROR: 'metadata' array not found!")
+            print(" ERROR: 'metadata' array not found!")
             return False
 
         images = data["images"]
         metadata = data["metadata"]
 
         # Basic info
-        print(f"\n📊 Dataset Information:")
+        print(f"\n Dataset Information:")
         print(f"  Images shape: {images.shape}")
         print(f"  Images dtype: {images.dtype}")
         print(f"  Metadata shape: {metadata.shape}")
@@ -160,7 +160,7 @@ def verify_npz_dataset(file_path: Path, split_name: str):
         print(f"  File size: {file_size_mb:.1f} MB")
 
         # Sample statistics
-        print(f"\n📈 Image Statistics:")
+        print(f"\n Image Statistics:")
         print(f"  Min value: {np.min(images):.2f}")
         print(f"  Max value: {np.max(images):.2f}")
         print(f"  Mean value: {np.mean(images):.2f}")
@@ -171,20 +171,20 @@ def verify_npz_dataset(file_path: Path, split_name: str):
         n_inf = np.sum(np.isinf(images))
 
         if n_nan > 0:
-            print(f"  ⚠️  WARNING: {n_nan} NaN values found!")
+            print(f"    WARNING: {n_nan} NaN values found!")
         else:
-            print(f"  ✓ No NaN values")
+            print(f"   No NaN values")
 
         if n_inf > 0:
-            print(f"  ⚠️  WARNING: {n_inf} Inf values found!")
+            print(f"    WARNING: {n_inf} Inf values found!")
         else:
-            print(f"  ✓ No Inf values")
+            print(f"   No Inf values")
 
-        print(f"\n✅ {split_name.upper()} dataset verification passed!")
+        print(f"\n {split_name.upper()} dataset verification passed!")
         return True
 
     except Exception as e:
-        print(f"\n❌ ERROR during verification: {str(e)}")
+        print(f"\n ERROR during verification: {str(e)}")
         import traceback
 
         traceback.print_exc()
@@ -198,13 +198,13 @@ def load_statistics(stats_path: Path):
     print("=" * 80)
 
     if not stats_path.exists():
-        print(f"⚠️  WARNING: Statistics file not found: {stats_path}")
+        print(f"  WARNING: Statistics file not found: {stats_path}")
         return
 
     with open(stats_path, "r") as f:
         stats = yaml.safe_load(f)
 
-    print(f"\n📊 Summary:")
+    print(f"\n Summary:")
     print(f"  Total images: {stats.get('total_images', 'N/A'):,}")
     print(f"  Train images: {stats.get('train_images', 'N/A'):,}")
     print(f"  Val images: {stats.get('val_images', 'N/A'):,}")
@@ -217,7 +217,7 @@ def load_statistics(stats_path: Path):
             print(f"    - {flight}")
 
     if "config" in stats:
-        print(f"\n⚙️  Configuration:")
+        print(f"\n  Configuration:")
         config = stats["config"]
         for key, value in config.items():
             print(f"  {key}: {value}")
@@ -232,7 +232,7 @@ def plot_sample_images(data_dir: Path, format_type: str, n_samples: int = 9):
     train_file = data_dir / f"train.{'h5' if format_type == 'hdf5' else 'npz'}"
 
     if not train_file.exists():
-        print(f"⚠️  Cannot plot samples: {train_file} not found")
+        print(f"  Cannot plot samples: {train_file} not found")
         return
 
     try:
@@ -278,12 +278,12 @@ def plot_sample_images(data_dir: Path, format_type: str, n_samples: int = 9):
         # Save plot
         output_path = data_dir / "sample_images.png"
         plt.savefig(output_path, dpi=150, bbox_inches="tight")
-        print(f"✓ Sample images saved to: {output_path}")
+        print(f" Sample images saved to: {output_path}")
 
         # plt.show()  # Uncomment to display interactively
 
     except Exception as e:
-        print(f"❌ ERROR plotting samples: {str(e)}")
+        print(f" ERROR plotting samples: {str(e)}")
         import traceback
 
         traceback.print_exc()
@@ -323,7 +323,7 @@ def main():
     data_dir = Path(args.data_dir)
 
     if not data_dir.exists():
-        print(f"❌ ERROR: Data directory not found: {data_dir}")
+        print(f" ERROR: Data directory not found: {data_dir}")
         sys.exit(1)
 
     print("\n" + "=" * 80)
@@ -356,7 +356,7 @@ def main():
     print("=" * 80)
 
     if train_ok and val_ok:
-        print("✅ All verifications passed!")
+        print(" All verifications passed!")
         print("\nNext steps:")
         print("  1. Review extraction_stats.yaml for detailed statistics")
         print("  2. Proceed to Phase 2: SSL pre-training")
@@ -365,7 +365,7 @@ def main():
         )
         sys.exit(0)
     else:
-        print("❌ Some verifications failed. Please check the errors above.")
+        print(" Some verifications failed. Please check the errors above.")
         sys.exit(1)
 
 

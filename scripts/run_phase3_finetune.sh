@@ -48,7 +48,7 @@ if [ ! -f "$ENCODER_WEIGHTS" ]; then
     exit 1
 fi
 
-echo -e "${GREEN}✓ Found pre-trained encoder: $ENCODER_WEIGHTS${NC}"
+echo -e "${GREEN} Found pre-trained encoder: $ENCODER_WEIGHTS${NC}"
 echo ""
 
 # ================================================================================
@@ -107,7 +107,7 @@ echo ""
 # Check if output directory exists
 OUTPUT_DIR="outputs/cbh_finetune"
 if [ -d "$OUTPUT_DIR" ]; then
-    echo -e "${GREEN}✅ Fine-tuning completed successfully${NC}"
+    echo -e "${GREEN} Fine-tuning completed successfully${NC}"
     echo ""
     echo "Files created:"
 
@@ -145,19 +145,19 @@ if [ -d "$OUTPUT_DIR" ]; then
     echo "    R² = 0.7464, MAE = 0.1265 km, RMSE = 0.1929 km"
     echo ""
     echo "  Your model performance:"
-    echo "    Check the final test set evaluation above ☝️"
+    echo "    Check the final test set evaluation above "
     echo ""
 
     # Success thresholds
     echo "Performance Thresholds:"
-    echo "  🎉 Excellent: R² >= 0.75"
-    echo "  ✅ Good:      R² >= 0.60"
-    echo "  👍 Acceptable: R² >= 0.40"
-    echo "  ⚠️  Below:     R² <  0.40"
+    echo "   Excellent: R² >= 0.75"
+    echo "   Good:      R² >= 0.60"
+    echo "   Acceptable: R² >= 0.40"
+    echo "    Below:     R² <  0.40"
     echo ""
 
 else
-    echo -e "${RED}✗ Output directory not found: $OUTPUT_DIR${NC}"
+    echo -e "${RED} Output directory not found: $OUTPUT_DIR${NC}"
     echo "Fine-tuning may have failed. Check error messages above."
     exit 1
 fi
@@ -194,5 +194,5 @@ echo "   - Discuss learned representations"
 echo ""
 
 echo "=========================================="
-echo "PHASE 3 COMPLETE! 🚀"
+echo "PHASE 3 COMPLETE! "
 echo "=========================================="

@@ -59,7 +59,7 @@ if [ $? -eq 0 ]; then
 
     if [ $? -eq 0 ]; then
         echo ""
-        echo "✅ Phase 1 complete! Ready for Phase 2 (SSL pre-training)"
+        echo " Phase 1 complete! Ready for Phase 2 (SSL pre-training)"
         echo ""
         echo "Files created:"
         ls -lh "$OUTPUT_DIR"
@@ -68,10 +68,10 @@ if [ $? -eq 0 ]; then
         echo "  ./scripts/run_phase2_pretrain.sh"
     else
         echo ""
-        echo "⚠️  Verification completed with warnings. Please review output above."
+        echo "  Verification completed with warnings. Please review output above."
     fi
 else
     echo ""
-    echo "❌ Extraction failed! Please check errors above."
+    echo " Extraction failed! Please check errors above."
     exit 1
 fi

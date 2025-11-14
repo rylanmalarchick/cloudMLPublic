@@ -59,7 +59,7 @@ print(f"Output Directory: {OUTPUT_DIR}")
 
 # Device
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-print(f"✓ Device: {device}")
+print(f" Device: {device}")
 
 
 class SimpleCNN(nn.Module):
@@ -159,8 +159,8 @@ class ImageValidationAnalyzer:
 
         labels = np.array(labels)
 
-        print(f"\n✓ Dataset loaded: {len(dataset)} samples")
-        print(f"✓ CBH range: [{labels.min():.3f}, {labels.max():.3f}] km")
+        print(f"\n Dataset loaded: {len(dataset)} samples")
+        print(f" CBH range: [{labels.min():.3f}, {labels.max():.3f}] km")
 
         return dataset, labels
 
@@ -409,7 +409,7 @@ class ImageValidationAnalyzer:
         # Per-fold metrics
         self._plot_fold_metrics(output_dir)
 
-        print(f"✓ Visualizations saved to {output_dir}")
+        print(f" Visualizations saved to {output_dir}")
 
     def _plot_predictions_scatter(self, output_dir):
         """Plot predicted vs true values."""
@@ -449,7 +449,7 @@ class ImageValidationAnalyzer:
             output_dir / "predictions_scatter_cnn.png", dpi=300, bbox_inches="tight"
         )
         plt.close()
-        print("  ✓ predictions_scatter_cnn.png")
+        print("   predictions_scatter_cnn.png")
 
     def _plot_residuals(self, output_dir):
         """Plot residuals distribution."""
@@ -482,7 +482,7 @@ class ImageValidationAnalyzer:
         plt.tight_layout()
         plt.savefig(output_dir / "residuals_cnn.png", dpi=300, bbox_inches="tight")
         plt.close()
-        print("  ✓ residuals_cnn.png")
+        print("   residuals_cnn.png")
 
     def _plot_fold_metrics(self, output_dir):
         """Plot metrics across folds."""
@@ -513,14 +513,14 @@ class ImageValidationAnalyzer:
         plt.tight_layout()
         plt.savefig(output_dir / "fold_metrics_cnn.png", dpi=300, bbox_inches="tight")
         plt.close()
-        print("  ✓ fold_metrics_cnn.png")
+        print("   fold_metrics_cnn.png")
 
     def save_report(self, output_path):
         """Save validation report as JSON."""
         output_path = Path(output_path)
         with open(output_path, "w") as f:
             json.dump(self.results, f, indent=2)
-        print(f"\n✓ Validation report saved to {output_path}")
+        print(f"\n Validation report saved to {output_path}")
 
 
 def main():

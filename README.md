@@ -2,43 +2,43 @@
 
 Production-ready machine learning system for cloud base height (CBH) retrieval from NASA ER-2 aircraft data, validated against Cloud Physics Lidar (CPL) measurements.
 
-## 🎯 Production Model (Sprint 6)
+##  Production Model (Sprint 6)
 
-**Status:** ✅ Production-Ready | Test Coverage: 93.5% | Deployment: Approved
+**Status:**  Production-Ready | Test Coverage: 93.5% | Deployment: Approved
 
 | Model | R² | MAE | Status |
 |-------|----|----|--------|
-| **GBDT (Tabular)** | **0.744** | **117.4 m** | ✅ Production |
-| Ensemble (GBDT+CNN) | 0.7391 | 122.5 m | ✅ Production |
+| **GBDT (Tabular)** | **0.744** | **117.4 m** |  Production |
+| Ensemble (GBDT+CNN) | 0.7391 | 122.5 m |  Production |
 | Temporal ViT (Sprint 5) | 0.728 | 126 m | Research |
 | Physical Baseline | 0.668 | 137 m | Baseline |
 
 **Key Achievement:** First model to exceed R² = 0.74 target on operational data.
 
-## 📁 Project Structure
+##  Project Structure
 
 ```
 cloudMLPublic/
-├── src/
-│   ├── cbh_retrieval/          # Sprint 6 production module
-│   └── models/                  # Legacy model implementations
-├── tests/
-│   └── cbh/                     # Test suite (93.5% coverage)
-├── scripts/
-│   └── cbh/                     # Utilities & auditing
-├── docs/
-│   └── cbh/                     # Complete documentation
-├── results/
-│   └── cbh/
-│       ├── figures/             # 44 publication-ready figures
-│       └── reports/             # Validation & analysis reports
-├── models/
-│   └── cbh_production/          # Trained model artifacts
-└── outputs/
-    └── preprocessed_data/       # Integrated features (HDF5)
+ src/
+    cbh_retrieval/          # Sprint 6 production module
+    models/                  # Legacy model implementations
+ tests/
+    cbh/                     # Test suite (93.5% coverage)
+ scripts/
+    cbh/                     # Utilities & auditing
+ docs/
+    cbh/                     # Complete documentation
+ results/
+    cbh/
+        figures/             # 44 publication-ready figures
+        reports/             # Validation & analysis reports
+ models/
+    cbh_production/          # Trained model artifacts
+ outputs/
+     preprocessed_data/       # Integrated features (HDF5)
 ```
 
-## 🚀 Quick Start
+##  Quick Start
 
 ### Production Model (Sprint 6 - Recommended)
 
@@ -69,7 +69,7 @@ pytest tests/cbh/ --cov=src/cbh_retrieval
 - **Reproducibility:** `docs/cbh/REPRODUCIBILITY_GUIDE.md` - Full reproduction
 - **Future Work:** `docs/cbh/FUTURE_WORK.md` - Roadmap & improvements
 
-## 📊 Dataset
+##  Dataset
 
 - **Samples:** 933 CPL-aligned observations (5 flights, Oct 2024 - Feb 2025)
 - **Input Features:** 28 atmospheric + geometric variables (ERA5 reanalysis)

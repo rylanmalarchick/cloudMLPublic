@@ -94,7 +94,7 @@ class FeatureImportanceAnalyzer:
         encoder.encoder.load_state_dict(encoder_state_dict, strict=False)
         encoder.eval()
 
-        print(f"✓ Encoder loaded (embed_dim={self.config['model']['embed_dim']})")
+        print(f" Encoder loaded (embed_dim={self.config['model']['embed_dim']})")
         return encoder
 
     def load_dataset(self):
@@ -115,7 +115,7 @@ class FeatureImportanceAnalyzer:
             augment=False,
         )
 
-        print(f"✓ Dataset loaded: {len(dataset)} samples")
+        print(f" Dataset loaded: {len(dataset)} samples")
 
         # Create stratified splits
         train_idx, val_idx, test_idx = stratified_split_by_flight(
@@ -563,7 +563,7 @@ class FeatureImportanceAnalyzer:
             )
 
             if angle_total > mae_total:
-                print("\n⚠️  Angles dominate feature importance!")
+                print("\n  Angles dominate feature importance!")
                 print("   MAE embeddings contribute less to predictions.")
 
 

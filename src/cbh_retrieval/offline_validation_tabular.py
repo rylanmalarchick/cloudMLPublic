@@ -55,7 +55,7 @@ REPORTS_DIR.mkdir(parents=True, exist_ok=True)
 
 print(f"Integrated Features: {INTEGRATED_FEATURES}")
 print(f"Output Directory: {OUTPUT_DIR}")
-print(f"✓ Validation output directory: {VALIDATION_DIR}")
+print(f" Validation output directory: {VALIDATION_DIR}")
 
 
 class TabularValidationAnalyzer:
@@ -109,15 +109,15 @@ class TabularValidationAnalyzer:
             # Get flight mapping
             flight_mapping = json.loads(f.attrs["flight_mapping"])
 
-        print(f"✓ Loaded {len(cbh_km)} samples")
-        print(f"✓ CBH range: [{cbh_km.min():.3f}, {cbh_km.max():.3f}] km")
+        print(f" Loaded {len(cbh_km)} samples")
+        print(f" CBH range: [{cbh_km.min():.3f}, {cbh_km.max():.3f}] km")
         print(
-            f"✓ Atmospheric features: {len(era5_feature_names)} ({', '.join(era5_feature_names)})"
+            f" Atmospheric features: {len(era5_feature_names)} ({', '.join(era5_feature_names)})"
         )
         print(
-            f"✓ Geometric features: {len(geometric_features)} ({', '.join(geometric_features.keys())})"
+            f" Geometric features: {len(geometric_features)} ({', '.join(geometric_features.keys())})"
         )
-        print(f"✓ Flight mapping: {flight_mapping}")
+        print(f" Flight mapping: {flight_mapping}")
 
         # Combine all features
         feature_list = [era5_features]
@@ -130,8 +130,8 @@ class TabularValidationAnalyzer:
         X = np.hstack(feature_list)
         y = cbh_km
 
-        print(f"\n✓ Total feature matrix shape: {X.shape}")
-        print(f"✓ Feature names ({len(feature_names)}): {feature_names}")
+        print(f"\n Total feature matrix shape: {X.shape}")
+        print(f" Feature names ({len(feature_names)}): {feature_names}")
 
         # Create metadata dataframe
         metadata = pd.DataFrame(
@@ -348,7 +348,7 @@ class TabularValidationAnalyzer:
         # 4. Feature importance
         self._plot_feature_importance(output_dir)
 
-        print(f"✓ Visualizations saved to {output_dir}")
+        print(f" Visualizations saved to {output_dir}")
 
     def _plot_predictions_scatter(self, output_dir):
         """Plot predicted vs true values."""
@@ -392,7 +392,7 @@ class TabularValidationAnalyzer:
             output_dir / "predictions_scatter.png", dpi=300, bbox_inches="tight"
         )
         plt.close()
-        print("  ✓ predictions_scatter.png")
+        print("   predictions_scatter.png")
 
     def _plot_residuals(self, output_dir):
         """Plot residuals distribution."""
@@ -423,7 +423,7 @@ class TabularValidationAnalyzer:
         plt.tight_layout()
         plt.savefig(output_dir / "residuals.png", dpi=300, bbox_inches="tight")
         plt.close()
-        print("  ✓ residuals.png")
+        print("   residuals.png")
 
     def _plot_fold_metrics(self, output_dir):
         """Plot metrics across folds."""
@@ -456,7 +456,7 @@ class TabularValidationAnalyzer:
         plt.tight_layout()
         plt.savefig(output_dir / "fold_metrics.png", dpi=300, bbox_inches="tight")
         plt.close()
-        print("  ✓ fold_metrics.png")
+        print("   fold_metrics.png")
 
     def _plot_feature_importance(self, output_dir):
         """Plot feature importance."""
@@ -497,14 +497,14 @@ class TabularValidationAnalyzer:
         plt.tight_layout()
         plt.savefig(output_dir / "feature_importance.png", dpi=300, bbox_inches="tight")
         plt.close()
-        print("  ✓ feature_importance.png")
+        print("   feature_importance.png")
 
     def save_report(self, output_path):
         """Save validation report as JSON."""
         output_path = Path(output_path)
         with open(output_path, "w") as f:
             json.dump(self.results, f, indent=2)
-        print(f"\n✓ Validation report saved to {output_path}")
+        print(f"\n Validation report saved to {output_path}")
 
 
 def main():

@@ -371,7 +371,7 @@ class SpatialMAETrainer:
                     },
                     checkpoint_path,
                 )
-                print(f"✓ Saved best model (R²={val_r2:.4f})")
+                print(f" Saved best model (R²={val_r2:.4f})")
             else:
                 patience_counter += 1
 
@@ -504,7 +504,7 @@ class SpatialMAETrainer:
         with open(results_path, "w") as f:
             json.dump(results_summary, f, indent=2)
 
-        print(f"\n✓ Results saved to {results_path}")
+        print(f"\n Results saved to {results_path}")
 
         # Print summary
         print("\n" + "=" * 80)
@@ -583,7 +583,7 @@ class SpatialMAETrainer:
         plt.tight_layout()
         plot_path = self.run_dir / "loo_results.png"
         plt.savefig(plot_path, dpi=150, bbox_inches="tight")
-        print(f"✓ Plots saved to {plot_path}")
+        print(f" Plots saved to {plot_path}")
         plt.close()
 
 
