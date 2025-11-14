@@ -114,7 +114,7 @@ class HybridMAEGBDT:
         encoder.to(self.device)
         encoder.eval()
 
-        print(f"✓ Encoder loaded successfully")
+        print(f" Encoder loaded successfully")
         print(f"  Embedding dimension: {model_config['embed_dim']}")
         print(
             f"  Architecture: {model_config['depth']} blocks, {model_config['num_heads']} heads"
@@ -227,7 +227,7 @@ class HybridMAEGBDT:
         angles = np.concatenate(angles_list, axis=0)
         targets = np.concatenate(targets_list, axis=0)
 
-        print(f"✓ Embeddings extracted: {embeddings.shape}")
+        print(f" Embeddings extracted: {embeddings.shape}")
         print(f"  Embeddings: {embeddings.shape}")
         print(f"  Angles: {angles.shape}")
         print(f"  Targets: {targets.shape}")
@@ -289,7 +289,7 @@ class HybridMAEGBDT:
             grid_search.fit(X_train_scaled, y_train)
 
             best_model = grid_search.best_estimator_
-            print(f"✓ Best parameters: {grid_search.best_params_}")
+            print(f" Best parameters: {grid_search.best_params_}")
             print(f"  Best CV R²: {grid_search.best_score_:.4f}")
 
         else:
@@ -298,7 +298,7 @@ class HybridMAEGBDT:
                 n_estimators=100, max_depth=5, learning_rate=0.1, random_state=42
             )
             best_model.fit(X_train_scaled, y_train)
-            print("✓ Trained with baseline parameters")
+            print(" Trained with baseline parameters")
 
         # Validation performance
         y_val_pred = best_model.predict(X_val_scaled)
@@ -399,17 +399,17 @@ class HybridMAEGBDT:
         print("\nImprovement over Classical ML:")
         print(f"  ΔR² = {r2_improvement_classical:+.4f}")
         if r2_improvement_classical > 0:
-            print(f"  🎉 HYBRID WINS! ({abs(r2_improvement_classical):.2%} better)")
+            print(f"   HYBRID WINS! ({abs(r2_improvement_classical):.2%} better)")
         else:
             print(
-                f"  ❌ Classical still better ({abs(r2_improvement_classical):.2%} gap)"
+                f"   Classical still better ({abs(r2_improvement_classical):.2%} gap)"
             )
 
         print("\nImprovement over SSL End-to-End:")
         print(f"  ΔR² = {r2_improvement_ssl:+.4f}")
         if r2_improvement_ssl > 0:
             print(
-                f"  ✓ Hybrid better than end-to-end ({abs(r2_improvement_ssl):.2%} improvement)"
+                f"   Hybrid better than end-to-end ({abs(r2_improvement_ssl):.2%} improvement)"
             )
 
         print("=" * 80)
@@ -515,7 +515,7 @@ class HybridMAEGBDT:
         plt.tight_layout()
         plot_path = self.run_dir / "hybrid_results.png"
         plt.savefig(plot_path, dpi=150, bbox_inches="tight")
-        print(f"✓ Plot saved to: {plot_path}")
+        print(f" Plot saved to: {plot_path}")
         plt.close()
 
     def save_results(self, results, comparison, model, scaler):
@@ -533,7 +533,7 @@ class HybridMAEGBDT:
         metrics_path = self.run_dir / "metrics.json"
         with open(metrics_path, "w") as f:
             json.dump(metrics, f, indent=2)
-        print(f"✓ Metrics saved to: {metrics_path}")
+        print(f" Metrics saved to: {metrics_path}")
 
         # Save model (optional - GBDT is small)
         import joblib
@@ -542,8 +542,8 @@ class HybridMAEGBDT:
         scaler_path = self.run_dir / "feature_scaler.pkl"
         joblib.dump(model, model_path)
         joblib.dump(scaler, scaler_path)
-        print(f"✓ Model saved to: {model_path}")
-        print(f"✓ Scaler saved to: {scaler_path}")
+        print(f" Model saved to: {model_path}")
+        print(f" Scaler saved to: {scaler_path}")
 
     def run(self, tune_hyperparams=True):
         """
@@ -680,11 +680,11 @@ def main():
     print(f"\nHybrid MAE+GBDT Test R²: {results['test_r2']:.4f}")
 
     if results["test_r2"] > 0.7464:
-        print("\n🎉🎉🎉 SUCCESS! Hybrid approach BEATS classical baseline! 🎉🎉🎉")
+        print("\n SUCCESS! Hybrid approach BEATS classical baseline! ")
     elif results["test_r2"] > 0.3665:
-        print("\n✓ Hybrid approach beats SSL end-to-end (but not classical yet)")
+        print("\n Hybrid approach beats SSL end-to-end (but not classical yet)")
     else:
-        print("\n⚠ Hybrid approach underperforms - may need architecture tuning")
+        print("\n Hybrid approach underperforms - may need architecture tuning")
 
     print("=" * 80)
 

@@ -281,19 +281,19 @@ def main():
     print("\n" + "=" * 70)
 
     if summary["best_lambda"] is not None:
-        print("\n🎯 RECOMMENDATION")
+        print("\n RECOMMENDATION")
         print("=" * 70)
         print(f"Best variance_lambda: {summary['best_lambda']}")
         print(f"Best validation R²: {summary['best_r2']:.4f}")
         print(f"\n{summary['recommendation']}")
         print("=" * 70)
     else:
-        print("\n⚠️  WARNING: No completed experiments found.")
+        print("\n  WARNING: No completed experiments found.")
         print("   Run the Section 2 experiments first:")
         print("   bash scripts/run_section2_experiments.sh")
         print("=" * 70)
 
-    print("\n✅ Section 2.3 aggregation complete!")
+    print("\n Section 2.3 aggregation complete!")
     print("\nNext steps:")
     print("  1. Review the results above")
     print("  2. Run: python scripts/plot_section2_distributions.py")

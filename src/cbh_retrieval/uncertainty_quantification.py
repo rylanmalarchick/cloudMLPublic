@@ -87,10 +87,10 @@ class UncertaintyAnalyzer:
         for dir_path in [self.reports_dir, self.figures_dir, self.checkpoints_dir]:
             dir_path.mkdir(parents=True, exist_ok=True)
 
-        print(f"✓ Uncertainty analysis output directory: {self.output_dir}")
-        print(f"✓ Device: {self.device}")
-        print(f"✓ MC Dropout forward passes: {self.n_forward_passes}")
-        print(f"✓ Confidence level: {self.confidence_level * 100:.0f}%")
+        print(f" Uncertainty analysis output directory: {self.output_dir}")
+        print(f" Device: {self.device}")
+        print(f" MC Dropout forward passes: {self.n_forward_passes}")
+        print(f" Confidence level: {self.confidence_level * 100:.0f}%")
 
     def load_data(
         self, integrated_features_path: str
@@ -103,9 +103,9 @@ class UncertaintyAnalyzer:
         dataset = HDF5CloudDataset(integrated_features_path)
         cbh_values = dataset.cbh_values
 
-        print(f"✓ Total samples: {len(dataset)}")
-        print(f"✓ CBH range: [{cbh_values.min():.3f}, {cbh_values.max():.3f}] km")
-        print(f"✓ CBH mean: {cbh_values.mean():.3f} km")
+        print(f" Total samples: {len(dataset)}")
+        print(f" CBH range: [{cbh_values.min():.3f}, {cbh_values.max():.3f}] km")
+        print(f" CBH mean: {cbh_values.mean():.3f} km")
 
         return dataset, cbh_values
 
@@ -123,10 +123,10 @@ class UncertaintyAnalyzer:
             print(f"Loading checkpoint: {checkpoint_path}")
             checkpoint = torch.load(checkpoint_path, map_location=self.device)
             model.load_state_dict(checkpoint["model_state_dict"])
-            print(f"✓ Model loaded from checkpoint")
+            print(f" Model loaded from checkpoint")
         else:
-            print(f"⚠ Checkpoint not found: {checkpoint_path}")
-            print(f"⚠ Using freshly initialized model (for testing only)")
+            print(f" Checkpoint not found: {checkpoint_path}")
+            print(f" Using freshly initialized model (for testing only)")
 
         model = model.to(self.device)
         model.eval()
@@ -179,7 +179,7 @@ class UncertaintyAnalyzer:
         ci_lower = uq_results["ci_lower"]
         ci_upper = uq_results["ci_upper"]
 
-        print(f"✓ Predictions generated")
+        print(f" Predictions generated")
         print(
             f"  Mean uncertainty: {np.mean(uncertainties):.4f} km (±{np.std(uncertainties):.4f})"
         )
@@ -296,7 +296,7 @@ class UncertaintyAnalyzer:
         plt.tight_layout()
         plt.savefig(self.figures_dir / "uncertainty_vs_error.png", dpi=300)
         plt.close()
-        print("✓ Saved: uncertainty_vs_error.png")
+        print(" Saved: uncertainty_vs_error.png")
 
         # 2. Calibration Curve
         fig, ax = plt.subplots(figsize=(10, 8))
@@ -326,7 +326,7 @@ class UncertaintyAnalyzer:
         plt.tight_layout()
         plt.savefig(self.figures_dir / "calibration_curve.png", dpi=300)
         plt.close()
-        print("✓ Saved: calibration_curve.png")
+        print(" Saved: calibration_curve.png")
 
         # 3. Confidence Interval Coverage Histogram
         fig, ax = plt.subplots(figsize=(10, 6))
@@ -365,7 +365,7 @@ class UncertaintyAnalyzer:
         plt.tight_layout()
         plt.savefig(self.figures_dir / "coverage_histogram.png", dpi=300)
         plt.close()
-        print("✓ Saved: coverage_histogram.png")
+        print(" Saved: coverage_histogram.png")
 
         # 4. Uncertainty Distribution
         fig, axes = plt.subplots(1, 2, figsize=(14, 5))
@@ -410,7 +410,7 @@ class UncertaintyAnalyzer:
         plt.tight_layout()
         plt.savefig(self.figures_dir / "uncertainty_distribution.png", dpi=300)
         plt.close()
-        print("✓ Saved: uncertainty_distribution.png")
+        print(" Saved: uncertainty_distribution.png")
 
     def save_uncertainty_report(self, uq_results: Dict):
         """Save uncertainty quantification report in required JSON schema"""
@@ -440,7 +440,7 @@ class UncertaintyAnalyzer:
         print(f"\nLow-Confidence Samples:")
         print(f"  N flagged: {report['low_confidence_samples']['n_flagged']}")
         print(f"  Threshold: {report['low_confidence_samples']['threshold_km']:.4f} km")
-        print(f"\n✓ Report saved: {report_path}")
+        print(f"\n Report saved: {report_path}")
 
         return report
 
@@ -496,7 +496,7 @@ def main():
     report = analyzer.save_uncertainty_report(uq_results)
 
     print(f"\n{'=' * 80}")
-    print("✓ Task 1.2 Complete: Uncertainty Quantification")
+    print(" Task 1.2 Complete: Uncertainty Quantification")
     print(f"{'=' * 80}")
     print(f"All outputs saved to: {output_dir}")
 

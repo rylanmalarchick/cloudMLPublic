@@ -342,7 +342,7 @@ def print_report(report: ComplianceReport) -> None:
     print()
 
     if not report.violations:
-        print("✓ No violations found! Full compliance achieved.")
+        print(" No violations found! Full compliance achieved.")
     else:
         for rule, violations in sorted(report.violations.items()):
             print(f"\n{rule} ({len(violations)} violations):")
@@ -377,7 +377,7 @@ def save_report(report: ComplianceReport, output_file: Path) -> None:
         f.write("\n## Violations by Rule\n\n")
 
         if not report.violations:
-            f.write("✅ **No violations found! Full compliance achieved.**\n")
+            f.write(" **No violations found! Full compliance achieved.**\n")
         else:
             for rule, violations in sorted(report.violations.items()):
                 f.write(f"\n### {rule}\n\n")
@@ -438,18 +438,18 @@ def main():
     if report.total_functions > 0:
         compliance_rate = (report.compliant_functions / report.total_functions) * 100
         if compliance_rate < 80:
-            print("\n⚠️  Compliance rate below 80%. Review violations and remediate.")
+            print("\n  Compliance rate below 80%. Review violations and remediate.")
             sys.exit(1)
         elif compliance_rate < 100:
             print(
-                "\n✓ Compliance rate acceptable (≥80%). Consider addressing remaining violations."
+                "\n Compliance rate acceptable (≥80%). Consider addressing remaining violations."
             )
             sys.exit(0)
         else:
-            print("\n✅ Full compliance achieved!")
+            print("\n Full compliance achieved!")
             sys.exit(0)
     else:
-        print("\n⚠️  No functions found to audit.")
+        print("\n  No functions found to audit.")
         sys.exit(0)
 
 

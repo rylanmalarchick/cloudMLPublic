@@ -145,7 +145,7 @@ class EnsembleAnalyzer:
 
         if ensemble_r2 >= 0.74:
             conclusion = (
-                f"✓ TARGET ACHIEVED: Weighted averaging ensemble achieves R² = {ensemble_r2:.4f}, "
+                f" TARGET ACHIEVED: Weighted averaging ensemble achieves R² = {ensemble_r2:.4f}, "
                 f"exceeding the target of 0.74. This represents a {improvement_pct:.2f}% improvement "
                 f"over the best baseline model (R² = {baseline_r2:.4f}). "
                 f"The ensemble successfully combines tabular (GBDT) and image (CNN) modalities, "
@@ -184,7 +184,7 @@ class EnsembleAnalyzer:
         # 6. Improvement over baseline
         self._plot_improvement_analysis()
 
-        print(f"✓ All visualizations saved to {self.figures_dir}")
+        print(f" All visualizations saved to {self.figures_dir}")
 
     def _plot_performance_comparison(self):
         """Plot performance comparison of all strategies."""
@@ -301,7 +301,7 @@ class EnsembleAnalyzer:
             bbox_inches="tight",
         )
         plt.close()
-        print("✓ Created performance comparison plot")
+        print(" Created performance comparison plot")
 
     def _plot_per_fold_performance(self):
         """Plot per-fold performance for each strategy."""
@@ -357,7 +357,7 @@ class EnsembleAnalyzer:
         )
         plt.savefig(self.figures_dir / "per_fold_performance.pdf", bbox_inches="tight")
         plt.close()
-        print("✓ Created per-fold performance plot")
+        print(" Created per-fold performance plot")
 
     def _plot_prediction_scatter(self):
         """Plot prediction scatter for best ensemble."""
@@ -426,7 +426,7 @@ class EnsembleAnalyzer:
             self.figures_dir / "ensemble_prediction_scatter.pdf", bbox_inches="tight"
         )
         plt.close()
-        print("✓ Created prediction scatter plots")
+        print(" Created prediction scatter plots")
 
     def _plot_error_distributions(self):
         """Plot error distributions for different strategies."""
@@ -493,7 +493,7 @@ class EnsembleAnalyzer:
             self.figures_dir / "ensemble_error_distributions.pdf", bbox_inches="tight"
         )
         plt.close()
-        print("✓ Created error distribution plots")
+        print(" Created error distribution plots")
 
     def _plot_weight_distribution(self):
         """Plot optimal weight distribution across folds."""
@@ -566,7 +566,7 @@ class EnsembleAnalyzer:
             self.figures_dir / "ensemble_weight_distribution.pdf", bbox_inches="tight"
         )
         plt.close()
-        print("✓ Created weight distribution plots")
+        print(" Created weight distribution plots")
 
     def _plot_improvement_analysis(self):
         """Plot improvement over baseline analysis."""
@@ -624,14 +624,14 @@ class EnsembleAnalyzer:
             self.figures_dir / "ensemble_improvement_analysis.pdf", bbox_inches="tight"
         )
         plt.close()
-        print("✓ Created improvement analysis plot")
+        print(" Created improvement analysis plot")
 
     def save_sow_report(self, report: Dict[str, Any]):
         """Save SOW-compliant report."""
         report_path = self.reports_dir / "ensemble_sow_report.json"
         with open(report_path, "w") as f:
             json.dump(report, f, indent=2)
-        print(f"\n✓ Saved SOW-compliant report to {report_path}")
+        print(f"\n Saved SOW-compliant report to {report_path}")
 
     def generate_markdown_summary(self, report: Dict[str, Any]):
         """Generate markdown summary report."""
@@ -661,7 +661,7 @@ class EnsembleAnalyzer:
 - **MAE:** {report["ensemble_strategies"]["simple_averaging"]["mean_mae_km"]:.3f} ± {report["ensemble_strategies"]["simple_averaging"]["std_mae_km"]:.3f} km
 - **Improvement over best baseline:** {report["ensemble_strategies"]["simple_averaging"]["improvement_over_best_base"]:.4f} ({report["ensemble_strategies"]["simple_averaging"]["improvement_over_best_base"] / report["baseline_models"]["gbdt"]["mean_r2"] * 100:+.2f}%)
 
-### 2. Weighted Averaging ⭐ BEST
+### 2. Weighted Averaging  BEST
 - **R²:** {report["ensemble_strategies"]["weighted_averaging"]["mean_r2"]:.4f} ± {report["ensemble_strategies"]["weighted_averaging"]["std_r2"]:.4f}
 - **MAE:** {report["ensemble_strategies"]["weighted_averaging"]["mean_mae_km"]:.3f} ± {report["ensemble_strategies"]["weighted_averaging"]["std_mae_km"]:.3f} km
 - **Improvement over best baseline:** {report["ensemble_strategies"]["weighted_averaging"]["improvement_over_best_base"]:.4f} ({report["ensemble_strategies"]["weighted_averaging"]["improvement_over_best_base"] / report["baseline_models"]["gbdt"]["mean_r2"] * 100:+.2f}%)
@@ -678,7 +678,7 @@ class EnsembleAnalyzer:
 ## Best Ensemble Recommendation
 
 **Strategy:** {report["best_ensemble"]["strategy"].replace("_", " ").title()}
-- **Target R² ≥ 0.74:** {"✅ ACHIEVED" if report["best_ensemble"]["achieved_target"] else "❌ NOT ACHIEVED"}
+- **Target R² ≥ 0.74:** {" ACHIEVED" if report["best_ensemble"]["achieved_target"] else " NOT ACHIEVED"}
 - **Final R²:** {report["best_ensemble"]["mean_r2"]:.4f} ± {report["best_ensemble"]["std_r2"]:.4f}
 - **Final MAE:** {report["best_ensemble"]["mean_mae_km"]:.3f} km
 
@@ -717,7 +717,7 @@ All ensemble visualizations are saved in:
         md_path = self.reports_dir / "ensemble_summary.md"
         with open(md_path, "w") as f:
             f.write(md)
-        print(f"✓ Saved markdown summary to {md_path}")
+        print(f" Saved markdown summary to {md_path}")
 
 
 def main():
@@ -749,12 +749,12 @@ def main():
     print("ENSEMBLE ANALYSIS COMPLETE")
     print("=" * 80)
     print(
-        f"\n✓ Best Ensemble: {sow_report['best_ensemble']['strategy'].replace('_', ' ').title()}"
+        f"\n Best Ensemble: {sow_report['best_ensemble']['strategy'].replace('_', ' ').title()}"
     )
-    print(f"✓ R² = {sow_report['best_ensemble']['mean_r2']:.4f}")
-    print(f"✓ Target Achieved: {sow_report['best_ensemble']['achieved_target']}")
+    print(f" R² = {sow_report['best_ensemble']['mean_r2']:.4f}")
+    print(f" Target Achieved: {sow_report['best_ensemble']['achieved_target']}")
     print(
-        f"\n✓ Optimal Weights: GBDT={sow_report['ensemble_strategies']['weighted_averaging']['optimal_weights']['w_gbdt']:.3f}, CNN={sow_report['ensemble_strategies']['weighted_averaging']['optimal_weights']['w_cnn']:.3f}"
+        f"\n Optimal Weights: GBDT={sow_report['ensemble_strategies']['weighted_averaging']['optimal_weights']['w_gbdt']:.3f}, CNN={sow_report['ensemble_strategies']['weighted_averaging']['optimal_weights']['w_cnn']:.3f}"
     )
     print("\n" + "=" * 80)
 

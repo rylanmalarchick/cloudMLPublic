@@ -186,8 +186,8 @@ class EnsembleEvaluator:
         for dir_path in [self.models_dir, self.reports_dir]:
             dir_path.mkdir(parents=True, exist_ok=True)
 
-        print(f"✓ Ensemble evaluator initialized")
-        print(f"✓ Device: {self.device}")
+        print(f" Ensemble evaluator initialized")
+        print(f" Device: {self.device}")
 
     def load_data(
         self, integrated_features_path: str
@@ -220,9 +220,9 @@ class EnsembleEvaluator:
                 else np.zeros((len(cbh_values), 1))
             )
 
-        print(f"✓ Total samples: {len(dataset)}")
-        print(f"✓ GBDT features shape: {gbdt_features.shape}")
-        print(f"✓ CBH range: [{cbh_values.min():.3f}, {cbh_values.max():.3f}] km")
+        print(f" Total samples: {len(dataset)}")
+        print(f" GBDT features shape: {gbdt_features.shape}")
+        print(f" CBH range: [{cbh_values.min():.3f}, {cbh_values.max():.3f}] km")
 
         return dataset, cbh_values, gbdt_features
 
@@ -477,7 +477,7 @@ class EnsembleEvaluator:
         print(
             f"Target Achieved (>0.74): {aggregated_results['best_ensemble']['achieved_target']}"
         )
-        print(f"\n✓ Report saved: {report_path}")
+        print(f"\n Report saved: {report_path}")
 
         return report
 
@@ -526,7 +526,7 @@ def main():
     evaluator.save_ensemble_report(aggregated_results)
 
     print(f"\n{'=' * 80}")
-    print("✓ Task 2.1 Complete: Ensemble Methods")
+    print(" Task 2.1 Complete: Ensemble Methods")
     print(f"{'=' * 80}")
     print(f"All outputs saved to: {output_dir}")
 

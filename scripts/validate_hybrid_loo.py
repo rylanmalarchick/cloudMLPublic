@@ -106,7 +106,7 @@ class LOOValidator:
         encoder.to(self.device)
         encoder.eval()
 
-        print(f"✓ Encoder loaded successfully")
+        print(f" Encoder loaded successfully")
         print(f"  Embedding dimension: {model_config['embed_dim']}")
         print()
 
@@ -145,7 +145,7 @@ class LOOValidator:
             "y_scaler": unified_dataset.y_scaler,
         }
 
-        print(f"  ✓ Unified scalers fitted on {len(unified_dataset)} total samples")
+        print(f"   Unified scalers fitted on {len(unified_dataset)} total samples")
         print(
             f"    SZA: mean={unified_dataset.sza_scaler.mean_[0]:.3f}, std={unified_dataset.sza_scaler.scale_[0]:.3f}"
         )
@@ -191,7 +191,7 @@ class LOOValidator:
             print(f"    {flight_name}: {n_samples} samples")
 
         print(f"\n  Total flights: {len(flight_datasets)}")
-        print(f"  All flights now use the same scaler ✓")
+        print(f"  All flights now use the same scaler ")
         print()
 
         return flight_datasets, unified_scalers
@@ -374,7 +374,7 @@ class LOOValidator:
                 encoder, test_dataset, test_indices, batch_size=64
             )
             test_features = self.create_hybrid_features(test_embeddings, test_angles)
-            print(f"✓ Test features: {test_features.shape}")
+            print(f" Test features: {test_features.shape}")
             print()
 
             # Extract embeddings for training flights
@@ -390,7 +390,7 @@ class LOOValidator:
                 train_embeddings_list.append(emb)
                 train_angles_list.append(ang)
                 train_targets_list.append(tgt)
-                print(f"✓ Features: {emb.shape}")
+                print(f" Features: {emb.shape}")
 
             # Concatenate training data
             train_embeddings = np.concatenate(train_embeddings_list, axis=0)
@@ -405,7 +405,7 @@ class LOOValidator:
             # Train GBDT
             print("Training GBDT...")
             model, scaler = self.train_gbdt(train_features, train_targets)
-            print("✓ Training complete")
+            print(" Training complete")
             print()
 
             # Evaluate
@@ -632,7 +632,7 @@ class LOOValidator:
         # Save figure
         save_path = self.run_dir / "loo_validation_results.png"
         plt.savefig(save_path, dpi=300, bbox_inches="tight")
-        print(f"✓ Plot saved to {save_path}")
+        print(f" Plot saved to {save_path}")
 
         plt.close()
 
@@ -648,13 +648,13 @@ class LOOValidator:
         fold_path = self.run_dir / "fold_results.json"
         with open(fold_path, "w") as f:
             json.dump(fold_results, f, indent=2)
-        print(f"✓ Fold results saved to {fold_path}")
+        print(f" Fold results saved to {fold_path}")
 
         # Save aggregated results
         agg_path = self.run_dir / "aggregated_metrics.json"
         with open(agg_path, "w") as f:
             json.dump(aggregated, f, indent=2)
-        print(f"✓ Aggregated metrics saved to {agg_path}")
+        print(f" Aggregated metrics saved to {agg_path}")
 
         # Save summary table as CSV
         csv_path = self.run_dir / "summary_table.csv"
@@ -673,7 +673,7 @@ class LOOValidator:
 
         df = pd.DataFrame(summary_data)
         df.to_csv(csv_path, index=False)
-        print(f"✓ Summary table saved to {csv_path}")
+        print(f" Summary table saved to {csv_path}")
 
     def run(self):
         """

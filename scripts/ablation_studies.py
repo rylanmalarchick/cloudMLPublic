@@ -419,7 +419,7 @@ class AblationStudies:
         # Train model
         print("Training model...")
         model, scaler = self.train_gbdt(X_train, y_train, model_type=model_type)
-        print("✓ Training complete")
+        print(" Training complete")
 
         # Evaluate
         print("Evaluating...")
@@ -465,7 +465,7 @@ class AblationStudies:
         # Load pre-trained encoder
         print("\nLoading pre-trained MAE encoder...")
         encoder_pretrained = self.load_encoder(random_init=False)
-        print("✓ Pre-trained encoder loaded")
+        print(" Pre-trained encoder loaded")
 
         # Extract all features
         print("\nExtracting embeddings and features for train set...")
@@ -476,9 +476,9 @@ class AblationStudies:
             train_images,
         ) = self.extract_embeddings(encoder_pretrained, train_dataset)
         train_handcrafted = self.compute_hand_crafted_features(train_images)
-        print(f"✓ Train embeddings: {train_embeddings.shape}")
-        print(f"✓ Train angles: {train_angles.shape}")
-        print(f"✓ Train hand-crafted: {train_handcrafted.shape}")
+        print(f" Train embeddings: {train_embeddings.shape}")
+        print(f" Train angles: {train_angles.shape}")
+        print(f" Train hand-crafted: {train_handcrafted.shape}")
 
         print("\nExtracting embeddings and features for test set...")
         (
@@ -488,9 +488,9 @@ class AblationStudies:
             test_images,
         ) = self.extract_embeddings(encoder_pretrained, test_dataset)
         test_handcrafted = self.compute_hand_crafted_features(test_images)
-        print(f"✓ Test embeddings: {test_embeddings.shape}")
-        print(f"✓ Test angles: {test_angles.shape}")
-        print(f"✓ Test hand-crafted: {test_handcrafted.shape}")
+        print(f" Test embeddings: {test_embeddings.shape}")
+        print(f" Test angles: {test_angles.shape}")
+        print(f" Test hand-crafted: {test_handcrafted.shape}")
 
         # 1. MAE embeddings only (no angles)
         self.run_ablation(
@@ -572,7 +572,7 @@ class AblationStudies:
         # 7. Random initialization (no pre-training)
         print("\nLoading MAE with random initialization (no pre-training)...")
         encoder_random = self.load_encoder(random_init=True)
-        print("✓ Random encoder loaded")
+        print(" Random encoder loaded")
 
         print("\nExtracting embeddings with random encoder (train)...")
         random_train_embeddings, _, _, _ = self.extract_embeddings(
@@ -828,7 +828,7 @@ class AblationStudies:
         # Save figure
         save_path = self.run_dir / "ablation_results.png"
         plt.savefig(save_path, dpi=300, bbox_inches="tight")
-        print(f"✓ Plot saved to {save_path}")
+        print(f" Plot saved to {save_path}")
 
         plt.close()
 
@@ -838,7 +838,7 @@ class AblationStudies:
         results_path = self.run_dir / "ablation_results.json"
         with open(results_path, "w") as f:
             json.dump(self.ablation_results, f, indent=2)
-        print(f"✓ Results saved to {results_path}")
+        print(f" Results saved to {results_path}")
 
         # Save summary CSV
         summary_data = []
@@ -858,7 +858,7 @@ class AblationStudies:
         df = pd.DataFrame(summary_data)
         csv_path = self.run_dir / "ablation_summary.csv"
         df.to_csv(csv_path, index=False)
-        print(f"✓ Summary table saved to {csv_path}")
+        print(f" Summary table saved to {csv_path}")
 
     def run(self):
         """Run complete ablation study pipeline."""

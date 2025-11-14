@@ -67,9 +67,9 @@ FIGURES_DIR.mkdir(parents=True, exist_ok=True)
 print(f"Project Root: {PROJECT_ROOT}")
 print(f"Integrated Features: {INTEGRATED_FEATURES}")
 print(f"Output Directory: {OUTPUT_DIR}")
-print(f"✓ Checkpoints directory: {CHECKPOINTS_DIR}")
-print(f"✓ Reports directory: {REPORTS_DIR}")
-print(f"✓ Figures directory: {FIGURES_DIR}")
+print(f" Checkpoints directory: {CHECKPOINTS_DIR}")
+print(f" Reports directory: {REPORTS_DIR}")
+print(f" Figures directory: {FIGURES_DIR}")
 
 
 def get_system_info() -> Dict:
@@ -124,13 +124,13 @@ class ProductionModelTrainer:
             # Get flight mapping
             flight_mapping = json.loads(f.attrs["flight_mapping"])
 
-        print(f"✓ Loaded {len(cbh_km)} samples")
-        print(f"✓ CBH range: [{cbh_km.min():.3f}, {cbh_km.max():.3f}] km")
+        print(f" Loaded {len(cbh_km)} samples")
+        print(f" CBH range: [{cbh_km.min():.3f}, {cbh_km.max():.3f}] km")
         print(
-            f"✓ Atmospheric features: {len(era5_feature_names)} ({', '.join(era5_feature_names)})"
+            f" Atmospheric features: {len(era5_feature_names)} ({', '.join(era5_feature_names)})"
         )
         print(
-            f"✓ Geometric features: {len(geometric_features)} ({', '.join(geometric_features.keys())})"
+            f" Geometric features: {len(geometric_features)} ({', '.join(geometric_features.keys())})"
         )
 
         # Combine all features
@@ -144,8 +144,8 @@ class ProductionModelTrainer:
         X = np.hstack(feature_list)
         y = cbh_km
 
-        print(f"\n✓ Total feature matrix shape: {X.shape}")
-        print(f"✓ Feature names ({len(feature_names)}): {feature_names}")
+        print(f"\n Total feature matrix shape: {X.shape}")
+        print(f" Feature names ({len(feature_names)}): {feature_names}")
 
         # Create metadata
         metadata = {
@@ -188,7 +188,7 @@ class ProductionModelTrainer:
         print("\nNormalizing features...")
         scaler = StandardScaler()
         X_scaled = scaler.fit_transform(X)
-        print("✓ Features normalized")
+        print(" Features normalized")
 
         # Train model
         print("\nTraining model on full dataset...")
@@ -198,7 +198,7 @@ class ProductionModelTrainer:
         model.fit(X_scaled, y)
 
         training_time = time.time() - start_time
-        print(f"✓ Model trained in {training_time:.2f} seconds")
+        print(f" Model trained in {training_time:.2f} seconds")
 
         # Make predictions
         print("\nEvaluating on training set...")
@@ -263,22 +263,22 @@ class ProductionModelTrainer:
         model_path = self.checkpoints_dir / "production_model.pkl"
         with open(model_path, "wb") as f:
             pickle.dump(model, f)
-        print(f"✓ Model saved: {model_path}")
+        print(f" Model saved: {model_path}")
 
         # Save scaler
         scaler_path = self.checkpoints_dir / "production_scaler.pkl"
         with open(scaler_path, "wb") as f:
             pickle.dump(scaler, f)
-        print(f"✓ Scaler saved: {scaler_path}")
+        print(f" Scaler saved: {scaler_path}")
 
         # Save using joblib (alternative format)
         joblib_model_path = self.checkpoints_dir / "production_model.joblib"
         joblib.dump(model, joblib_model_path)
-        print(f"✓ Model saved (joblib): {joblib_model_path}")
+        print(f" Model saved (joblib): {joblib_model_path}")
 
         joblib_scaler_path = self.checkpoints_dir / "production_scaler.joblib"
         joblib.dump(scaler, joblib_scaler_path)
-        print(f"✓ Scaler saved (joblib): {joblib_scaler_path}")
+        print(f" Scaler saved (joblib): {joblib_scaler_path}")
 
         # Save configuration
         config = {
@@ -298,7 +298,7 @@ class ProductionModelTrainer:
         config_path = self.checkpoints_dir / "production_config.json"
         with open(config_path, "w") as f:
             json.dump(config, f, indent=2)
-        print(f"✓ Configuration saved: {config_path}")
+        print(f" Configuration saved: {config_path}")
 
         return config
 
@@ -388,7 +388,7 @@ class ProductionModelTrainer:
         report_path = self.reports_dir / "production_inference_benchmark.json"
         with open(report_path, "w") as f:
             json.dump(benchmark_results, f, indent=2)
-        print(f"✓ Benchmark report saved: {report_path}")
+        print(f" Benchmark report saved: {report_path}")
 
     def create_production_visualizations(
         self,
@@ -427,7 +427,7 @@ class ProductionModelTrainer:
         plt.savefig(self.figures_dir / "production_predictions.png", dpi=300)
         plt.savefig(self.figures_dir / "production_predictions.pdf")
         plt.close()
-        print("✓ Saved production_predictions.png/pdf")
+        print(" Saved production_predictions.png/pdf")
 
         # 2. Residuals
         fig, ax = plt.subplots(figsize=(10, 6))
@@ -441,7 +441,7 @@ class ProductionModelTrainer:
         plt.savefig(self.figures_dir / "production_residuals.png", dpi=300)
         plt.savefig(self.figures_dir / "production_residuals.pdf")
         plt.close()
-        print("✓ Saved production_residuals.png/pdf")
+        print(" Saved production_residuals.png/pdf")
 
         # 3. Feature Importance
         importance_df = pd.DataFrame(
@@ -460,9 +460,9 @@ class ProductionModelTrainer:
         plt.savefig(self.figures_dir / "production_feature_importance.png", dpi=300)
         plt.savefig(self.figures_dir / "production_feature_importance.pdf")
         plt.close()
-        print("✓ Saved production_feature_importance.png/pdf")
+        print(" Saved production_feature_importance.png/pdf")
 
-        print(f"\n✓ All visualizations saved to: {self.figures_dir}")
+        print(f"\n All visualizations saved to: {self.figures_dir}")
 
     def generate_reproducibility_docs(
         self, config: Dict, benchmark_results: Dict, metadata: Dict
@@ -639,7 +639,7 @@ class ProductionModelTrainer:
         doc_path = self.reports_dir / "production_model_documentation.md"
         with open(doc_path, "w") as f:
             f.write("\n".join(doc_lines))
-        print(f"✓ Documentation saved: {doc_path}")
+        print(f" Documentation saved: {doc_path}")
 
 
 def main():
@@ -686,7 +686,7 @@ def main():
     trainer.generate_reproducibility_docs(config, benchmark_results, metadata)
 
     print("\n" + "=" * 80)
-    print("✓ Task 1.4 Complete: Final Production Model Training")
+    print(" Task 1.4 Complete: Final Production Model Training")
     print("=" * 80)
     print("\nProduction Artifacts:")
     print(f"  Model: {CHECKPOINTS_DIR / 'production_model.pkl'}")

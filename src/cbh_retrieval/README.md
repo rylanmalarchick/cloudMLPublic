@@ -14,25 +14,25 @@ This module contains the complete implementation of the CBH retrieval system dev
 
 ```
 cbh_retrieval/
-├── image_dataset.py              # Image data loading and preprocessing
-├── mc_dropout.py                 # Monte Carlo Dropout for uncertainty quantification
-├── train_production_model.py    # Production model training pipeline
-├── offline_validation.py         # Validation framework (combined)
-├── offline_validation_tabular.py # Tabular model validation
-├── offline_validation_images.py  # Image model validation
-├── uncertainty_quantification.py # Uncertainty quantification (combined)
-├── uncertainty_quantification_tabular.py  # UQ for tabular model
-├── ensemble_models.py            # Ensemble strategy implementations
-├── ensemble_tabular_image.py    # Tabular + Image ensemble
-├── analyze_ensemble_results.py  # Ensemble analysis tools
-├── error_analysis.py             # Comprehensive error analysis
-├── few_shot_f4.py               # Domain adaptation for Flight F4
-├── few_shot_f4_tabular.py       # Tabular-based few-shot learning
-├── ablation_plots.py            # Ablation study visualizations
-├── performance_plots.py         # Performance metric visualizations
-├── spatial_attention_viz.py     # Spatial attention analysis
-├── temporal_attention_viz.py    # Temporal attention analysis
-└── __init__.py                  # Module initialization
+ image_dataset.py              # Image data loading and preprocessing
+ mc_dropout.py                 # Monte Carlo Dropout for uncertainty quantification
+ train_production_model.py    # Production model training pipeline
+ offline_validation.py         # Validation framework (combined)
+ offline_validation_tabular.py # Tabular model validation
+ offline_validation_images.py  # Image model validation
+ uncertainty_quantification.py # Uncertainty quantification (combined)
+ uncertainty_quantification_tabular.py  # UQ for tabular model
+ ensemble_models.py            # Ensemble strategy implementations
+ ensemble_tabular_image.py    # Tabular + Image ensemble
+ analyze_ensemble_results.py  # Ensemble analysis tools
+ error_analysis.py             # Comprehensive error analysis
+ few_shot_f4.py               # Domain adaptation for Flight F4
+ few_shot_f4_tabular.py       # Tabular-based few-shot learning
+ ablation_plots.py            # Ablation study visualizations
+ performance_plots.py         # Performance metric visualizations
+ spatial_attention_viz.py     # Spatial attention analysis
+ temporal_attention_viz.py    # Temporal attention analysis
+ __init__.py                  # Module initialization
 ```
 
 ## Key Components

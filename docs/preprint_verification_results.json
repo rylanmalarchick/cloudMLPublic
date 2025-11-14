@@ -1,0 +1,152 @@
+{
+  "timestamp": 1762920107.0713365,
+  "total_claims_checked": 18,
+  "claims_passed": 18,
+  "claims_failed": 0,
+  "results": [
+    {
+      "claim": "GBDT Mean R\u00b2",
+      "expected": 0.744,
+      "actual": 0.7440777188796923,
+      "tolerance": 0.001,
+      "matches": true,
+      "source": "validation_report_tabular.json:mean_metrics.r2"
+    },
+    {
+      "claim": "GBDT Std R\u00b2",
+      "expected": 0.037,
+      "actual": 0.03721897380499854,
+      "tolerance": 0.001,
+      "matches": true,
+      "source": "validation_report_tabular.json:std_metrics.r2"
+    },
+    {
+      "claim": "GBDT Mean MAE (m)",
+      "expected": 117.4,
+      "actual": 117.40171506760423,
+      "tolerance": 0.5,
+      "matches": true,
+      "source": "validation_report_tabular.json:mean_metrics.mae_m"
+    },
+    {
+      "claim": "GBDT Mean RMSE (m)",
+      "expected": 187.3,
+      "actual": 187.27421095905302,
+      "tolerance": 0.5,
+      "matches": true,
+      "source": "validation_report_tabular.json:mean_metrics.rmse_m"
+    },
+    {
+      "claim": "CNN Mean R\u00b2",
+      "expected": 0.32,
+      "actual": 0.32012486457824707,
+      "tolerance": 0.001,
+      "matches": true,
+      "source": "validation_report_images.json:mean_metrics.r2"
+    },
+    {
+      "claim": "CNN Std R\u00b2",
+      "expected": 0.152,
+      "actual": 0.15184187590560683,
+      "tolerance": 0.001,
+      "matches": true,
+      "source": "validation_report_images.json:std_metrics.r2"
+    },
+    {
+      "claim": "CNN Mean MAE (m)",
+      "expected": 238.2,
+      "actual": 238.18824291229248,
+      "tolerance": 0.5,
+      "matches": true,
+      "source": "validation_report_images.json:mean_metrics.mae_m"
+    },
+    {
+      "claim": "Simple Average Ensemble R\u00b2",
+      "expected": 0.662,
+      "actual": 0.6616421268644938,
+      "tolerance": 0.001,
+      "matches": true,
+      "source": "ensemble_results.json:ensemble_strategies.simple_avg.mean_r2"
+    },
+    {
+      "claim": "Weighted Ensemble R\u00b2",
+      "expected": 0.739,
+      "actual": 0.7390579344500801,
+      "tolerance": 0.001,
+      "matches": true,
+      "source": "ensemble_results.json:ensemble_strategies.weighted_avg.mean_r2"
+    },
+    {
+      "claim": "Stacking Ensemble R\u00b2",
+      "expected": 0.724,
+      "actual": 0.7244613982112045,
+      "tolerance": 0.001,
+      "matches": true,
+      "source": "ensemble_results.json:ensemble_strategies.stacking.mean_r2"
+    },
+    {
+      "claim": "UQ 90% Coverage",
+      "expected": 0.771,
+      "actual": 0.7706342360991318,
+      "tolerance": 0.001,
+      "matches": true,
+      "source": "uncertainty_quantification_report.json:aggregated_metrics.mean_coverage"
+    },
+    {
+      "claim": "UQ Mean Interval Width (m)",
+      "expected": 533.4,
+      "actual": 533.4412040431914,
+      "tolerance": 1.0,
+      "matches": true,
+      "source": "uncertainty_quantification_report.json:aggregated_metrics.mean_interval_width_m"
+    },
+    {
+      "claim": "Uncertainty-Error Correlation",
+      "expected": 0.485,
+      "actual": 0.48518673645135857,
+      "tolerance": 0.01,
+      "matches": true,
+      "source": "uncertainty_quantification_report.json:aggregated_metrics.mean_uncertainty_error_correlation"
+    },
+    {
+      "claim": "18Feb25 LOFO Baseline R\u00b2",
+      "expected": -0.978,
+      "actual": -0.9776265583594399,
+      "tolerance": 0.01,
+      "matches": true,
+      "source": "domain_adaptation_f4_report.json:baseline_loo_r2"
+    },
+    {
+      "claim": "Few-shot 5-sample R\u00b2",
+      "expected": -0.528,
+      "actual": -0.5280204735071277,
+      "tolerance": 0.01,
+      "matches": true,
+      "source": "domain_adaptation_f4_report.json:few_shot_experiments.5_samples.r2"
+    },
+    {
+      "claim": "Few-shot 10-sample R\u00b2",
+      "expected": -0.22,
+      "actual": -0.2195456664265653,
+      "tolerance": 0.01,
+      "matches": true,
+      "source": "domain_adaptation_f4_report.json:few_shot_experiments.10_samples.r2"
+    },
+    {
+      "claim": "Few-shot 20-sample R\u00b2",
+      "expected": -0.708,
+      "actual": -0.7077024259176614,
+      "tolerance": 0.01,
+      "matches": true,
+      "source": "domain_adaptation_f4_report.json:few_shot_experiments.20_samples.r2"
+    },
+    {
+      "claim": "Total Dataset Samples",
+      "expected": 933,
+      "actual": 933,
+      "tolerance": 0,
+      "matches": true,
+      "source": "validation_report_tabular.json:aggregated_predictions.y_true length"
+    }
+  ]
+}

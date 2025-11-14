@@ -292,8 +292,8 @@ class ValidationAnalyzer:
         for dir_path in [self.reports_dir, self.figures_dir, self.checkpoints_dir]:
             dir_path.mkdir(parents=True, exist_ok=True)
 
-        print(f"✓ Validation output directory: {self.output_dir}")
-        print(f"✓ Device: {self.device}")
+        print(f" Validation output directory: {self.output_dir}")
+        print(f" Device: {self.device}")
 
     def load_data(
         self, integrated_features_path: str
@@ -306,10 +306,10 @@ class ValidationAnalyzer:
         dataset = HDF5CloudDataset(integrated_features_path)
         cbh_values = dataset.cbh_values
 
-        print(f"✓ Total samples: {len(dataset)}")
-        print(f"✓ CBH range: [{cbh_values.min():.3f}, {cbh_values.max():.3f}] km")
-        print(f"✓ CBH mean: {cbh_values.mean():.3f} km")
-        print(f"✓ CBH std: {cbh_values.std():.3f} km")
+        print(f" Total samples: {len(dataset)}")
+        print(f" CBH range: [{cbh_values.min():.3f}, {cbh_values.max():.3f}] km")
+        print(f" CBH mean: {cbh_values.mean():.3f} km")
+        print(f" CBH std: {cbh_values.std():.3f} km")
 
         return dataset, cbh_values
 
@@ -663,7 +663,7 @@ class ValidationAnalyzer:
         plt.tight_layout()
         plt.savefig(self.figures_dir / "scatter_pred_vs_actual.png", dpi=300)
         plt.close()
-        print("✓ Saved: scatter_pred_vs_actual.png")
+        print(" Saved: scatter_pred_vs_actual.png")
 
         # 2. Residual plot
         fig, ax = plt.subplots(figsize=(10, 6))
@@ -682,7 +682,7 @@ class ValidationAnalyzer:
         plt.tight_layout()
         plt.savefig(self.figures_dir / "residual_plot.png", dpi=300)
         plt.close()
-        print("✓ Saved: residual_plot.png")
+        print(" Saved: residual_plot.png")
 
         # 3. Per-fold comparison
         fig, axes = plt.subplots(1, 3, figsize=(15, 5))
@@ -735,7 +735,7 @@ class ValidationAnalyzer:
         plt.tight_layout()
         plt.savefig(self.figures_dir / "per_fold_comparison.png", dpi=300)
         plt.close()
-        print("✓ Saved: per_fold_comparison.png")
+        print(" Saved: per_fold_comparison.png")
 
         # 4. Distribution plots
         fig, axes = plt.subplots(1, 2, figsize=(14, 5))
@@ -756,7 +756,7 @@ class ValidationAnalyzer:
         plt.tight_layout()
         plt.savefig(self.figures_dir / "residual_distribution.png", dpi=300)
         plt.close()
-        print("✓ Saved: residual_distribution.png")
+        print(" Saved: residual_distribution.png")
 
     def save_validation_report(
         self, cv_results: Dict, model_checkpoint_path: Optional[str] = None
@@ -819,7 +819,7 @@ class ValidationAnalyzer:
         print(
             f"  Improvement in MAE: -{report['baseline_comparison']['improvement_mae_km'] * 1000:.1f} m"
         )
-        print(f"\n✓ Report saved: {report_path}")
+        print(f"\n Report saved: {report_path}")
 
         return report
 
@@ -871,7 +871,7 @@ def main():
     report = analyzer.save_validation_report(cv_results)
 
     print(f"\n{'=' * 80}")
-    print("✓ Task 1.1 Complete: Offline Validation")
+    print(" Task 1.1 Complete: Offline Validation")
     print(f"{'=' * 80}")
     print(f"All outputs saved to: {output_dir}")
 

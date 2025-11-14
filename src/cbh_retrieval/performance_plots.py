@@ -71,14 +71,14 @@ def load_validation_results():
     with open(validation_report_path, "r") as f:
         validation_data = json.load(f)
 
-    print(f"✓ Loaded validation report: {validation_report_path}")
+    print(f" Loaded validation report: {validation_report_path}")
 
     # Load uncertainty quantification report
     uq_report_path = REPORTS_DIR / "uncertainty_quantification_report.json"
     with open(uq_report_path, "r") as f:
         uq_data = json.load(f)
 
-    print(f"✓ Loaded UQ report: {uq_report_path}")
+    print(f" Loaded UQ report: {uq_report_path}")
 
     return validation_data, uq_data
 
@@ -166,8 +166,8 @@ def plot_prediction_scatter(validation_data, uq_data, output_dir):
     )
     plt.close()
 
-    print("✓ Saved: figure_prediction_scatter.png")
-    print("✓ Saved: figure_prediction_scatter.pdf")
+    print(" Saved: figure_prediction_scatter.png")
+    print(" Saved: figure_prediction_scatter.pdf")
 
 
 def plot_error_distribution(validation_data, output_dir):
@@ -255,8 +255,8 @@ def plot_error_distribution(validation_data, output_dir):
     )
     plt.close()
 
-    print("✓ Saved: figure_error_distribution.png")
-    print("✓ Saved: figure_error_distribution.pdf")
+    print(" Saved: figure_error_distribution.png")
+    print(" Saved: figure_error_distribution.pdf")
 
 
 def plot_per_flight_performance(output_dir):
@@ -366,8 +366,8 @@ def plot_per_flight_performance(output_dir):
     )
     plt.close()
 
-    print("✓ Saved: figure_per_flight_performance.png")
-    print("✓ Saved: figure_per_flight_performance.pdf")
+    print(" Saved: figure_per_flight_performance.png")
+    print(" Saved: figure_per_flight_performance.pdf")
 
 
 def plot_model_comparison(validation_data, output_dir):
@@ -487,8 +487,8 @@ def plot_model_comparison(validation_data, output_dir):
     )
     plt.close()
 
-    print("✓ Saved: figure_model_comparison.png")
-    print("✓ Saved: figure_model_comparison.pdf")
+    print(" Saved: figure_model_comparison.png")
+    print(" Saved: figure_model_comparison.pdf")
 
 
 def main():

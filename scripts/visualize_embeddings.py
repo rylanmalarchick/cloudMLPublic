@@ -106,7 +106,7 @@ class EmbeddingVisualizer:
         encoder.encoder.load_state_dict(encoder_state_dict, strict=False)
         encoder.eval()
 
-        print(f"✓ Encoder loaded")
+        print(f" Encoder loaded")
         print(f"  Embedding dimension: {self.config['model']['embed_dim']}")
 
         return encoder
@@ -129,7 +129,7 @@ class EmbeddingVisualizer:
             augment=False,
         )
 
-        print(f"✓ Dataset loaded: {len(dataset)} samples")
+        print(f" Dataset loaded: {len(dataset)} samples")
         return dataset
 
     def extract_embeddings(self, encoder, dataset, batch_size=64):
@@ -187,7 +187,7 @@ class EmbeddingVisualizer:
         # Get flight names
         flight_names = [dataset.flight_data[fid]["name"] for fid in flight_ids]
 
-        print(f"✓ Extracted embeddings: {embeddings.shape}")
+        print(f" Extracted embeddings: {embeddings.shape}")
         print(f"  CBH range: [{cbh.min():.3f}, {cbh.max():.3f}] km")
         print(f"  SZA range: [{sza.min():.1f}, {sza.max():.1f}]°")
         print(f"  SAA range: [{saa.min():.1f}, {saa.max():.1f}]°")
@@ -472,7 +472,7 @@ class EmbeddingVisualizer:
         print(f"  Dims with |r| > 0.5: {(np.abs(correlations['cbh']) > 0.5).sum()}")
 
         if np.abs(correlations["cbh"]).max() < 0.3:
-            print("\n⚠️  WARNING: No embedding dimensions strongly correlate with CBH!")
+            print("\n  WARNING: No embedding dimensions strongly correlate with CBH!")
             print("   This explains why MAE embeddings don't help with prediction.")
 
 

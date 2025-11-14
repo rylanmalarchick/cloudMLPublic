@@ -26,7 +26,7 @@ This document catalogs optional tasks deferred during Sprint 6, research directi
 
 ### Task 2.3: Cross-Modal Attention for ERA5 Integration
 
-**Status**: ⏸️ **DEFERRED** (Optional - Medium Priority)  
+**Status**:  **DEFERRED** (Optional - Medium Priority)  
 **Sprint 6 SOW Reference**: Phase 2, Task 2.3  
 **Estimated Effort**: 2-3 weeks  
 
@@ -90,14 +90,14 @@ Implement cross-attention mechanism to fuse image features (from Temporal ViT) w
 **Deliverables**:
 ```
 sow_outputs/sprint7/fusion/
-├── temporal_vit.py                    # Temporal ViT implementation
-├── cross_modal_attention.py           # Cross-attention layer
-├── train_cross_modal.py               # Training script
-├── ablation_fusion_strategies.py      # Compare fusion methods
-└── reports/
-    ├── cross_modal_results.json       # Performance metrics
-    ├── attention_visualization.pdf    # Attention heatmaps
-    └── ablation_study.md              # Fusion strategy comparison
+ temporal_vit.py                    # Temporal ViT implementation
+ cross_modal_attention.py           # Cross-attention layer
+ train_cross_modal.py               # Training script
+ ablation_fusion_strategies.py      # Compare fusion methods
+ reports/
+     cross_modal_results.json       # Performance metrics
+     attention_visualization.pdf    # Attention heatmaps
+     ablation_study.md              # Fusion strategy comparison
 ```
 
 **Success Metrics**:
@@ -280,10 +280,10 @@ sow_outputs/sprint7/fusion/
 **Deliverables**:
 ```
 deployment/monitoring/
-├── grafana_dashboard.json         # Pre-built dashboard
-├── prometheus_alerts.yml          # Alert rules
-└── scripts/
-    └── export_metrics.py          # Custom metrics exporter
+ grafana_dashboard.json         # Pre-built dashboard
+ prometheus_alerts.yml          # Alert rules
+ scripts/
+     export_metrics.py          # Custom metrics exporter
 ```
 
 **Effort**: 3-5 days  
@@ -326,10 +326,10 @@ deployment/monitoring/
 ### Immediate (Next Sprint - Week 1-2)
 
 **Critical Path**:
-1. ✅ **Uncertainty Calibration** (Conformal Prediction) - 1 week
-2. ✅ **Ensemble Hyperparameter Tuning** (reach R² ≥ 0.74) - 2 days
-3. ✅ **Grafana Monitoring Setup** - 3 days
-4. ⚠️ **F4 Root Cause Analysis** - 1 week
+1.  **Uncertainty Calibration** (Conformal Prediction) - 1 week
+2.  **Ensemble Hyperparameter Tuning** (reach R² ≥ 0.74) - 2 days
+3.  **Grafana Monitoring Setup** - 3 days
+4.  **F4 Root Cause Analysis** - 1 week
 
 **Estimated Effort**: 2-3 weeks  
 **Owner**: ML Team
@@ -339,9 +339,9 @@ deployment/monitoring/
 ### Short-Term (Sprint 7 - Week 3-6)
 
 **High-Value Research**:
-1. 🔬 **ResNet-50 Image Model** (replace SimpleCNN) - 2 weeks
-2. 🔬 **Domain Adaptation for F4** (DANN or Meta-Learning) - 2 weeks
-3. 🔧 **API Authentication** - 1 week
+1.  **ResNet-50 Image Model** (replace SimpleCNN) - 2 weeks
+2.  **Domain Adaptation for F4** (DANN or Meta-Learning) - 2 weeks
+3.  **API Authentication** - 1 week
 
 **Estimated Effort**: 5 weeks  
 **Owner**: ML + DevOps Teams
@@ -351,9 +351,9 @@ deployment/monitoring/
 ### Medium-Term (Sprint 8+ - Month 2-3)
 
 **Advanced Features**:
-1. 🚀 **Temporal ViT + Cross-Modal Attention** (Task 2.3) - 3 weeks
-2. 🚀 **Active Learning Pipeline** - 2 weeks
-3. 🚀 **A/B Testing Infrastructure** - 2 weeks
+1.  **Temporal ViT + Cross-Modal Attention** (Task 2.3) - 3 weeks
+2.  **Active Learning Pipeline** - 2 weeks
+3.  **A/B Testing Infrastructure** - 2 weeks
 
 **Estimated Effort**: 7 weeks  
 **Owner**: Research Team

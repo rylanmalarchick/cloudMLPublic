@@ -71,7 +71,7 @@ if [ $? -ne 0 ]; then
 fi
 
 echo ""
-echo "✓ Embedding visualization complete"
+echo " Embedding visualization complete"
 echo ""
 
 # ============================================================================
@@ -95,7 +95,7 @@ if [ $? -ne 0 ]; then
 fi
 
 echo ""
-echo "✓ Feature importance analysis complete"
+echo " Feature importance analysis complete"
 echo ""
 
 # ============================================================================
@@ -119,7 +119,7 @@ if [ $? -ne 0 ]; then
 fi
 
 echo ""
-echo "✓ Ablation studies complete"
+echo " Ablation studies complete"
 echo ""
 
 # ============================================================================
@@ -143,7 +143,7 @@ if [ $? -ne 0 ]; then
 fi
 
 echo ""
-echo "✓ LOO cross-validation complete"
+echo " LOO cross-validation complete"
 echo ""
 
 # ============================================================================
@@ -178,30 +178,30 @@ This directory contains comprehensive diagnostic analyses of the MAE+GBDT CBH pr
 
 ```
 diagnostics_TIMESTAMP/
-├── DIAGNOSTIC_SUMMARY.md (this file)
-├── diagnostic_log.txt (full console output)
-├── embedding_analysis/
-│   ├── embeddings_pca.png
-│   ├── embeddings_tsne.png
-│   ├── embeddings_umap.png (if available)
-│   ├── correlation_heatmap.png
-│   ├── top_10_cbh_dimensions.png
-│   └── embedding_analysis.json
-├── feature_importance/
-│   ├── feature_importance_full.png
-│   ├── angle_importance_comparison.png
-│   ├── top_mae_dimensions.png
-│   ├── importance_method_comparison.png
-│   └── feature_importance_analysis.json
-├── ablation_studies/
-│   ├── ablation_results.png
-│   ├── ablation_summary.csv
-│   └── ablation_results.json
-└── loo_validation/
-    ├── loo_validation_results.png
-    ├── fold_results.json
-    ├── aggregated_metrics.json
-    └── summary_table.csv
+ DIAGNOSTIC_SUMMARY.md (this file)
+ diagnostic_log.txt (full console output)
+ embedding_analysis/
+    embeddings_pca.png
+    embeddings_tsne.png
+    embeddings_umap.png (if available)
+    correlation_heatmap.png
+    top_10_cbh_dimensions.png
+    embedding_analysis.json
+ feature_importance/
+    feature_importance_full.png
+    angle_importance_comparison.png
+    top_mae_dimensions.png
+    importance_method_comparison.png
+    feature_importance_analysis.json
+ ablation_studies/
+    ablation_results.png
+    ablation_summary.csv
+    ablation_results.json
+ loo_validation/
+     loo_validation_results.png
+     fold_results.json
+     aggregated_metrics.json
+     summary_table.csv
 ```
 
 ---
@@ -313,7 +313,7 @@ For full context, see:
 **End of Diagnostic Summary**
 EOF
 
-echo "✓ Summary report created: $SUMMARY_FILE"
+echo " Summary report created: $SUMMARY_FILE"
 echo ""
 
 # ============================================================================
@@ -329,11 +329,11 @@ echo ""
 echo "All results saved to: $DIAG_DIR"
 echo ""
 echo "Key files to check:"
-echo "  📊 $DIAG_DIR/DIAGNOSTIC_SUMMARY.md (overview)"
-echo "  📈 $DIAG_DIR/embedding_analysis/ (what MAE learned)"
-echo "  🎯 $DIAG_DIR/feature_importance/ (what GBDT uses)"
-echo "  🔬 $DIAG_DIR/ablation_studies/ (feature comparisons)"
-echo "  ✅ $DIAG_DIR/loo_validation/ (cross-flight test)"
+echo "   $DIAG_DIR/DIAGNOSTIC_SUMMARY.md (overview)"
+echo "   $DIAG_DIR/embedding_analysis/ (what MAE learned)"
+echo "   $DIAG_DIR/feature_importance/ (what GBDT uses)"
+echo "   $DIAG_DIR/ablation_studies/ (feature comparisons)"
+echo "   $DIAG_DIR/loo_validation/ (cross-flight test)"
 echo ""
 echo "Next steps:"
 echo "  1. Review DIAGNOSTIC_SUMMARY.md for overview"

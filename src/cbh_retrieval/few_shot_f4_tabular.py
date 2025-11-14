@@ -80,9 +80,9 @@ class DomainAdaptationF4Tabular:
         for dir_path in [self.models_dir, self.reports_dir, self.figures_dir]:
             dir_path.mkdir(parents=True, exist_ok=True)
 
-        print(f"✓ Domain adaptation initialized")
-        print(f"✓ Output directory: {self.output_dir}")
-        print(f"✓ Random seed: {self.random_seed}")
+        print(f" Domain adaptation initialized")
+        print(f" Output directory: {self.output_dir}")
+        print(f" Random seed: {self.random_seed}")
 
     def load_data(self) -> Tuple[pd.DataFrame, np.ndarray, np.ndarray]:
         """Load tabular features and labels."""
@@ -121,10 +121,10 @@ class DomainAdaptationF4Tabular:
 
             features_df = pd.DataFrame(features_dict)
 
-        print(f"✓ Total samples: {len(features_df)}")
-        print(f"✓ Number of features: {len(features_df.columns)}")
-        print(f"✓ CBH range: [{cbh.min():.3f}, {cbh.max():.3f}] km")
-        print(f"✓ Unique flights: {np.unique(flight_ids)}")
+        print(f" Total samples: {len(features_df)}")
+        print(f" Number of features: {len(features_df.columns)}")
+        print(f" CBH range: [{cbh.min():.3f}, {cbh.max():.3f}] km")
+        print(f" Unique flights: {np.unique(flight_ids)}")
 
         # Print per-flight statistics
         print(f"\nPer-Flight Statistics:")
@@ -159,8 +159,8 @@ class DomainAdaptationF4Tabular:
         X_test = features_df[test_mask].values
         y_test = cbh[test_mask]
 
-        print(f"✓ Training samples (F1, F2, F3): {np.sum(train_mask)}")
-        print(f"✓ Test samples (F4): {np.sum(test_mask)}")
+        print(f" Training samples (F1, F2, F3): {np.sum(train_mask)}")
+        print(f" Test samples (F4): {np.sum(test_mask)}")
 
         # Impute missing values
         imputer = SimpleImputer(strategy="mean")
@@ -414,7 +414,7 @@ class DomainAdaptationF4Tabular:
 
         if improvement_20 > 0.1:
             conclusion = (
-                f"✓ Few-shot adaptation successfully mitigates F4 domain shift. "
+                f" Few-shot adaptation successfully mitigates F4 domain shift. "
                 f"With 20 samples, R² improves from {baseline_r2:.4f} to {r2_20:.4f} "
                 f"(+{improvement_20:.4f}), demonstrating effective domain adaptation. "
                 f"Even 5 samples provide meaningful improvement (+{improvement_5:.4f}). "
@@ -456,7 +456,7 @@ class DomainAdaptationF4Tabular:
         # 4. Detailed trial results
         self._plot_trial_results(report)
 
-        print(f"✓ All visualizations saved to {self.figures_dir}")
+        print(f" All visualizations saved to {self.figures_dir}")
 
     def _plot_learning_curve(self, report: Dict[str, Any]):
         """Plot learning curve: R² vs. number of few-shot samples."""
@@ -539,7 +539,7 @@ class DomainAdaptationF4Tabular:
             self.figures_dir / "few_shot_learning_curve.pdf", bbox_inches="tight"
         )
         plt.close()
-        print("✓ Created learning curve plot")
+        print(" Created learning curve plot")
 
     def _plot_performance_comparison(self, report: Dict[str, Any]):
         """Plot performance comparison across all few-shot sizes."""
@@ -653,7 +653,7 @@ class DomainAdaptationF4Tabular:
             bbox_inches="tight",
         )
         plt.close()
-        print("✓ Created performance comparison plot")
+        print(" Created performance comparison plot")
 
     def _plot_improvement_analysis(self, report: Dict[str, Any]):
         """Plot improvement over baseline."""
@@ -701,7 +701,7 @@ class DomainAdaptationF4Tabular:
         )
         plt.savefig(self.figures_dir / "few_shot_improvement.pdf", bbox_inches="tight")
         plt.close()
-        print("✓ Created improvement analysis plot")
+        print(" Created improvement analysis plot")
 
     def _plot_trial_results(self, report: Dict[str, Any]):
         """Plot individual trial results for all few-shot sizes."""
@@ -761,7 +761,7 @@ class DomainAdaptationF4Tabular:
             self.figures_dir / "few_shot_trial_results.pdf", bbox_inches="tight"
         )
         plt.close()
-        print("✓ Created trial results plot")
+        print(" Created trial results plot")
 
     def save_report(self, report: Dict[str, Any]):
         """Save domain adaptation report."""
@@ -769,12 +769,12 @@ class DomainAdaptationF4Tabular:
         json_path = self.reports_dir / "domain_adaptation_f4_report.json"
         with open(json_path, "w") as f:
             json.dump(report, f, indent=2)
-        print(f"\n✓ Saved JSON report to {json_path}")
+        print(f"\n Saved JSON report to {json_path}")
 
         # Save Markdown
         md_path = self.reports_dir / "domain_adaptation_f4_summary.md"
         self._generate_markdown_report(report, md_path)
-        print(f"✓ Saved Markdown summary to {md_path}")
+        print(f" Saved Markdown summary to {md_path}")
 
     def _generate_markdown_report(self, report: Dict[str, Any], output_path: Path):
         """Generate markdown summary report."""
@@ -822,7 +822,7 @@ Training on F1, F2, F3 and testing on F4 (zero-shot):
 
 ## Key Findings
 
-1. **Few-shot effectiveness**: {"✅ Effective" if exp["20_samples"]["improvement_over_baseline"] > 0.1 else "⚠️ Modest improvement" if exp["20_samples"]["improvement_over_baseline"] > 0 else "❌ Limited improvement"}
+1. **Few-shot effectiveness**: {" Effective" if exp["20_samples"]["improvement_over_baseline"] > 0.1 else " Modest improvement" if exp["20_samples"]["improvement_over_baseline"] > 0 else " Limited improvement"}
 
 2. **Sample efficiency**: {"Even 5 samples provide meaningful improvement" if exp["5_samples"]["improvement_over_baseline"] > 0.05 else "10+ samples needed for noticeable improvement"}
 
@@ -900,12 +900,12 @@ def main():
     print("\n" + "=" * 80)
     print("DOMAIN ADAPTATION COMPLETE")
     print("=" * 80)
-    print(f"\n✓ Baseline R² (F4): {report['baseline_loo_r2']:.4f}")
+    print(f"\n Baseline R² (F4): {report['baseline_loo_r2']:.4f}")
     print(
-        f"✓ Best Few-Shot R² (20 samples): {report['few_shot_experiments']['20_samples']['r2']:.4f}"
+        f" Best Few-Shot R² (20 samples): {report['few_shot_experiments']['20_samples']['r2']:.4f}"
     )
     print(
-        f"✓ Improvement: {report['few_shot_experiments']['20_samples']['improvement_over_baseline']:+.4f}"
+        f" Improvement: {report['few_shot_experiments']['20_samples']['improvement_over_baseline']:+.4f}"
     )
     print("\n" + "=" * 80)
 

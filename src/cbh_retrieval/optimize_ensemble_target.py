@@ -63,7 +63,7 @@ CHECKPOINTS_DIR.mkdir(parents=True, exist_ok=True)
 
 # Device
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-print(f"✓ Device: {device}\n")
+print(f" Device: {device}\n")
 
 
 class SimpleCNN(nn.Module):
@@ -101,7 +101,7 @@ class SimpleCNN(nn.Module):
 
 def load_data():
     """Load tabular and image data."""
-    print("📂 Loading data...")
+    print(" Loading data...")
 
     # Load tabular features
     with h5py.File(INTEGRATED_FEATURES, "r") as hf:
@@ -113,18 +113,18 @@ def load_data():
         features = hf["features"][:]
         flight_ids = hf["flight_id"][:]
 
-    print(f"  ✓ Tabular: {features.shape[0]} samples, {features.shape[1]} features")
+    print(f"   Tabular: {features.shape[0]} samples, {features.shape[1]} features")
 
     # Load image dataset
     image_dataset = ImageCBHDataset(str(SSL_IMAGES), str(INTEGRATED_FEATURES))
-    print(f"  ✓ Images: {len(image_dataset)} samples\n")
+    print(f"   Images: {len(image_dataset)} samples\n")
 
     return features, labels, flight_ids, image_dataset, feature_cols
 
 
 def train_optimized_gbdt(X_train, y_train, X_val, y_val):
     """Train GBDT with optimized hyperparameters."""
-    print("🔧 Optimizing GBDT hyperparameters...")
+    print(" Optimizing GBDT hyperparameters...")
 
     # Extended hyperparameter grid
     param_grid = {
@@ -175,8 +175,8 @@ def train_optimized_gbdt(X_train, y_train, X_val, y_val):
                         {"n_estimators": n_est, "learning_rate": lr, "max_depth": md}
                     )
 
-    print(f"  ✓ Best validation R²: {best_score:.6f}")
-    print(f"  ✓ Best params: {best_params}\n")
+    print(f"   Best validation R²: {best_score:.6f}")
+    print(f"   Best params: {best_params}\n")
 
     # Train final model with best params
     final_model = GradientBoostingRegressor(**best_params)
@@ -232,7 +232,7 @@ def optimize_ensemble_weights_robust(y_true, pred_gbdt, pred_cnn, method="differ
 
 def evaluate_ensemble_strategies(y_true, pred_gbdt, pred_cnn):
     """Evaluate multiple ensemble strategies."""
-    print("🔬 Evaluating ensemble strategies...")
+    print(" Evaluating ensemble strategies...")
 
     results = {}
 
@@ -318,7 +318,7 @@ def evaluate_ensemble_strategies(y_true, pred_gbdt, pred_cnn):
 
     # Find best strategy
     best_strategy = max(results.items(), key=lambda x: x[1]["r2"])
-    print(f"\n  ✅ Best Strategy: {best_strategy[0]} | R² = {best_strategy[1]['r2']:.6f}\n")
+    print(f"\n   Best Strategy: {best_strategy[0]} | R² = {best_strategy[1]['r2']:.6f}\n")
 
     return results, best_strategy
 
@@ -335,7 +335,7 @@ def main():
     # Stratification bins
     cbh_bins = pd.qcut(labels, q=5, labels=False, duplicates="drop")
 
-    print(f"🔄 Running {n_folds}-Fold Stratified Cross-Validation\n")
+    print(f" Running {n_folds}-Fold Stratified Cross-Validation\n")
 
     fold_results = []
     all_predictions = {
@@ -460,14 +460,14 @@ def main():
     target_achieved = mean_ensemble_r2 >= 0.74
     print(f"\n{'=' * 80}")
     if target_achieved:
-        print(f"✅ TARGET ACHIEVED: R² = {mean_ensemble_r2:.6f} ≥ 0.74")
+        print(f" TARGET ACHIEVED: R² = {mean_ensemble_r2:.6f} ≥ 0.74")
     else:
-        print(f"⚠️  Target not reached: R² = {mean_ensemble_r2:.6f} < 0.74")
+        print(f"  Target not reached: R² = {mean_ensemble_r2:.6f} < 0.74")
         print(f"   Gap remaining: {0.74 - mean_ensemble_r2:.6f}")
     print(f"{'=' * 80}\n")
 
     # Global ensemble optimization (on all accumulated predictions)
-    print("🔬 Global Ensemble Optimization (all folds combined)...\n")
+    print(" Global Ensemble Optimization (all folds combined)...\n")
     y_true_all = np.array(all_predictions["y_true"])
     pred_gbdt_all = np.array(all_predictions["pred_gbdt"])
     pred_cnn_all = np.array(all_predictions["pred_cnn"])
@@ -516,7 +516,7 @@ def main():
     with open(output_path, "w") as f:
         json.dump(output, f, indent=2)
 
-    print(f"✅ Results saved to: {output_path}")
+    print(f" Results saved to: {output_path}")
 
     # Summary
     print(f"\n{'=' * 80}")
@@ -527,7 +527,7 @@ def main():
     print(
         f"Improvement:           {mean_ensemble_r2 - 0.7391:.6f} ({(mean_ensemble_r2 - 0.7391) / 0.7391 * 100:.2f}%)"
     )
-    print(f"Target (0.74):         {'✅ ACHIEVED' if target_achieved else '❌ NOT REACHED'}")
+    print(f"Target (0.74):         {' ACHIEVED' if target_achieved else ' NOT REACHED'}")
     print(f"{'=' * 80}\n")
 
 

@@ -29,36 +29,36 @@ This guide provides step-by-step instructions for deploying the Cloud Base Heigh
 ### Architecture Overview
 
 ```
-┌─────────────────┐
-│  Data Sources   │
-│  - ERA5 Data    │
-│  - Images       │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│ Preprocessing   │
-│ - Imputation    │
-│ - Scaling       │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│ GBDT Model      │
-│ (Inference)     │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│ Post-processing │
-│ - UQ Intervals  │
-│ - Validation    │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│ Output (CBH)    │
-└─────────────────┘
+
+  Data Sources   
+  - ERA5 Data    
+  - Images       
+
+         
+         
+
+ Preprocessing   
+ - Imputation    
+ - Scaling       
+
+         
+         
+
+ GBDT Model      
+ (Inference)     
+
+         
+         
+
+ Post-processing 
+ - UQ Intervals  
+ - Validation    
+
+         
+         
+
+ Output (CBH)    
+
 ```
 
 ### Key Components

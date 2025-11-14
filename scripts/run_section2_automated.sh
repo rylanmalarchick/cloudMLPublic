@@ -28,7 +28,7 @@ echo ""
 if [ -d "./venv" ]; then
     echo "Activating virtual environment..."
     source ./venv/bin/activate
-    echo "✓ Virtual environment activated"
+    echo " Virtual environment activated"
 else
     echo "ERROR: Virtual environment not found at ./venv"
     exit 1
@@ -41,7 +41,7 @@ echo ""
 
 # Create output directories
 mkdir -p logs models results diagnostics/results
-echo "✓ Output directories ready"
+echo " Output directories ready"
 echo ""
 
 # Array of experiments
@@ -87,14 +87,14 @@ for exp in "${experiments[@]}"; do
     if python main.py --config "configs/${config}.yaml" 2>&1 | tee "$log_file"; then
         echo ""
         echo "-----------------------------------------------------------------------"
-        echo "✓ Experiment ${current_experiment}/${total_experiments} COMPLETED"
+        echo " Experiment ${current_experiment}/${total_experiments} COMPLETED"
         echo "  Finished: $(date)"
         echo "  Log saved: ${log_file}"
         echo "-----------------------------------------------------------------------"
     else
         echo ""
         echo "-----------------------------------------------------------------------"
-        echo "✗ Experiment ${current_experiment}/${total_experiments} FAILED"
+        echo " Experiment ${current_experiment}/${total_experiments} FAILED"
         echo "  Check log: ${log_file}"
         echo "-----------------------------------------------------------------------"
         echo ""
@@ -117,9 +117,9 @@ for exp in "${experiments[@]}"; do
     log_pattern="logs/${config}_*.log"
     if ls $log_pattern 1> /dev/null 2>&1; then
         latest_log=$(ls -t $log_pattern | head -1)
-        echo "  ✓ ${desc} (λ=${lambda}) - Log: ${latest_log}"
+        echo "   ${desc} (λ=${lambda}) - Log: ${latest_log}"
     else
-        echo "  ✗ ${desc} (λ=${lambda}) - NO LOG FOUND"
+        echo "   ${desc} (λ=${lambda}) - NO LOG FOUND"
     fi
 done
 

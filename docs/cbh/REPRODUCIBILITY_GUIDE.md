@@ -116,7 +116,7 @@ assert sklearn.__version__ == "1.7.0", f"Wrong sklearn version: {sklearn.__versi
 assert np.__version__ == "2.2.6", f"Wrong numpy version: {np.__version__}"
 assert pd.__version__ == "2.3.0", f"Wrong pandas version: {pd.__version__}"
 
-print("\n✓ Environment verified successfully!")
+print("\n Environment verified successfully!")
 ```
 
 ---
@@ -160,7 +160,7 @@ with h5py.File('sow_outputs/integrated_features/Integrated_Features.hdf5', 'r') 
     assert n_atmo == 9
     assert n_geom == 9
     
-    print("✓ Data verified successfully!")
+    print(" Data verified successfully!")
 ```
 
 ### Step 3: Compute Data Statistics (for verification)
@@ -247,7 +247,7 @@ X_scaled = scaler.transform(X_test)
 predictions = model.predict(X_scaled)
 
 assert predictions.shape == (10,)
-print("✓ Production model verified!")
+print(" Production model verified!")
 ```
 
 ---
@@ -422,7 +422,7 @@ print(f"Difference: {abs(orig_r2 - repro_r2):.6f}")
 # Should be identical (or within floating-point precision)
 assert np.isclose(orig_r2, repro_r2, atol=1e-6), "R² mismatch!"
 
-print("✓ Results successfully reproduced!")
+print(" Results successfully reproduced!")
 ```
 
 ---
@@ -545,7 +545,7 @@ Use this checklist to verify complete reproducibility:
 ### Reproducibility Score
 
 Count checked items:
-- **20/20**: Perfect reproducibility ✓
+- **20/20**: Perfect reproducibility 
 - **18-19/20**: Excellent (minor variations acceptable)
 - **15-17/20**: Good (investigate missing items)
 - **<15/20**: Issues present (contact support)

@@ -215,7 +215,7 @@ class SpatialAttentionVisualizer:
             bbox_inches="tight",
         )
         plt.close()
-        print("✓ Created spatial attention examples")
+        print(" Created spatial attention examples")
 
     def plot_attention_comparison(self):
         """Compare attention patterns for good vs bad predictions."""
@@ -270,7 +270,7 @@ class SpatialAttentionVisualizer:
             bbox_inches="tight",
         )
         plt.close()
-        print("✓ Created spatial attention comparison")
+        print(" Created spatial attention comparison")
 
     def plot_attention_statistics(self):
         """Plot statistical analysis of attention patterns."""
@@ -441,7 +441,7 @@ class SpatialAttentionVisualizer:
             bbox_inches="tight",
         )
         plt.close()
-        print("✓ Created spatial attention statistics")
+        print(" Created spatial attention statistics")
 
     def create_combined_figure(self):
         """Create main combined figure for spatial attention visualization."""
@@ -637,7 +637,7 @@ class SpatialAttentionVisualizer:
             bbox_inches="tight",
         )
         plt.close()
-        print("✓ Created combined spatial attention figure")
+        print(" Created combined spatial attention figure")
 
     def generate_report(self):
         """Generate spatial attention analysis report."""
@@ -694,7 +694,7 @@ class SpatialAttentionVisualizer:
         with open(report_path, "w") as f:
             json.dump(report, f, indent=2)
 
-        print(f"\n✓ Saved spatial attention report to {report_path}")
+        print(f"\n Saved spatial attention report to {report_path}")
         return report
 
 
@@ -721,9 +721,9 @@ def main():
     print("\n" + "=" * 80)
     print("SPATIAL ATTENTION VISUALIZATION COMPLETE")
     print("=" * 80)
-    print("\n✓ Main figure: figure_spatial_attention.png/pdf")
-    print("✓ Supporting figures: 3 additional visualizations")
-    print("✓ Report: spatial_attention_report.json")
+    print("\n Main figure: figure_spatial_attention.png/pdf")
+    print(" Supporting figures: 3 additional visualizations")
+    print(" Report: spatial_attention_report.json")
     print("\n" + "=" * 80)
 
 
