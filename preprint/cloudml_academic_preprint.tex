@@ -39,7 +39,7 @@
 \maketitle
 
 \begin{abstract}
-Cloud base height (CBH) is a critical atmospheric parameter for climate modeling, aviation safety, and weather prediction, yet automated retrieval from remote sensing observations remains challenging due to limited labeled training data and the complexity of cloud morphology. We present a systematic comparison of atmospheric feature-based versus image-based machine learning approaches for CBH retrieval using 933 labeled samples from NASA ER-2 high-altitude research flights. Our gradient boosting decision tree (GBDT) model using 28 atmospheric and geometric features from ERA5 reanalysis achieves R$^2$ = 0.744 ± 0.037 with mean absolute error of 117.4 ± 7.4 meters in stratified 5-fold cross-validation, substantially outperforming a convolutional neural network baseline trained on airborne camera imagery (R$^2$ = 0.320 ± 0.152, MAE = 238.2 ± 26.1 m). Ensemble methods combining both modalities provide minimal improvement (R$^2$ = 0.739), indicating limited complementarity between atmospheric and visual features for this task. Cross-flight domain adaptation experiments reveal substantial distribution shift, with leave-one-flight-out validation showing near-zero correlation for out-of-distribution flights, though few-shot learning with 10--20 labeled samples enables partial recovery. Our results demonstrate that atmospheric reanalysis features capture the physical drivers of cloud base height more effectively than raw imagery in data-limited regimes. We release CloudMLPublic, an open-source framework with 93.5\% test coverage, comprehensive uncertainty quantification, and production-ready deployment capabilities to facilitate reproducible atmospheric machine learning research.
+Cloud base height (CBH) is a critical atmospheric parameter for climate modeling, aviation safety, and weather prediction, yet automated retrieval from remote sensing observations remains challenging due to limited labeled training data and the complexity of cloud morphology. We present a systematic comparison of atmospheric feature-based versus image-based machine learning approaches for CBH retrieval using 933 labeled samples from NASA ER-2 high-altitude research flights. Our gradient boosting decision tree (GBDT) model using 18 atmospheric and geometric features from ERA5 reanalysis and cloud shadow analysis achieves R$^2$ = 0.744 ± 0.037 with mean absolute error of 117.4 ± 7.4 meters in stratified 5-fold cross-validation, substantially outperforming a convolutional neural network baseline trained on airborne camera imagery (R$^2$ = 0.320 ± 0.152, MAE = 238.2 ± 26.1 m). Ensemble methods combining both modalities provide minimal improvement (R$^2$ = 0.739), indicating limited complementarity between atmospheric and visual features for this task. Cross-flight domain adaptation experiments reveal substantial distribution shift, with leave-one-flight-out validation showing near-zero correlation for out-of-distribution flights, though few-shot learning with 10--20 labeled samples enables partial recovery. Our results demonstrate that atmospheric reanalysis features capture the physical drivers of cloud base height more effectively than raw imagery in data-limited regimes. We release CloudMLPublic, an open-source framework with 93.5\% test coverage, comprehensive uncertainty quantification, and production-ready deployment capabilities to facilitate reproducible atmospheric machine learning research.
 \end{abstract}
 
 \section{Introduction}
@@ -79,7 +79,7 @@ This work addresses four key research questions:
 Our key contributions are:
 
 \begin{itemize}[leftmargin=*]
-    \item \textbf{Systematic multi-modal comparison:} First rigorous comparison of tabular atmospheric features versus image-based deep learning for CBH retrieval at the 933-sample scale, demonstrating atmospheric features achieve 2.1× lower error.
+    \item \textbf{Systematic multi-modal comparison:} First rigorous comparison of tabular atmospheric features versus image-based deep learning for CBH retrieval at the 933-sample scale, demonstrating atmospheric features achieve 2.0× lower error.
 
     \item \textbf{Important negative result:} We show that ensemble methods combining atmospheric and visual features provide negligible improvement (< 1\% R$^2$ gain), indicating limited complementarity---a finding with implications for resource allocation in operational systems.
 
@@ -181,7 +181,7 @@ Our final dataset comprises 933 labeled samples from 5 NASA ER-2 research flight
 \end{tabular}
 \end{center}
 
-Cloud base heights range from 234 m to 4521 m, with median 1289 m. The distribution is right-skewed with higher frequency of low-altitude stratocumulus clouds. The 18Feb25 flight (smallest, n=44) represents a distinct high-altitude regime that exhibits severe domain shift in cross-flight validation experiments.
+Cloud base heights range from 120 m to 1950 m, with mean 830 m. The distribution is right-skewed with higher frequency of low-altitude stratocumulus clouds. The 18Feb25 flight (smallest, n=44) represents a distinct high-altitude regime that exhibits severe domain shift in cross-flight validation experiments.
 
 Data were collected during two NASA ER-2 field campaigns: WHYMSIE 2024 (Wyoming High-altitude Measurements of Supercooled water and Ice Experiment, October 2024) and GLOVE 2025 (GOES-16 Lidar and Optical Validation Experiment, February 2025), spanning diverse meteorological conditions across fall and winter seasons.
 
@@ -189,23 +189,38 @@ Data were collected during two NASA ER-2 field campaigns: WHYMSIE 2024 (Wyoming 
 
 \subsubsection{Atmospheric Features}
 
-From ERA5 profiles, we engineer 28 features capturing atmospheric stability, moisture availability, and vertical structure:
+From ERA5 reanalysis data and cloud shadow analysis, we engineer 18 features capturing atmospheric stability, moisture availability, and geometric properties:
 
 \begin{enumerate}[leftmargin=*]
-    \item \textbf{Temperature features (8):} Surface temperature, 2m temperature, temperature at 850/700/500 hPa, lapse rate (T$_{surface}$ - T$_{500}$), boundary layer depth estimate
+    \item \textbf{Atmospheric features from ERA5 (12):} 
+    \begin{itemize}
+        \item Boundary layer height (m)
+        \item Lifting condensation level (LCL) height (m)
+        \item Temperature inversion height (m)
+        \item Vertical moisture gradient
+        \item Atmospheric stability index
+        \item 2-meter temperature and dewpoint (K)
+        \item Surface pressure (Pa)
+        \item Total column water vapor (kg/m$^2$)
+        \item Solar zenith angle (degrees)
+    \end{itemize}
 
-    \item \textbf{Moisture features (9):} Surface dewpoint, 2m dewpoint, specific humidity at 850/700/500 hPa, relative humidity at same levels, total column water vapor, lifting condensation level (LCL) height
-
-    \item \textbf{Stability features (6):} Potential temperature gradient, equivalent potential temperature, convective available potential energy (CAPE) proxy, Richardson number estimate
-
-    \item \textbf{Geometric features (5):} Aircraft altitude, latitude, longitude, solar zenith angle, day of year (cyclical encoding)
+    \item \textbf{Geometric features from shadow analysis (6):}
+    \begin{itemize}
+        \item Cloud edge coordinates (x, y pixels)
+        \item Shadow edge coordinates (x, y pixels)
+        \item Shadow length (pixels)
+        \item Shadow detection confidence [0-1]
+        \item Solar azimuth angle (degrees)
+        \item Shadow angle (degrees)
+    \end{itemize}
 \end{enumerate}
 
 The lifting condensation level is computed using the approximate formula:
 \begin{equation}
 \text{LCL} = 125 \times (T_{\text{surface}} - T_{\text{dewpoint}})
 \end{equation}
-where temperatures are in Celsius. This provides a physics-based estimate of cloud base for comparison with data-driven predictions.
+where temperatures are in Celsius. This provides a physics-based estimate of cloud base for comparison with data-driven predictions. Shadow-derived geometric features capture cloud-shadow displacement, which provides information about cloud altitude when combined with solar angle.
 
 \subsubsection{Image Preprocessing}
 
@@ -224,15 +239,16 @@ No domain-specific augmentations (e.g., cloud-aware transformations) are applied
 
 \subsubsection{Gradient Boosting Decision Trees (GBDT)}
 
-Our primary tabular model uses LightGBM \cite{Ke2017}, an efficient gradient boosting implementation. Hyperparameters are selected via nested cross-validation:
+Our primary tabular model uses scikit-learn's GradientBoostingRegressor, a gradient boosting implementation. Hyperparameters are selected via nested cross-validation:
 
 \begin{itemize}[leftmargin=*]
-    \item Number of trees: 500
+    \item Number of trees: 200
     \item Learning rate: 0.05
     \item Max depth: 8
-    \item Minimum samples per leaf: 20
-    \item Feature fraction: 0.8 (bagging)
-    \item L2 regularization: 0.1
+    \item Minimum samples per leaf: 4
+    \item Minimum samples per split: 10
+    \item Subsample fraction: 0.8
+    \item Random state: 42
     \item Objective: L2 regression (mean squared error)
 \end{itemize}
 
@@ -321,14 +337,14 @@ For few-shot learning experiments, we:
 
 \subsection{Implementation Details}
 
-All experiments use Python 3.10 with PyTorch 2.0, LightGBM 4.0, and scikit-learn 1.3. Training is performed on a single NVIDIA GTX 1070 Ti GPU (8 GB VRAM). Total compute time for all experiments is approximately 18 hours. Code and configuration files are available at \url{https://github.com/rylanmalarchick/CloudMLPublic} under MIT license. Random seed is fixed to 42 for reproducibility.
+All experiments use Python 3.10 with PyTorch 2.0 and scikit-learn 1.3. Training is performed on a single NVIDIA GTX 1070 Ti GPU (8 GB VRAM) for image models, with GBDT training on CPU. Total compute time for all experiments is approximately 18 hours. Code and configuration files are available at \url{https://github.com/rylanmalarchick/CloudMLPublic} under MIT license. Random seed is fixed to 42 for reproducibility.
 
 \section{Results}
 \label{sec:results}
 
 \subsection{Model Performance Comparison}
 
-Table~\ref{tab:model_comparison} presents the main validation results. The GBDT model substantially outperforms the CNN baseline across all metrics, achieving R$^2$ = 0.744 compared to 0.320 for the CNN. Mean absolute error for GBDT (117.4 m) is nearly half that of the CNN (236.8 m). Figure~\ref{fig:model_comparison} visualizes the performance comparison across all models.
+Table~\ref{tab:model_comparison} presents the main validation results. The GBDT model substantially outperforms the CNN baseline across all metrics, achieving R$^2$ = 0.744 compared to 0.320 for the CNN. Mean absolute error for GBDT (117.4 m) is nearly half that of the CNN (238.2 m). Figure~\ref{fig:model_comparison} visualizes the performance comparison across all models.
 
 \begin{table}[h]
 \centering
@@ -339,7 +355,7 @@ Table~\ref{tab:model_comparison} presents the main validation results. The GBDT 
 \textbf{Model} & \textbf{R$^2$} & \textbf{MAE (m)} & \textbf{RMSE (m)} \\
 \midrule
 \textbf{GBDT (Atmospheric)} & \textbf{0.744 ± 0.037} & \textbf{117.4 ± 7.4} & \textbf{187.3 ± 15.3} \\
-CNN (Image) & 0.351 ± 0.075 & 236.8 ± 16.7 & 299.1 ± 18.2 \\
+CNN (Image) & 0.320 ± 0.152 & 238.2 ± 26.1 & 299.1 ± 18.2 \\
 ResNet-18 (ImageNet pre-trained) & 0.389 ± 0.082 & 228.4 ± 18.2 & 289.6 ± 19.8 \\
 \midrule
 Simple Averaging & 0.662 ± 0.073 & 161.5 ± 14.0 & 218.3 ± 17.1 \\
@@ -357,7 +373,7 @@ ImageNet pre-training provides marginal improvement over the simple CNN (R$^2$ =
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.8\textwidth]{../results/cbh/figures/paper/figure_model_comparison.png}
+\includegraphics[width=0.8\textwidth]{paperfigures/figure1_model_comparison.png}
 \caption{Model performance comparison showing R$^2$ scores across GBDT, CNN, and ensemble methods. GBDT substantially outperforms image-based approaches.}
 \label{fig:model_comparison}
 \end{figure}
@@ -372,7 +388,7 @@ Analyzing per-sample ensemble improvement, we find that the ensemble outperforms
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.8\textwidth]{../results/cbh/figures/ensemble/ensemble_performance_comparison.png}
+\includegraphics[width=0.8\textwidth]{paperfigures/figure2_ensemble_performance.png}
 \caption{Ensemble performance comparison showing minimal improvement over GBDT baseline. Optimal weights heavily favor the atmospheric model (88.8\% GBDT, 11.2\% CNN).}
 \label{fig:ensemble_performance}
 \end{figure}
@@ -382,30 +398,30 @@ Analyzing per-sample ensemble improvement, we find that the ensemble outperforms
 Figure~\ref{fig:feature_importance} shows SHAP values \cite{Lundberg2020} for the top 10 GBDT features. The most important predictors are:
 
 \begin{enumerate}
-    \item Lifting condensation level (LCL) height (21.3\% importance)
-    \item Specific humidity at 850 hPa (14.7\%)
-    \item Surface temperature (11.2\%)
-    \item Temperature at 700 hPa (9.8\%)
-    \item Aircraft altitude (8.3\%)
-    \item Lapse rate (T$_{\text{surface}}$ - T$_{500}$) (7.6\%)
-    \item Total column water vapor (6.9\%)
-    \item Dewpoint at 850 hPa (5.4\%)
-    \item Surface pressure (4.8\%)
-    \item Solar zenith angle (3.1\%)
+    \item 2-meter dewpoint temperature (d2m) (18.7\% importance)
+    \item 2-meter temperature (t2m) (18.0\%)
+    \item Vertical moisture gradient (7.6\%)
+    \item Solar zenith angle (sza\_deg) (7.2\%)
+    \item Boundary layer height (blh) (6.2\%)
+    \item Shadow angle (shadow\_angle\_deg) (5.6\%)
+    \item Solar azimuth angle (saa\_deg) (5.0\%)
+    \item Atmospheric stability index (4.2\%)
+    \item Temperature inversion height (4.0\%)
+    \item Surface pressure (sp) (3.9\%)
 \end{enumerate}
 
-The dominance of moisture-related features (LCL, specific humidity, dewpoint) aligns with cloud formation physics: cloud base occurs where rising air parcels reach saturation. Temperature features capture atmospheric stability, while geometric features (aircraft altitude, solar angle) account for observational geometry.
+The dominance of near-surface moisture and temperature features (d2m, t2m) aligns with cloud formation physics: cloud base occurs where rising air parcels reach saturation. The boundary layer height and atmospheric stability features capture vertical mixing processes. Solar angle features (sza, saa) and shadow-derived geometric features enable altitude estimation from cloud-shadow displacement.
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.8\textwidth]{../results/cbh/figures/paper/figure_feature_importance.png}
-\caption{SHAP feature importance analysis for GBDT model. Moisture-related features (LCL, specific humidity, dewpoint) dominate predictions, consistent with cloud formation physics.}
+\includegraphics[width=0.8\textwidth]{paperfigures/figure3_feature_importance.png}
+\caption{SHAP feature importance analysis for GBDT model. Near-surface moisture and temperature features (d2m, t2m) dominate predictions, along with atmospheric stability indicators and solar geometry features.}
 \label{fig:feature_importance}
 \end{figure}
 
 \subsection{Error Analysis}
 
-Residual analysis reveals larger errors for CBH > 2500 m, where training data are sparse (only 12\% of samples). The CNN shows higher variance across cross-validation folds (R$^2$ std = 0.152) compared to GBDT (std = 0.037), indicating less stable learning in the small-sample regime. Flight 18Feb25, representing the smallest flight (n=44) with distinct meteorological conditions, shows degraded performance in leave-one-flight-out validation (discussed in Section~\ref{sec:domain_adaptation}).
+Residual analysis reveals larger errors for CBH > 1500 m, where training data are sparse. The CNN shows higher variance across cross-validation folds (R$^2$ std = 0.152) compared to GBDT (std = 0.037), indicating less stable learning in the small-sample regime. Flight 18Feb25, representing the smallest flight (n=44) with distinct meteorological conditions, shows degraded performance in leave-one-flight-out validation (discussed in Section~\ref{sec:domain_adaptation}).
 
 \subsection{Uncertainty Quantification}
 
@@ -423,7 +439,7 @@ High-uncertainty predictions (interval width > 600 m) have 2.3× higher MAE (268
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.8\textwidth]{../results/cbh/figures/uncertainty/uncertainty_vs_error.png}
+\includegraphics[width=0.8\textwidth]{paperfigures/figure4_uncertainty_quantification.png}
 \caption{Uncertainty quantification evaluation showing positive correlation (r=0.485) between prediction interval width and absolute error, indicating informative uncertainty estimates despite under-calibration.}
 \label{fig:uncertainty}
 \end{figure}
@@ -445,7 +461,7 @@ Even with 20 labeled 18Feb25 samples, performance remains far below within-distr
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.8\textwidth]{../results/cbh/figures/domain_adaptation/few_shot_learning_curve.png}
+\includegraphics[width=0.8\textwidth]{paperfigures/figure5_few_shot_learning.png}
 \caption{Few-shot learning curves for Flight 18Feb25 domain adaptation. Performance remains poor even with 20 labeled samples, indicating severe distribution shift requiring more sophisticated adaptation methods.}
 \label{fig:few_shot}
 \end{figure}
@@ -488,7 +504,7 @@ The catastrophic failure on Flight 18Feb25 (R$^2$ = -0.98 in LOFO validation) hi
 \begin{itemize}[leftmargin=*]
     \item Smallest sample size (n=44 vs mean 187 samples per flight)
     \item Winter GLOVE 2025 campaign vs larger fall WHYMSIE 2024 flights
-    \item Potentially different cloud regimes (high-altitude cirrus vs low stratocumulus)
+    \item Potentially different cloud regimes or meteorological conditions
     \item Geographic and meteorological differences from other campaign flights
 \end{itemize}
 
@@ -602,7 +618,7 @@ Cross-flight validation assesses one axis of distribution shift (meteorological 
 We have presented a systematic comparison of atmospheric feature-based and image-based machine learning approaches for cloud base height retrieval from NASA ER-2 airborne observations. Our key findings are:
 
 \begin{enumerate}[leftmargin=*]
-    \item \textbf{Atmospheric features dominate:} GBDT models using ERA5 reanalysis achieve R$^2$ = 0.744 (MAE = 117 m), outperforming CNNs on imagery by 2.1× in accuracy.
+    \item \textbf{Atmospheric features dominate:} GBDT models using ERA5 reanalysis achieve R$^2$ = 0.744 (MAE = 117 m), outperforming CNNs on imagery by 2.0× in MAE.
 
     \item \textbf{Limited multi-modal benefit:} Ensemble methods combining both modalities provide < 1\% improvement, indicating minimal complementarity.
 
