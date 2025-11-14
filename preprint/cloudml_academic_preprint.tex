@@ -189,30 +189,31 @@ Data were collected during two NASA ER-2 field campaigns: WHYMSIE 2024 (Wyoming 
 
 \subsubsection{Atmospheric Features}
 
-From ERA5 reanalysis data and cloud shadow analysis, we engineer 18 features capturing atmospheric stability, moisture availability, and geometric properties:
+From ERA5 reanalysis data and cloud shadow analysis, we engineer 18 features capturing atmospheric stability, moisture availability, and geometric properties. The complete feature set is:
 
 \begin{enumerate}[leftmargin=*]
-    \item \textbf{Atmospheric features from ERA5 (12):} 
+    \item \textbf{Atmospheric features from ERA5 (9):} 
     \begin{itemize}
-        \item Boundary layer height (m)
-        \item Lifting condensation level (LCL) height (m)
-        \item Temperature inversion height (m)
-        \item Vertical moisture gradient
-        \item Atmospheric stability index
-        \item 2-meter temperature and dewpoint (K)
-        \item Surface pressure (Pa)
-        \item Total column water vapor (kg/m$^2$)
-        \item Solar zenith angle (degrees)
+        \item Boundary layer height (blh, m)
+        \item Lifting condensation level (lcl, m)
+        \item Temperature inversion height (inversion\_height, m)
+        \item Vertical moisture gradient (moisture\_gradient)
+        \item Atmospheric stability index (stability\_index)
+        \item 2-meter temperature (t2m, K)
+        \item 2-meter dewpoint (d2m, K)
+        \item Surface pressure (sp, Pa)
+        \item Total column water vapor (tcwv, kg/m$^2$)
     \end{itemize}
 
-    \item \textbf{Geometric features from shadow analysis (6):}
+    \item \textbf{Geometric features from shadow analysis (9):}
     \begin{itemize}
-        \item Cloud edge coordinates (x, y pixels)
-        \item Shadow edge coordinates (x, y pixels)
-        \item Shadow length (pixels)
-        \item Shadow detection confidence [0-1]
-        \item Solar azimuth angle (degrees)
-        \item Shadow angle (degrees)
+        \item Cloud edge coordinates (cloud\_edge\_x, cloud\_edge\_y, pixels)
+        \item Shadow edge coordinates (shadow\_edge\_x, shadow\_edge\_y, pixels)
+        \item Shadow length (shadow\_length\_pixels)
+        \item Shadow detection confidence (shadow\_detection\_confidence, [0-1])
+        \item Shadow angle (shadow\_angle\_deg, degrees)
+        \item Solar azimuth angle (saa\_deg, degrees)
+        \item Solar zenith angle (sza\_deg, degrees)
     \end{itemize}
 \end{enumerate}
 
@@ -267,9 +268,7 @@ Our image baseline uses a simple CNN architecture designed for data-limited sett
     \item Total parameters: 1.2M
 \end{itemize}
 
-We train for 100 epochs with early stopping (patience=15 epochs) using Adam optimizer (lr=0.001, weight decay=1e-4) and ReduceLROnPlateau scheduler (factor=0.5, patience=5). Training uses batch size 32.
-
-We also experiment with ResNet-18 \cite{He2016} pre-trained on ImageNet, but find it provides minimal improvement over the simple CNN baseline in our data-limited regime (results in Section~\ref{sec:results}).
+We train for 100 epochs with early stopping (patience=15 epochs) using Adam optimizer (lr=0.001, weight decay=1e-4) and ReduceLROnPlateau scheduler (factor=0.5, patience=5). Training uses batch size 32. This architecture is intentionally simple to avoid overfitting in our data-limited setting (n=933).
 
 \subsubsection{Ensemble Methods}
 
@@ -356,20 +355,13 @@ Table~\ref{tab:model_comparison} presents the main validation results. The GBDT 
 \midrule
 \textbf{GBDT (Atmospheric)} & \textbf{0.744 ± 0.037} & \textbf{117.4 ± 7.4} & \textbf{187.3 ± 15.3} \\
 CNN (Image) & 0.320 ± 0.152 & 238.2 ± 26.1 & 299.1 ± 18.2 \\
-ResNet-18 (ImageNet pre-trained) & 0.389 ± 0.082 & 228.4 ± 18.2 & 289.6 ± 19.8 \\
 \midrule
 Simple Averaging & 0.662 ± 0.073 & 161.5 ± 14.0 & 218.3 ± 17.1 \\
-Weighted Ensemble & 0.739 ± 0.096 & 122.5 ± 19.8 & 195.0 ± 23.4 \\
+Weighted Ensemble\footnote{Slightly underperforms GBDT alone due to noisy CNN predictions increasing variance despite optimal weighting (88.8\% GBDT, 11.2\% CNN), demonstrating limited complementarity between modalities.} & 0.739 ± 0.096 & 122.5 ± 19.8 & 195.0 ± 23.4 \\
 Stacking (Ridge) & 0.724 ± 0.115 & 118.0 ± 16.2 & 194.7 ± 28.1 \\
-\midrule
-Physics Baseline (LCL) & 0.412 & 198.3 & 284.7 \\
 \bottomrule
 \end{tabular}
 \end{table}
-
-The physics-based baseline using lifting condensation level (LCL) from thermodynamic calculations achieves R$^2$ = 0.412, indicating that simple physical models capture some CBH variability but are outperformed by data-driven approaches.
-
-ImageNet pre-training provides marginal improvement over the simple CNN (R$^2$ = 0.389 vs 0.320), suggesting limited transfer learning benefit from natural images to atmospheric imagery---consistent with findings by \citet{Neumann2019} for satellite data.
 
 \begin{figure}[h]
 \centering
@@ -410,6 +402,8 @@ Figure~\ref{fig:feature_importance} shows SHAP values \cite{Lundberg2020} for th
     \item Surface pressure (sp) (3.9\%)
 \end{enumerate}
 
+These top 10 features contribute 60\% cumulative importance; the remaining 8 features account for the remaining 40\%.
+
 The dominance of near-surface moisture and temperature features (d2m, t2m) aligns with cloud formation physics: cloud base occurs where rising air parcels reach saturation. The boundary layer height and atmospheric stability features capture vertical mixing processes. Solar angle features (sza, saa) and shadow-derived geometric features enable altitude estimation from cloud-shadow displacement.
 
 \begin{figure}[h]
@@ -428,12 +422,12 @@ Residual analysis reveals larger errors for CBH > 1500 m, where training data ar
 Our quantile regression approach produces 90\% prediction intervals with the following characteristics:
 
 \begin{itemize}[leftmargin=*]
-    \item \textbf{Coverage:} 77.1\% (target: 90\%) → under-calibrated
+    \item \textbf{Coverage:} 77.1\% (target: 90\%) → under-calibrated (intervals too narrow)
     \item \textbf{Mean interval width:} 533.4 m
     \item \textbf{Uncertainty-error correlation:} 0.485 (Spearman)
 \end{itemize}
 
-Figure~\ref{fig:uncertainty} shows that prediction intervals are informative (positive correlation with error) but under-calibrated. Intervals are narrower than required for 90\% coverage, likely due to insufficient modeling of epistemic uncertainty. Post-hoc calibration using conformal prediction \cite{Shafer2008} could improve coverage.
+Figure~\ref{fig:uncertainty} shows that prediction intervals are informative despite under-calibration. The 77\% < 90\% coverage indicates intervals are too narrow to achieve nominal coverage, likely due to insufficient modeling of epistemic uncertainty. However, the positive correlation (r=0.485) between interval width and absolute error demonstrates that wider intervals successfully flag less reliable predictions. Post-hoc calibration using conformal prediction \cite{Shafer2008} could improve coverage while preserving this informativeness.
 
 High-uncertainty predictions (interval width > 600 m) have 2.3× higher MAE (268 m vs 116 m), validating the utility of uncertainty estimates for flagging unreliable predictions in operational deployment.
 
@@ -454,10 +448,10 @@ Few-shot learning experiments on 18Feb25 (Figure~\ref{fig:few_shot}) show:
 \begin{itemize}[leftmargin=*]
     \item 5-shot: R$^2$ = -0.53 ± 0.77 (high variance, mostly negative)
     \item 10-shot: R$^2$ = -0.22 ± 0.18 (slight improvement)
-    \item 20-shot: R$^2$ = -0.71 ± 0.70 (degradation, possible overfitting)
+    \item 20-shot: R$^2$ = -0.71 ± 0.70 (degradation from 10-shot)
 \end{itemize}
 
-Even with 20 labeled 18Feb25 samples, performance remains far below within-distribution accuracy, suggesting fundamental distributional differences require investigation (e.g., different cloud types, extreme atmospheric conditions).
+The counterintuitive performance degradation from 10-shot to 20-shot likely reflects overfitting on unrepresentative samples given the small test set (n=44) and high variance in this out-of-distribution regime. Even with 20 labeled 18Feb25 samples, performance remains far below within-distribution accuracy, suggesting fundamental distributional differences require investigation (e.g., different cloud types, extreme atmospheric conditions).
 
 \begin{figure}[h]
 \centering
@@ -641,7 +635,7 @@ This work builds upon methods developed during the author's NASA OSTEM internshi
 
 \textbf{Code:} The complete CloudMLPublic framework, including all data preprocessing pipelines, model implementations, training scripts, evaluation code, and visualization tools, is open-source and available at \url{https://github.com/rylanmalarchick/CloudMLPublic} under the MIT License.
 
-\textbf{Data:} NASA ER-2 downward-looking camera imagery is available through the NASA High Altitude Research Program data portal at \url{https://har.gsfc.nasa.gov/}. Cloud Physics Lidar (CPL) data can be requested from the NASA Goddard Space Flight Center. ERA5 reanalysis data are publicly available from the ECMWF Copernicus Climate Data Store (\url{https://cds.climate.copernicus.eu/}).
+\textbf{Data:} NASA ER-2 downward-looking camera imagery is available through the NASA High Altitude Research Program data portal at \url{https://har.gsfc.nasa.gov/}. Cloud Physics Lidar (CPL) data can be requested from the NASA Goddard Space Flight Center (\texttt{matthew.j.mcgill@nasa.gov}). ERA5 reanalysis data are publicly available from the ECMWF Copernicus Climate Data Store (\url{https://cds.climate.copernicus.eu/}).
 
 \textbf{Reproducibility:} All experiments are fully reproducible using the provided configuration files and random seeds (seed=42). Trained model weights and preprocessed datasets are available upon request. Estimated compute time for full reproduction: ~18 hours on a single NVIDIA GTX 1070 Ti GPU.
 
