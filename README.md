@@ -10,8 +10,6 @@ Production-ready machine learning system for cloud base height (CBH) retrieval f
 |-------|----|----|--------|
 | **GBDT (Tabular)** | **0.744** | **117.4 m** |  Production |
 | Ensemble (GBDT+CNN) | 0.7391 | 122.5 m |  Production |
-| Temporal ViT (Sprint 5) | 0.728 | 126 m | Research |
-| Physical Baseline | 0.668 | 137 m | Baseline |
 
 **Key Achievement:** First model to exceed R² = 0.74 target on operational data.
 
@@ -21,19 +19,14 @@ Production-ready machine learning system for cloud base height (CBH) retrieval f
 cloudMLPublic/
  src/
     cbh_retrieval/          # Sprint 6 production module
-    models/                  # Legacy model implementations
  tests/
     cbh/                     # Test suite (93.5% coverage)
  scripts/
-    cbh/                     # Utilities & auditing
+    cbh/                     # Production utilities & auditing
  docs/
     cbh/                     # Complete documentation
- results/
-    cbh/
-        figures/             # 44 publication-ready figures
-        reports/             # Validation & analysis reports
- models/
-    cbh_production/          # Trained model artifacts
+ preprint/                   # Academic publication materials
+ configs/                    # Legacy configuration files
  outputs/
      preprocessed_data/       # Integrated features (HDF5)
 ```
@@ -72,145 +65,27 @@ pytest tests/cbh/ --cov=src/cbh_retrieval
 ##  Dataset
 
 - **Samples:** 933 CPL-aligned observations (5 flights, Oct 2024 - Feb 2025)
-- **Input Features:** 28 atmospheric + geometric variables (ERA5 reanalysis)
+- **Input Features:** 18 features (12 atmospheric from ERA5 + 6 geometric from shadow analysis)
 - **Target:** Cloud base height from CPL lidar (0.12–1.95 km, mean: 0.83 km)
 - **Validation:** 5-fold stratified cross-validation
 - **Data Location:** `outputs/preprocessed_data/Integrated_Features.hdf5`
 
-**Model Performance (Stratified 5-Fold CV):**
-
-| Model | R² | MAE (m) | Status |
-|-------|-----|---------|--------|
-| **Temporal ViT + Consistency (λ=0.1)** | **0.728** | **126** |
-| Temporal ViT | 0.727 | 126 |
-| Physical GBDT (baseline) | 0.668 | 137 |
-| ViT-Tiny | 0.577 | 166 |
-| FiLM Fusion | 0.542 | 166 |
-| ResNet-50 | 0.524 | 171 | 
-
-## Model Evolution (Sprints 3-5)
-
-### Sprint 3: Physical Baseline
-- **Approach:** XGBoost GBDT with geometric + atmospheric features
-- **Features:** 10 geometric (shadow detection) + 9 atmospheric (real ERA5)
-- **Result:** R² = 0.668, MAE = 137 m
-
-### Sprint 4: Hybrid CNNs
-- Image-only CNN: R² = 0.279 
-- Concatenation fusion: R² = 0.180 (degraded!)
-- Attention fusion: R² = 0.326 
-- **Finding:** CNNs from scratch cannot beat physical baseline
-
-### Sprint 5: Advanced Deep Learning (Breakthrough!)
-1. **Pre-trained Backbones:**
-   - ResNet-50 (ImageNet): R² = 0.524 (+88% vs Sprint 4)
-   - ViT-Tiny (ImageNet-21k): R² = 0.577 (+107% vs Sprint 4)
-
-2. **Temporal Modeling:**
-   - Temporal ViT (5-frame): R² = 0.727 
-   - + Consistency Loss (λ=0.1): R² = 0.728 
-
-3. **Advanced Fusion:**
-   - FiLM (ERA5 integration): R² = 0.542
-
-**Key Insights:**
-- Temporal context critical (+26% R² over single-frame)
-- Vision Transformers > CNNs for this task
-- Transfer learning essential for small datasets
-- ERA5 fusion remains challenging for DL models
-
----
-
-## Documentation
-
-### Archived Documentation
-- Historical findings and implementation notes in `docs/archive/`
-
-## Approaches Tested
-
-### 1. Self-Supervised Learning (MAE)
-- Pre-trained masked autoencoder on 61,946 unlabeled images
-- **Result:** Embeddings uncorrelated with CBH (R² = 0.09)
-- **Issue:** Reconstruction optimizes for texture, not geometry
-
-### 2. Solar Angles Only
-- GBDT trained on [SZA, SAA] → CBH
-- **Within-flight:** R² = 0.70
-- **Cross-flight (LOO CV):** R² = -4.46
-- **Issue:** Temporal confounding, not physical
-
-### 3. Spatial Feature Extraction
-- Tested pooling, CNN, and attention variants
-- **Result:** All R² < 0 on cross-flight validation
-- **Issue:** Missing physical constraints
-
-### 4. Physics-Constrained Hybrid (In Progress)
-- Shadow geometry + atmospheric profiles (ERA5) + learned features
-- **Status:** Under development
-
 ## Technologies and Libraries
 
-- **Deep Learning Framework:** PyTorch, with CUDA acceleration for GPU training.
-- **Data Handling:** HDF5 for efficient storage and loading of large satellite datasets; scikit-learn for preprocessing and scaling.
-- **Visualization and Logging:** Matplotlib and Plotly for plots; TensorBoard for experiment tracking.
-- **Additional Tools:** NumPy and Pandas for data manipulation; YAML for configuration management.
-- **Advanced Components:** Mamba-SSM for sequence modeling and PyTorch Geometric for graph-based architectures where applicable.
-
-## Model Architecture
-
-The model, `MultimodalRegressionModel`, is composed of the following key components:
-
-- **CNN Backbone:** A series of convolutional layers to extract features from the input satellite images. The architecture is configurable through `config.yaml`.
-- **FiLM Layers:** Feature-wise Linear Modulation (FiLM) layers are used to inject scalar metadata (like solar angles) into the CNN, allowing the model to condition its image processing on this information.
-- **Spatial Attention:** A spatial attention mechanism (`SpatialAttention`) is applied to each frame to focus on the most relevant pixels.
-- **Temporal Attention:** A temporal attention mechanism (`TemporalAttention`) weighs the importance of each frame in a sequence, allowing the model to focus on the most informative time steps.
-- **Dense Layers:** Fully connected layers process the combined output of the CNN and attention mechanisms to produce the final CBH prediction.
-
-## Pipeline
-
-The training and evaluation pipeline is managed by `src/pipeline.py` and consists of the following stages:
-
-1.  **Pre-training:** The model is first pre-trained on a single, large flight to learn a good initial representation of the data.
-2.  **Final Training:** The pre-trained model is then fine-tuned on a combination of all flights, with the pre-training flight data being overweighted to retain its learned features. One flight is held out for validation.
-3.  **Leave-One-Out (LOO) Cross-Validation:** For robust evaluation, the model is trained and evaluated multiple times, with each flight being held out as the validation set once.
-
-## Features
-
-- **Data Preprocessing:** Scripts for preparing and normalizing satellite imagery data, including flat-field correction and CLAHE enhancement.
-- **Model Training:** Train a deep learning model with spatial and temporal attention mechanisms, supporting pre-training and fine-tuning.
-- **Evaluation:** Evaluate model performance using comprehensive metrics (MAE, MSE, RMSE, MAPE, R², error quantiles) and leave-one-out cross-validation for robustness.
-- **Visualization:** Generate plots, attention maps, and error analyses to interpret model behavior.
-- **Calibration and Uncertainty:** Includes conformal prediction for uncertainty quantification and model calibration scripts.
-- **Ablation Studies:** Automated command-line overrides for testing angles, attention, loss, augmentation, and architectures.
-- **Result Aggregation:** Scripts to combine metrics across runs into summary CSVs for comparison.
-
-## Challenges and Technical Insights
-
-Developing this model involved addressing several key challenges in remote sensing and multimodal learning:
-
-- **Multimodal Integration:** Combining high-resolution satellite imagery with scalar metadata required FiLM layers to condition the CNN without introducing artifacts, improving accuracy in varying solar conditions.
-- **Temporal Variability:** Satellite sequences can include irrelevant frames; temporal attention mechanisms were implemented to weigh informative time steps, reducing noise and enhancing focus on cloud dynamics.
-- **Data Imbalance and Generalization:** Flights varied in size and conditions, so pre-training on a large flight with overweighting during fine-tuning ensured retention of learned features, boosting cross-flight performance.
-- **Scalability:** Handling large HDF5 datasets necessitated streaming loaders and GPU optimization, with early stopping to prevent overfitting on limited labeled data.
-- **Evaluation Rigor:** LOO cross-validation provided a realistic assessment of generalization, revealing insights into model reliability across different atmospheric scenarios.
-
-## Results and Performance
-
-[Placeholder: Please provide specific metrics, e.g., average MAE/MSE across flights, comparisons to baselines, or key findings from your experiments.]
-
-## Future Work
-
-- Integrate transformer-based architectures for improved handling of long-range dependencies in image sequences.
-- Expand self-supervised pre-training on unlabeled satellite data to reduce reliance on labeled CPL data.
-- Add support for real-time inference and integration with additional sensors (e.g., radar).
-- Explore ensemble methods and uncertainty-aware predictions for operational deployment.
+- **Machine Learning:** scikit-learn for GBDT production model
+- **Deep Learning (Research):** PyTorch with CUDA acceleration for experimental models
+- **Data Handling:** HDF5 for efficient storage; pandas and NumPy for data manipulation
+- **Visualization:** Matplotlib and Plotly for analysis plots
+- **Testing:** pytest with 93.5% coverage
+- **Configuration:** YAML for experiment management
 
 ## Getting Started
 
 ### Prerequisites
 
 - Python 3.9+
-- CUDA 11.8+
+- For production model: CPU sufficient
+- For research models: CUDA 11.8+ (optional)
 
 ### Installation
 
@@ -228,156 +103,95 @@ Developing this model involved addressing several key challenges in remote sensi
 
 3.  **Install dependencies:**
     ```bash
+    # For production model only
+    pip install -r docs/cbh/requirements_production.txt
+    
+    # For full development (includes research models)
     pip install -r requirements.txt
     ```
 
 ### Data
 
-This project uses satellite imagery and associated metadata from NASA missions. The data is not included in this repository due to size and access restrictions. You will need to obtain the following datasets:
+This project uses airborne imagery and atmospheric data from NASA ER-2 field campaigns. The data is not included due to size and access restrictions. You will need:
 
-- **Camera (IRAI) and Navigation Data:** Available from the High Altitude Research (HAR) program at NASA. Download from [https://har.gsfc.nasa.gov/index.php?section=77](https://har.gsfc.nasa.gov/index.php?section=77) (see bottom of the page for data links).
-- **Cloud Physics Lidar (CPL) Data:** For cloud base height labels. Contact the CPL team at [https://cpl.gsfc.nasa.gov/](https://cpl.gsfc.nasa.gov/) or reach out to Rylan Malarchick (rylan1012@gmail.com) for access.
+- **Integrated Features Dataset:** `Integrated_Features.hdf5` containing atmospheric variables (ERA5) and geometric features (shadow analysis)
+- **Raw Data (for research):** IRAI camera imagery, CPL lidar measurements, navigation data
 
-Once obtained, place the data in the directory specified by `data_directory` in `config.yaml`.
-
-### Configuration
-
-1.  **Update `config.yaml`:**
-    -   Set `data_directory` to the path of your dataset.
-    -   Configure model hyperparameters, training settings, and flight data.
-
-2.  **(Optional) Update `bestComboConfig.yaml`:**
-    -   This file contains the best-performing hyperparameter combination found through ablation studies.
+Contact: rylan1012@gmail.com for data access.
 
 ### Running the Model
 
--   **Run a single experiment:**
-    ```bash
-    python main.py --config configs/bestComboConfig.yaml
-    ```
+#### Production Model (Recommended)
 
--   **Override configuration parameters from the command line:**
-    ```bash
-    python main.py --config configs/bestComboConfig.yaml --learning_rate 0.0001 --epochs 50
-    ```
+```bash
+# Train production GBDT model
+python -c "
+from src.cbh_retrieval import train_production_model
+model, scaler = train_production_model()
+"
 
--   **Run with specific ablation settings:**
-    ```bash
-    # Test without attention mechanisms
-    python main.py --config configs/bestComboConfig.yaml --no-use_spatial_attention --no-use_temporal_attention
-    
-    # Test with only zenith angles
-    python main.py --config configs/bestComboConfig.yaml --angles_mode sza_only
-    
-    # Test without augmentation
-    python main.py --config configs/bestComboConfig.yaml --no-augment
-    
-    # Test different architecture
-    python main.py --config configs/bestComboConfig.yaml --architecture_name gnn
-    ```
+# Run 5-fold cross-validation
+python -c "
+from src.cbh_retrieval import validate_tabular
+validate_tabular()
+"
 
--   **Run a leave-one-out (LOO) evaluation:**
-    ```bash
-    python main.py --config configs/bestComboConfig.yaml --loo
-    ```
+# Run tests
+pytest tests/cbh/ --cov=src/cbh_retrieval
+```
 
-#### Available Command-Line Arguments
+#### Research Models (Legacy)
 
-| Argument | Type | Description |
-|----------|------|-------------|
-| `--config` | str | Path to configuration YAML file |
-| `--learning_rate` | float | Learning rate for optimizer |
-| `--weight_decay` | float | Weight decay for regularization |
-| `--epochs` | int | Number of training epochs |
-| `--temporal_frames` | int | Number of temporal frames to use |
-| `--loss_type` | str | Loss function type (mae, huber, weighted_huber_mae) |
-| `--angles_mode` | str | Which angles to use: both, sza_only, saa_only, none |
-| `--architecture_name` | str | Model architecture: transformer, gnn, ssm, cnn |
-| `--augment` / `--no-augment` | bool | Enable/disable data augmentation |
-| `--use_spatial_attention` / `--no-use_spatial_attention` | bool | Enable/disable spatial attention |
-| `--use_temporal_attention` / `--no-use_temporal_attention` | bool | Enable/disable temporal attention |
-| `--flat_field_correction` / `--no-flat_field_correction` | bool | Enable/disable flat-field correction |
-| `--zscore_normalize` / `--no-zscore_normalize` | bool | Enable/disable z-score normalization |
-| `--loo` / `--no-loo` | bool | Enable/disable leave-one-out cross-validation |
-| `--save_name` | str | Custom name for saved models and results |
-| `--no_pretrain` | flag | Skip pretraining phase |
-| `--no_final` | flag | Skip final training/evaluation |
-| `--no_plots` | flag | Skip plot generation |
+The repository contains legacy deep learning models from prior research phases. These are maintained for reproducibility but not recommended for production use.
 
-### Running on Google Colab
+```bash
+# Run legacy model training
+python main.py --config configs/config.yaml
+```
 
-A Jupyter notebook (`colab_training.ipynb`) is provided for running experiments on Google Colab with free GPU access:
-
-1. **Open the notebook in Google Colab:**
-   - Upload `colab_training.ipynb` to Google Colab or open it directly from GitHub
-
-2. **Mount Google Drive:**
-   - Run the first cell to mount your Google Drive for persistent storage
-
-3. **Upload your data to Google Drive:**
-   - Create a folder: `/content/drive/MyDrive/CloudML/data/`
-   - Upload your flight data folders (e.g., `10Feb25/`, `30Oct24/`, etc.) to this location
-   - Each flight folder should contain the `.h5`, `.hdf5`, and `.hdf` files
-
-4. **Run the setup cells:**
-   - Install dependencies
-   - Clone/update the repository
-   - Update configuration paths
-
-5. **Run experiments:**
-   - Single experiments or ablation studies
-   - Results are saved to Google Drive automatically
-
-**Note:** Google Colab free tier has session limits (~12 hours). For longer training runs, consider Colab Pro or download checkpoints periodically.
+See `docs/cbh/REPRODUCIBILITY_GUIDE.md` for detailed instructions on reproducing research results.
 
 ## Project Structure
 
 ```
+cloudMLPublic/
  README.md
- main.py
+ main.py                     # Legacy deep learning training entry point
  requirements.txt
- .gitignore
- .pre-commit-config.yaml
- configs/
-    config.yaml
-    bestComboConfig.yaml
-    complexity_weights.yaml
-    ablation_*.yaml
+ configs/                    # Legacy configuration files
  scripts/
-    aggregate_results.py
-    calibrate_model.py
-    pretrain_ssl.py
+    cbh/                     # Production utilities & auditing
  src/
-    __init__.py
-    caching.py
-    cplCompareSub.py
-    data_preprocessing.py
-    ensemble.py
-    evaluate_model.py
-    hdf5_dataset.py
-    mae_model.py
-    main_utils.py
-    pipeline.py
-    plot_saved_results.py
-    pytorchmodel.py
-    scene_complexity.py
-    train_model.py
-    unlabeled_dataset.py
-    utils/
-       ...
-    visualization.py
+    cbh_retrieval/          # Sprint 6 production module
+    [legacy modules]        # Research code for reproducibility
+ tests/
+    cbh/                     # Test suite (93.5% coverage)
+ docs/
+    cbh/                     # Complete documentation
+ preprint/                   # Academic publication materials
+ outputs/
+    preprocessed_data/      # Integrated features (HDF5)
 ```
 
--   **`main.py`**: Entry point for running the model.
--   **`configs/`**: Configuration files for experiments, including ablation setups.
--   **`scripts/`**: Additional scripts for calibration, pre-training, and result aggregation.
--   **`src/`**: Source code for data processing, model architecture, training, and evaluation pipelines.
--   **`.gitignore`**: Git ignore file to exclude clutter.
--   **`.pre-commit-config.yaml`**: Pre-commit hooks configuration for code quality (linting, formatting).
+### Key Files
+
+-   **`src/cbh_retrieval/train_production_model.py`**: Production GBDT training
+-   **`src/cbh_retrieval/offline_validation_tabular.py`**: Cross-validation framework
+-   **`tests/cbh/`**: Comprehensive test suite
+-   **`docs/cbh/MODEL_CARD.md`**: Complete model specifications
+-   **`docs/cbh/DEPLOYMENT_GUIDE.md`**: Production deployment instructions
 
 ## Contributing
 
 Contributions are welcome! Please open an issue or submit a pull request for bug fixes, feature requests, or improvements.
+
+## Citation
+
+If you use this work in your research, please cite our preprint:
+
+```
+[Citation details to be added upon publication]
+```
 
 ## License
 
