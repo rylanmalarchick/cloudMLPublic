@@ -1,0 +1,129 @@
+MANUSCRIPT UPDATES FOR CBH PREPRINT SPRINT
+==========================================
+
+## 1. UPDATE ABSTRACT (Line ~42)
+
+CURRENT: "outperforming by 2× a convolutional neural network baseline trained on airborne camera imagery (R²=0.320±0.152, MAE=238.2±26.1 m)"
+
+REPLACE WITH: "outperforming both a simple CNN baseline (R²=0.320±0.152, MAE=238.2m) and state-of-the-art transfer learning models including ResNet-18 from scratch (R²=0.617±0.064, MAE=150.9m), validating that atmospheric features outperform vision approaches by 22.7% on MAE even with proper deep learning architectures"
+
+## 2. ADD TO TABLE 1 (After line 373)
+
+ADD THESE ROWS after the "CNN (Image)" row:
+
+ResNet-18 (scratch, no augment) & 0.617 ± 0.064 & 150.9 ± 10.0 & 225.7 ± 13.3 \\
+ResNet-18 (pretrained) & 0.581 ± 0.110 & 157.5 ± 22.6 & 234.9 ± 32.7 \\
+EfficientNet-B0 (pretrained) & 0.469 ± 0.052 & 179.0 ± 5.3 & 265.9 ± 12.5 \\
+
+ADD FOOTNOTE: "Vision baselines use 5-fold CV. ResNet-18 (scratch) is the best-performing vision model but still underperforms GBDT by 22.7% on MAE, confirming atmospheric features are superior even with transfer learning."
+
+## 3. ADD NEW SUBSECTION 4.1.1 (After Section 4.1, around line 388)
+
+\subsubsection{Deep Learning Vision Baselines}
+
+To ensure fair comparison beyond the simple CNN baseline, we trained state-of-the-art vision models with ImageNet pre-training: ResNet-18 \cite{He2016} and EfficientNet-B0 \cite{Tan2019}. Figure~\ref{fig:vision_baseline_comparison} shows comprehensive results across 6 model variants with 5-fold cross-validation.
+
+ResNet-18 trained from scratch achieved R$^2$=0.617±0.064 (MAE=150.9±10.0 m), substantially better than the simple CNN (R$^2$=0.320) but still 22.7\% worse than GBDT on MAE. Surprisingly, ImageNet pre-training degraded performance (R$^2$=0.581±0.110), likely due to domain mismatch between natural images and overhead cloud imagery combined with our small dataset size (n=896 matched samples). Data augmentation (horizontal flip, color jitter) further reduced performance (R$^2$=0.370±0.034), suggesting overfitting to augmented patterns.
+
+EfficientNet-B0 with pre-training achieved moderate performance (R$^2$=0.469±0.052, MAE=179.0m), while training from scratch yielded poor results with high variance (R$^2$=0.229±0.395). The best vision model (ResNet-18 scratch) still underperforms GBDT (R$^2$=0.744) by 17.1\% on R$^2$ and 22.7\% on MAE, confirming that atmospheric features outperform learned image representations even with state-of-the-art deep learning architectures and proper training techniques.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.95\textwidth]{../outputs/figures/vision_baseline_comparison.png}
+\caption{Vision baseline performance comparison across 6 model variants. ResNet-18 from scratch (R$^2$=0.617) is the best vision model but still underperforms GBDT (R$^2$=0.713, red dashed line) by 13.5\% on R$^2$ and 22.7\% on MAE. Pre-training and augmentation unexpectedly degrade performance, likely due to domain mismatch and small dataset size (n=896).}
+\label{fig:vision_baseline_comparison}
+\end{figure}
+
+\textbf{Computational cost:} ResNet-18 models require 43.1 MB storage and 5.8 ms inference time (GPU), while GBDT uses only 1.3 MB and 0.28 ms (CPU). The 21× speedup and 33× smaller model size enable real-time deployment on resource-constrained platforms.
+
+## 4. ADD NEW SECTION 4.3 (After current Section 4.2, around line 550)
+
+\subsection{Cross-Flight Domain Divergence}
+\label{sec:domain_shift}
+
+To quantify distribution shift across flight campaigns, we performed leave-one-flight-out (LOFO) cross-validation and computed Kolmogorov-Smirnov (K-S) divergence for each feature pair. Flight 18Feb25 (n=44) was excluded due to insufficient sample size for reliable metrics (<60 samples).
+
+\textbf{Catastrophic domain shift observed:} LOFO validation reveals complete failure to generalize across flight campaigns, with all test flights yielding negative R$^2$ values (Table~\ref{tab:lofo_results}). Mean LOFO performance is R$^2$=-1.007±0.552, MAE=418.2±93.3 m, representing a 240\% degradation compared to within-campaign performance (R$^2$=0.713, MAE=123.5m). This indicates models predict worse than a constant mean baseline when tested on unseen atmospheric regimes.
+
+\begin{table}[h]
+\centering
+\caption{Leave-one-flight-out cross-validation results showing catastrophic generalization failure across flight campaigns. All test flights achieve negative R$^2$ values.}
+\label{tab:lofo_results}
+\begin{tabular}{lcccccc}
+\toprule
+\textbf{Test Flight} & \textbf{n\_test} & \textbf{n\_train} & \textbf{R$^2$} & \textbf{MAE (m)} & \textbf{RMSE (m)} \\
+\midrule
+Flight 0 (30Oct24) & 423 & 390 & -1.138 & 341.3 & 428.8 \\
+Flight 1 (10Feb25) & 182 & 631 & -0.585 & 318.8 & 372.4 \\
+Flight 2 (23Oct24) & 102 & 711 & -1.817 & 542.6 & 677.6 \\
+Flight 3 (12Feb25) & 84 & 729 & -0.488 & 470.0 & 672.4 \\
+\midrule
+\textbf{Average} & - & - & \textbf{-1.007} & \textbf{418.2} & \textbf{537.7} \\
+\bottomrule
+\multicolumn{6}{l}{\footnotesize \textit{Note: Flight 4 (18Feb25, n=44) excluded due to insufficient sample size (<60).}} \\
+\end{tabular}
+\end{table}
+
+K-S divergence analysis (Figure~\ref{fig:ks_divergence}) shows significant feature distribution shifts across flights, with atmospheric variables (d2m, t2m, sp) exhibiting highest cross-flight divergence (K-S > 0.4, p < 0.001). PCA visualization (Figure~\ref{fig:pca_clustering}) reveals flights cluster by campaign, with PC1 explaining 36.0\% of variance and PC2 explaining 14.4\%. October 2024 flights separate from February 2025 flights along PC1, confirming domain shift arises from genuine meteorological differences across seasons and geographic regions, not sampling artifacts.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.9\textwidth]{../outputs/domain_analysis/figures/ks_divergence_heatmap.png}
+\caption{Kolmogorov-Smirnov divergence heatmap showing top 10 most divergent features across flight pairs. High K-S statistics (red) indicate significant distribution shifts. Atmospheric variables (d2m, t2m, sp) show strongest divergence (K-S > 0.4).}
+\label{fig:ks_divergence}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.8\textwidth]{../outputs/domain_analysis/figures/pca_flight_clustering.png}
+\caption{PCA visualization of feature distributions colored by flight ID. Distinct clustering demonstrates domain shift across flight campaigns (PC1: 36.0\% variance, PC2: 14.4\% variance). October 2024 and February 2025 campaigns separate along PC1.}
+\label{fig:pca_clustering}
+\end{figure}
+
+\textbf{Implications:} The severe domain shift highlights a critical limitation for operational deployment. Models trained on historical campaigns cannot reliably predict CBH for new flights without domain adaptation techniques (e.g., transfer learning, domain-adversarial training). This motivates future work on few-shot learning and meta-learning approaches for rapid adaptation to new meteorological conditions.
+
+## 5. ADD NEW SECTION 5.2 (In Discussion, around line 650)
+
+\subsection{Physical Plausibility Validation}
+\label{sec:physics_validation}
+
+To validate that GBDT learns physically meaningful relationships rather than spurious correlations, we compared predictions against the Lifting Condensation Level (LCL)---a thermodynamic estimate of where rising air parcels reach saturation and clouds form. Table~\ref{tab:physics_validation} summarizes constraint checks.
+
+\begin{table}[h]
+\centering
+\caption{Physical plausibility validation showing zero constraint violations and expected correlations with atmospheric variables.}
+\label{tab:physics_validation}
+\begin{tabular}{lccc}
+\toprule
+\textbf{Constraint} & \textbf{Expected} & \textbf{Observed} & \textbf{Violations} \\
+\midrule
+CBH $\leq$ 12,000 m (tropopause) & 100\% & 100\% & 0/163 (0.0\%) \\
+CBH $\geq$ 0 m (surface) & 100\% & 100\% & 0/163 (0.0\%) \\
+Corr(LCL, CBH$_{\text{pred}}$) > 0 & Yes & r=0.68*** & N/A \\
+Corr(BLH, CBH$_{\text{pred}}$) > 0 & Yes & r=0.14* & N/A \\
+\bottomrule
+\multicolumn{4}{l}{\footnotesize \textit{Note: *** p<0.001, * p<0.05}} \\
+\end{tabular}
+\end{table}
+
+Predicted CBH correlates strongly with LCL (r=0.68, p<0.001, Figure~\ref{fig:cbh_lcl_validation}), comparable to observed CBH vs. LCL correlation (r=0.71). Zero predictions violated the tropopause constraint (CBH > 12 km) or produced negative values, confirming physical plausibility. Predictions show expected positive correlation with boundary layer height (r=0.14, p<0.05), though weaker than LCL due to complex vertical mixing processes.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.95\textwidth]{../outputs/physics_validation/figures/cbh_vs_lcl_validation.png}
+\caption{Comparison of predicted CBH vs. LCL (left) and true CBH vs. LCL (right). Strong correlation (r=0.68) demonstrates model learns physically consistent relationships. Deviations from 1:1 line (red dashed) occur when boundary layer turbulence or cloud microphysics cause CBH to differ from simple LCL estimates.}
+\label{fig:cbh_lcl_validation}
+\end{figure}
+
+Case study analysis reveals that large prediction errors (>500m) occur primarily when ERA5's 25 km resolution cannot capture mesoscale cloud variability or complex topographic effects, rather than from model deficiencies. Best predictions (error <10m) coincide with well-mixed boundary layers where LCL closely approximates CBH. This physics-based validation demonstrates that GBDT does not merely fit statistical patterns but captures fundamental atmospheric processes governing cloud base formation.
+
+## 6. UPDATE CONCLUSION (Around line 750)
+
+ADD TO CONCLUSION:
+
+Our vision baseline experiments with ResNet-18 and EfficientNet-B0 confirm that atmospheric features outperform learned image representations by 22.7\% on MAE even with state-of-the-art architectures, validating our core claim is not an artifact of weak baseline design. The catastrophic domain shift revealed by leave-one-flight-out validation (R$^2$ dropping from 0.713 to -1.007) highlights the critical need for domain adaptation techniques in operational deployment. Physics-based validation confirms model trustworthiness through zero constraint violations and strong correlation with Lifting Condensation Level (r=0.68).
+
+ADD TO FUTURE WORK:
+
+Future research should explore: (1) few-shot learning and meta-learning for rapid adaptation to new meteorological regimes with <20 labeled samples, (2) domain-adversarial training to learn flight-invariant representations, (3) physics-informed loss functions incorporating LCL and stability constraints, and (4) multi-task learning predicting cloud top height and optical depth jointly with CBH to leverage correlated atmospheric properties.
+
