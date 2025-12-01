@@ -1,0 +1,53 @@
+# Data Pipeline Configuration - Phase 2 Expansion (Include Multi-layer Clouds)
+# This configuration includes multi-layer clouds in ocean regions with CBH 0.2-2.0km
+# Actual output: 865 samples (+488 samples, +129% increase from baseline)
+
+# --- File Paths ---
+data_directory: "data/"
+output_file: "data/Integrated_Features_phase2.hdf5"
+
+# --- CBH Filtering ---
+cbh_min: 0.2  # Original minimum (0.2 km)
+cbh_max: 2.0  # Original maximum (2.0 km)
+
+# --- Surface Type Filtering ---
+dem_mode: "exact"  # Options: "exact" (DEM == 0), "threshold" (DEM < dem_threshold)
+dem_threshold: 0.0       # Only used if dem_mode is "threshold"
+
+# --- Cloud Layer Filtering ---
+allow_multilayer: true  # NOW INCLUDE multi-layer clouds (was false)
+
+# --- Temporal Matching ---
+time_tolerance: 0.5  # Seconds - temporal matching window for IRAI/CPL alignment
+
+# --- Swath Parameters ---
+swath_slice: [40, 480]  # Pixel range to extract from IRAI swath
+
+# --- Flight Information ---
+flights:
+  - name: "30Oct24"
+    iFileName: "30Oct24/WHYMSIE2024_IRAI_L1B_Rev-_20241030-008.h5"
+    cFileName: "30Oct24/CPL_L2_V1-02_01kmLay_259006_30oct24.hdf5"
+    nFileName: "30Oct24/CRS_20241030_nav.hdf"
+  - name: "10Feb25"
+    iFileName: "10Feb25/GLOVE2025_IRAI_L1B_Rev-_20250210-003.h5"
+    cFileName: "10Feb25/CPL_L2_V1-02_01kmLay_259015_10feb25.hdf5"
+    nFileName: "10Feb25/CRS_20250210_nav.hdf"
+  - name: "23Oct24"
+    iFileName: "23Oct24/WHYMSIE2024_IRAI_L1B_Rev-_20241023-007.h5"
+    cFileName: "23Oct24/CPL_L2_V1-02_01kmLay_259004_23oct24.hdf5"
+    nFileName: "23Oct24/CRS_20241023_nav.hdf"
+  - name: "12Feb25"
+    iFileName: "12Feb25/GLOVE2025_IRAI_L1B_Rev-_20250212-005.h5"
+    cFileName: "12Feb25/CPL_L2_V1-02_01kmLay_259016_12feb25.hdf5"
+    nFileName: "12Feb25/CRS_20250212_nav.hdf"
+  - name: "18Feb25"
+    iFileName: "18Feb25/GLOVE2025_IRAI_L1B_Rev-_20250218-002.h5"
+    cFileName: "18Feb25/CPL_L2_V1-02_01kmLay_259017_18feb25.hdf5"
+    nFileName: "18Feb25/CRS_20250218_nav.hdf"
+
+# --- Expansion Benefits ---
+# 1. Captures complex multi-layer cloud systems
+# 2. Improves model robustness for layered atmospheric conditions
+# 3. Better representation of real-world cloud structures
+# 4. Ground truth still uses lowest cloud layer for consistency
