@@ -18,8 +18,8 @@ This model predicts Cloud Base Height (CBH) in meters above ground level using a
 ### Model Architecture
 - **Algorithm**: Gradient Boosting Regressor (sklearn.ensemble.GradientBoostingRegressor)
 - **Number of Estimators**: 200
-- **Max Depth**: 5
-- **Learning Rate**: 0.1
+- **Max Depth**: 8
+- **Learning Rate**: 0.05
 - **Loss Function**: Least Squares
 - **Input Features**: 18 features (12 atmospheric + 6 geometric)
 - **Output**: Single continuous value (CBH in meters)
