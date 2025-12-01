@@ -164,11 +164,11 @@ class FeatureAblationAnalysis:
         kfold = KFold(n_splits=self.n_folds, shuffle=True, 
                      random_state=self.random_state)
         
-        # GBDT model
+        # GBDT model - canonical hyperparameters from paper
         model = GradientBoostingRegressor(
-            n_estimators=300,
+            n_estimators=200,
             learning_rate=0.05,
-            max_depth=7,
+            max_depth=8,
             min_samples_split=10,
             min_samples_leaf=4,
             subsample=0.8,
@@ -265,9 +265,9 @@ class FeatureAblationAnalysis:
         X_scaled = scaler.fit_transform(X)
         
         model = GradientBoostingRegressor(
-            n_estimators=300,
+            n_estimators=200,
             learning_rate=0.05,
-            max_depth=7,
+            max_depth=8,
             min_samples_split=10,
             min_samples_leaf=4,
             subsample=0.8,

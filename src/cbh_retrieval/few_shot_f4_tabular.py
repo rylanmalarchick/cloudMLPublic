@@ -172,13 +172,14 @@ class DomainAdaptationF4Tabular:
         X_train_scaled = scaler.fit_transform(X_train_imputed)
         X_test_scaled = scaler.transform(X_test_imputed)
 
-        # Train GBDT
+        # Train GBDT - canonical hyperparameters from paper
         model = GradientBoostingRegressor(
-            n_estimators=300,
+            n_estimators=200,
             learning_rate=0.05,
-            max_depth=7,
+            max_depth=8,
+            min_samples_split=10,
+            min_samples_leaf=4,
             subsample=0.8,
-            max_features=0.8,
             random_state=self.random_seed,
         )
         model.fit(X_train_scaled, y_train)
@@ -274,13 +275,14 @@ class DomainAdaptationF4Tabular:
             X_train_scaled = scaler.fit_transform(X_train_imputed)
             X_test_scaled = scaler.transform(X_test_imputed)
 
-            # Train adapted model
+            # Train adapted model - canonical hyperparameters from paper
             model = GradientBoostingRegressor(
-                n_estimators=300,
+                n_estimators=200,
                 learning_rate=0.05,
-                max_depth=7,
+                max_depth=8,
+                min_samples_split=10,
+                min_samples_leaf=4,
                 subsample=0.8,
-                max_features=0.8,
                 random_state=self.random_seed + trial,
             )
             model.fit(X_train_scaled, y_train)

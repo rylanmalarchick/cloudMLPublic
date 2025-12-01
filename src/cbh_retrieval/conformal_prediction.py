@@ -345,10 +345,11 @@ class ConformalUncertaintyAnalysis:
         X_cal_scaled = scaler.transform(X_cal)
         X_test_scaled = scaler.transform(X_test)
         
+        # Canonical hyperparameters from paper
         model = GradientBoostingRegressor(
-            n_estimators=300,
+            n_estimators=200,
             learning_rate=0.05,
-            max_depth=7,
+            max_depth=8,
             min_samples_split=10,
             min_samples_leaf=4,
             subsample=0.8,

@@ -170,10 +170,10 @@ class TabularValidationAnalyzer:
         print("\nTraining GBDT model...")
         model = GradientBoostingRegressor(
             n_estimators=200,
-            max_depth=6,
+            max_depth=8,
             learning_rate=0.05,
-            min_samples_split=5,
-            min_samples_leaf=2,
+            min_samples_split=10,
+            min_samples_leaf=4,
             subsample=0.8,
             random_state=self.random_seed + fold_idx,
             verbose=0,

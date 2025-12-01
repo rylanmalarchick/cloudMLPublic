@@ -156,8 +156,10 @@ def train_model_and_predict(df, feature_names):
     # Train model
     model = GradientBoostingRegressor(
         n_estimators=200,
-        max_depth=5,
-        learning_rate=0.1,
+        max_depth=8,
+        learning_rate=0.05,
+        min_samples_split=10,
+        min_samples_leaf=4,
         random_state=42,
         subsample=0.8,
     )
