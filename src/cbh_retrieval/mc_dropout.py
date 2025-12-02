@@ -17,13 +17,17 @@ Date: 2025-01-10
 """
 
 import warnings
+from sklearn.exceptions import ConvergenceWarning
 from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 import torch
 import torch.nn as nn
 
-warnings.filterwarnings("ignore")
+# Suppress sklearn convergence and numpy deprecation warnings
+warnings.filterwarnings("ignore", category=ConvergenceWarning)
+warnings.filterwarnings("ignore", category=FutureWarning)
+warnings.filterwarnings("ignore", category=UserWarning, module="sklearn")
 
 
 class MCDropoutWrapper(nn.Module):

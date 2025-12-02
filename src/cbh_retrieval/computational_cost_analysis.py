@@ -32,6 +32,7 @@ import pickle
 import sys
 import time
 import warnings
+from sklearn.exceptions import ConvergenceWarning
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List
@@ -48,7 +49,10 @@ from sklearn.model_selection import KFold
 from sklearn.preprocessing import StandardScaler
 from torchvision import models
 
-warnings.filterwarnings("ignore")
+# Suppress sklearn convergence and numpy deprecation warnings
+warnings.filterwarnings("ignore", category=ConvergenceWarning)
+warnings.filterwarnings("ignore", category=FutureWarning)
+warnings.filterwarnings("ignore", category=UserWarning, module="sklearn")
 
 # Add project root to path
 PROJECT_ROOT = Path(__file__).resolve().parents[2]

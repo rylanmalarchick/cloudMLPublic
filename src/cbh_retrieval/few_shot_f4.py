@@ -25,6 +25,7 @@ Date: 2025-01-10
 import json
 import sys
 import warnings
+from sklearn.exceptions import ConvergenceWarning
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Tuple
@@ -38,7 +39,10 @@ import torch.optim as optim
 from sklearn.metrics import mean_absolute_error, r2_score
 from torch.utils.data import DataLoader
 
-warnings.filterwarnings("ignore")
+# Suppress sklearn convergence and numpy deprecation warnings
+warnings.filterwarnings("ignore", category=ConvergenceWarning)
+warnings.filterwarnings("ignore", category=FutureWarning)
+warnings.filterwarnings("ignore", category=UserWarning, module="sklearn")
 
 # Add project root to path
 project_root = Path(__file__).parent.parent.parent.parent
