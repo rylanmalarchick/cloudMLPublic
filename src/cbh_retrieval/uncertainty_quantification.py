@@ -453,14 +453,12 @@ class UncertaintyAnalyzer:
 def main():
     """Main execution function"""
 
-    # Paths (following Sprint 6 SOW Table 1)
-    project_root = Path(
-        "/home/rylan/Documents/research/NASA/programDirectory/cloudMLPublic"
-    )
+    # Paths - use relative path from module location
+    project_root = Path(__file__).resolve().parent.parent.parent
     integrated_features_path = str(
         project_root / "outputs/preprocessed_data/Integrated_Features.hdf5"
     )
-    output_dir = project_root / "."
+    output_dir = project_root
 
     # Load a trained model checkpoint from Task 1.1
     checkpoint_path = output_dir / "checkpoints" / "fold_0_model.pth"
