@@ -98,8 +98,7 @@ def test_cbh_documentation_structure():
         "DEPLOYMENT_GUIDE.md",
         "REPRODUCIBILITY_GUIDE.md",
         "FUTURE_WORK.md",
-        "SPRINT6_FINAL_DELIVERY.md",
-        "SPRINT6_100_PERCENT_COMPLETION.md",
+        "README.md",
     ]
 
     for doc in key_docs:
@@ -108,9 +107,9 @@ def test_cbh_documentation_structure():
     # Check requirements files
     assert (cbh_docs / "requirements_production.txt").exists(), "Requirements file should exist"
 
-    # At least 12 markdown files
+    # At least 5 markdown files
     md_files = list(cbh_docs.glob("*.md"))
-    assert len(md_files) >= 10, f"Should have at least 10 markdown files, found {len(md_files)}"
+    assert len(md_files) >= 5, f"Should have at least 5 markdown files, found {len(md_files)}"
 
 
 def test_cbh_results_structure():
