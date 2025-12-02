@@ -46,9 +46,9 @@ def test_cbh_source_code_structure():
     for module in key_modules:
         assert (cbh_src / module).exists(), f"src/cbh_retrieval/{module} should exist"
 
-    # Check at least 20 Python files
+    # Check at least 10 core Python files (analysis/experimental moved to archive/)
     py_files = list(cbh_src.glob("*.py"))
-    assert len(py_files) >= 20, f"Should have at least 20 Python files, found {len(py_files)}"
+    assert len(py_files) >= 10, f"Should have at least 10 core Python files, found {len(py_files)}"
 
 
 def test_cbh_tests_structure():
