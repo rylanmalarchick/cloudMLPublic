@@ -1,33 +1,50 @@
 #!/usr/bin/env python3
-"""
-Sprint 6 - Phase 3, Task 3.3: Performance Visualization
+"""Sprint 6 - Phase 3, Task 3.3: Performance Visualization.
 
-This script generates publication-ready performance visualization plots
-for the CBH retrieval models (adapted for tabular features).
+This module generates publication-ready performance visualization plots
+for the CBH (Cloud Base Height) retrieval models using tabular features.
 
-Generates:
-1. Prediction scatter plot with uncertainty error bars
-2. Error distribution histogram
-3. Per-flight performance breakdown
-4. Model comparison bar charts
+The module produces four main figure types:
+    1. Prediction scatter plot with uncertainty error bars
+    2. Error distribution histogram
+    3. Per-flight performance breakdown
+    4. Model comparison bar charts
+
+Example:
+    Run as a standalone script to generate all figures::
+
+        $ python performance_plots.py
+
+    Or import and use individual plotting functions::
+
+        from performance_plots import plot_prediction_scatter
+        plot_prediction_scatter(validation_data, uq_data, output_dir)
+
+Attributes:
+    PROJECT_ROOT (Path): Root directory of the project.
+    REPORTS_DIR (Path): Directory containing validation report JSON files.
+    FIGURES_DIR (Path): Output directory for generated figures.
+    FLIGHT_COLORS (dict[int, str]): Mapping of flight indices to hex colors.
+    FLIGHT_NAMES (dict[int, str]): Mapping of flight indices to flight date names.
 
 Author: Sprint 6 Agent
 Date: 2025
 """
 
+from __future__ import annotations
+
 import json
 import sys
 from pathlib import Path
+from typing import Any
 
 import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
 import seaborn as sns
-from matplotlib.patches import Rectangle
 from scipy import stats
 
 # Add project root to path
-PROJECT_ROOT = Path(__file__).resolve().parents[3]
+PROJECT_ROOT: Path = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
 print("=" * 80)
@@ -36,14 +53,14 @@ print("=" * 80)
 print(f"Project Root: {PROJECT_ROOT}")
 
 # Paths
-REPORTS_DIR = PROJECT_ROOT / "./reports"
-FIGURES_DIR = PROJECT_ROOT / "./figures/paper"
+REPORTS_DIR: Path = PROJECT_ROOT / "./reports"
+FIGURES_DIR: Path = PROJECT_ROOT / "./figures/paper"
 
 # Create output directory
 FIGURES_DIR.mkdir(parents=True, exist_ok=True)
 
 # Configuration
-FLIGHT_COLORS = {
+FLIGHT_COLORS: dict[int, str] = {
     0: "#1f77b4",  # 30Oct24 - Blue
     1: "#ff7f0e",  # 10Feb25 - Orange
     2: "#2ca02c",  # 23Oct24 - Green
@@ -51,7 +68,7 @@ FLIGHT_COLORS = {
     4: "#9467bd",  # 18Feb25 - Purple
 }
 
-FLIGHT_NAMES = {
+FLIGHT_NAMES: dict[int, str] = {
     0: "30Oct24",
     1: "10Feb25",
     2: "23Oct24",
@@ -60,8 +77,29 @@ FLIGHT_NAMES = {
 }
 
 
-def load_validation_results():
-    """Load validation results from JSON reports."""
+def load_validation_results() -> tuple[dict[str, Any], dict[str, Any]]:
+    """Load validation results from JSON report files.
+
+    Reads the tabular validation report and uncertainty quantification (UQ)
+    report from the reports directory.
+
+    Returns:
+        A tuple containing two dictionaries:
+            - validation_data: Dictionary with validation metrics and predictions
+              including 'aggregated_predictions' and 'mean_metrics' keys.
+            - uq_data: Dictionary with uncertainty quantification data including
+              'aggregated_predictions' with 'y_lower' and 'y_upper' bounds.
+
+    Raises:
+        FileNotFoundError: If validation_report_tabular.json or
+            uncertainty_quantification_report.json is not found in REPORTS_DIR.
+        json.JSONDecodeError: If either JSON file contains invalid JSON.
+
+    Example:
+        >>> validation_data, uq_data = load_validation_results()
+        >>> print(validation_data['mean_metrics']['r2'])
+        0.744
+    """
     print("\n" + "=" * 80)
     print("Loading Validation Results")
     print("=" * 80)
@@ -83,8 +121,35 @@ def load_validation_results():
     return validation_data, uq_data
 
 
-def plot_prediction_scatter(validation_data, uq_data, output_dir):
-    """Generate prediction scatter plot with uncertainty error bars."""
+def plot_prediction_scatter(
+    validation_data: dict[str, Any],
+    uq_data: dict[str, Any],
+    output_dir: Path,
+) -> None:
+    """Generate prediction scatter plot with uncertainty error bars.
+
+    Creates a scatter plot comparing true vs predicted CBH values with
+    90% uncertainty intervals shown as error bars. A subset of points
+    is plotted for visual clarity.
+
+    Args:
+        validation_data: Dictionary containing validation results with keys:
+            - 'aggregated_predictions': dict with 'y_true' and 'y_pred' arrays
+            - 'mean_metrics': dict with 'r2' and 'mae_m' values
+        uq_data: Dictionary containing uncertainty quantification data with keys:
+            - 'aggregated_predictions': dict with 'y_lower' and 'y_upper' arrays
+        output_dir: Path to directory where output figures will be saved.
+            Both PNG (300 DPI) and PDF formats are generated.
+
+    Returns:
+        None. Saves figures to output_dir as:
+            - figure_prediction_scatter.png
+            - figure_prediction_scatter.pdf
+
+    Note:
+        A random subset of up to 500 points is plotted to avoid visual clutter
+        while still representing the overall distribution.
+    """
     print("\n" + "=" * 80)
     print("Generating Prediction Scatter Plot")
     print("=" * 80)
@@ -116,7 +181,7 @@ def plot_prediction_scatter(validation_data, uq_data, output_dir):
         ax.errorbar(
             y_true[idx],
             y_pred[idx],
-            yerr=[[lower_err], [upper_err]],
+            yerr=[[lower_err], [upper_err]],  # type: ignore[arg-type]
             fmt="o",
             color="steelblue",
             alpha=0.3,
@@ -170,8 +235,32 @@ def plot_prediction_scatter(validation_data, uq_data, output_dir):
     print(" Saved: figure_prediction_scatter.pdf")
 
 
-def plot_error_distribution(validation_data, output_dir):
-    """Generate error distribution histogram."""
+def plot_error_distribution(
+    validation_data: dict[str, Any],
+    output_dir: Path,
+) -> None:
+    """Generate error distribution histograms.
+
+    Creates a two-panel figure showing:
+        - Left panel: Distribution of signed prediction errors with Gaussian fit
+        - Right panel: Distribution of absolute errors with median and 95th percentile
+
+    Args:
+        validation_data: Dictionary containing validation results with keys:
+            - 'aggregated_predictions': dict with 'y_true' and 'y_pred' arrays
+        output_dir: Path to directory where output figures will be saved.
+            Both PNG (300 DPI) and PDF formats are generated.
+
+    Returns:
+        None. Saves figures to output_dir as:
+            - figure_error_distribution.png
+            - figure_error_distribution.pdf
+
+    Note:
+        Errors are computed in meters (predictions converted from km to m).
+        The left panel includes a Gaussian probability density overlay on
+        a secondary y-axis.
+    """
     print("\n" + "=" * 80)
     print("Generating Error Distribution Plot")
     print("=" * 80)
@@ -259,8 +348,26 @@ def plot_error_distribution(validation_data, output_dir):
     print(" Saved: figure_error_distribution.pdf")
 
 
-def plot_per_flight_performance(output_dir):
-    """Generate per-flight performance breakdown."""
+def plot_per_flight_performance(output_dir: Path) -> None:
+    """Generate per-flight performance breakdown bar charts.
+
+    Creates a two-panel figure showing R-squared and MAE metrics for each
+    flight, compared against baseline GBDT performance from the SOW.
+
+    Args:
+        output_dir: Path to directory where output figures will be saved.
+            Both PNG (300 DPI) and PDF formats are generated.
+
+    Returns:
+        None. Saves figures to output_dir as:
+            - figure_per_flight_performance.png
+            - figure_per_flight_performance.pdf
+
+    Note:
+        Currently uses representative example values. In production, these
+        would be loaded from an error_analysis report. Baseline values are
+        from the Statement of Work (SOW): R^2 = 0.668, MAE = 137m.
+    """
     print("\n" + "=" * 80)
     print("Generating Per-Flight Performance Plot")
     print("=" * 80)
@@ -370,8 +477,41 @@ def plot_per_flight_performance(output_dir):
     print(" Saved: figure_per_flight_performance.pdf")
 
 
-def plot_model_comparison(validation_data, output_dir):
-    """Generate model comparison bar charts."""
+def plot_model_comparison(
+    validation_data: dict[str, Any],
+    output_dir: Path,
+) -> None:
+    """Generate model comparison bar charts across multiple metrics.
+
+    Creates a three-panel figure comparing different model architectures
+    on R-squared, MAE, and RMSE metrics. Models range from baseline GBDT
+    to advanced temporal vision transformers.
+
+    Args:
+        validation_data: Dictionary containing validation results. Currently
+            unused but included for API consistency and future extensibility.
+        output_dir: Path to directory where output figures will be saved.
+            Both PNG (300 DPI) and PDF formats are generated.
+
+    Returns:
+        None. Saves figures to output_dir as:
+            - figure_model_comparison.png
+            - figure_model_comparison.pdf
+
+    Note:
+        Model performance values are example values from the SOW and
+        experimental results. MAE and RMSE axes are inverted since
+        lower values indicate better performance.
+
+        Models compared:
+            - Physical GBDT (baseline)
+            - GBDT (Tabular)
+            - Custom CNN
+            - ResNet-50
+            - ViT-Tiny
+            - Temporal ViT
+            - Temporal ViT + Consistency
+    """
     print("\n" + "=" * 80)
     print("Generating Model Comparison Plot")
     print("=" * 80)
@@ -491,8 +631,21 @@ def plot_model_comparison(validation_data, output_dir):
     print(" Saved: figure_model_comparison.pdf")
 
 
-def main():
-    """Main execution."""
+def main() -> None:
+    """Main execution entry point for performance visualization generation.
+
+    Orchestrates the complete visualization pipeline:
+        1. Sets up matplotlib/seaborn styling for publication-quality figures
+        2. Loads validation and uncertainty quantification data
+        3. Generates all four figure types
+
+    Returns:
+        None. All output is saved to FIGURES_DIR and status is printed to stdout.
+
+    Raises:
+        FileNotFoundError: If required validation report files are not found.
+        json.JSONDecodeError: If report files contain invalid JSON.
+    """
     print("\nStarting performance visualization generation...")
 
     # Set style
