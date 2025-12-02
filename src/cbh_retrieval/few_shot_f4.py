@@ -559,14 +559,12 @@ class DomainAdaptationF4:
 def main():
     """Main execution function"""
 
-    # Paths
-    project_root = Path(
-        "/home/rylan/Documents/research/NASA/programDirectory/cloudMLPublic"
-    )
+    # Paths - use relative path from module location
+    project_root = Path(__file__).resolve().parent.parent.parent
     integrated_features_path = str(
         project_root / "outputs/preprocessed_data/Integrated_Features.hdf5"
     )
-    output_dir = project_root / "."
+    output_dir = project_root
     production_checkpoint = output_dir / "models" / "final_production_model.pth"
 
     # Fallback to fold checkpoint if production not available
