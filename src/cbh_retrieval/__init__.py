@@ -11,6 +11,20 @@ Performance: R² = 0.744 (GBDT), 0.7391 (Ensemble), MAE = 117.4m
 __version__ = "1.0.0"
 __author__ = "NASA CBH Retrieval Team"
 
+# Configuration
+from .config import (
+    GBDT_CONFIG,
+    CNN_CONFIG,
+    VALIDATION_CONFIG,
+    REPORTED_METRICS,
+    PROJECT_ROOT,
+    DATA_DIR,
+    MODELS_DIR,
+    FIGURES_DIR,
+    get_gbdt_params,
+    ensure_dirs_exist,
+)
+
 # Core models and datasets
 # Ensemble methods
 from .ensemble_models import (
@@ -52,6 +66,17 @@ __all__ = [
     # Version
     "__version__",
     "__author__",
+    # Configuration
+    "GBDT_CONFIG",
+    "CNN_CONFIG",
+    "VALIDATION_CONFIG",
+    "REPORTED_METRICS",
+    "PROJECT_ROOT",
+    "DATA_DIR",
+    "MODELS_DIR",
+    "FIGURES_DIR",
+    "get_gbdt_params",
+    "ensure_dirs_exist",
     # Core
     "ImageCBHDataset",
     "MCDropoutModel",
