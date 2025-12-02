@@ -14,6 +14,7 @@ Date: 2025-11-11
 
 import json
 import warnings
+from sklearn.exceptions import ConvergenceWarning
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Tuple
@@ -22,7 +23,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 
-warnings.filterwarnings("ignore")
+# Suppress sklearn convergence and numpy deprecation warnings
+warnings.filterwarnings("ignore", category=ConvergenceWarning)
+warnings.filterwarnings("ignore", category=FutureWarning)
+warnings.filterwarnings("ignore", category=UserWarning, module="sklearn")
 
 # Set style
 plt.style.use("seaborn-v0_8-darkgrid")

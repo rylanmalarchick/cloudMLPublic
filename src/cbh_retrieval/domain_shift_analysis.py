@@ -16,6 +16,7 @@ Date: 2025
 import json
 import sys
 import warnings
+from sklearn.exceptions import ConvergenceWarning
 from datetime import datetime
 from pathlib import Path
 
@@ -31,7 +32,10 @@ from sklearn.manifold import TSNE
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.preprocessing import StandardScaler
 
-warnings.filterwarnings("ignore")
+# Suppress sklearn convergence and numpy deprecation warnings
+warnings.filterwarnings("ignore", category=ConvergenceWarning)
+warnings.filterwarnings("ignore", category=FutureWarning)
+warnings.filterwarnings("ignore", category=UserWarning, module="sklearn")
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(PROJECT_ROOT))

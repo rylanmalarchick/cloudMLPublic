@@ -23,6 +23,7 @@ import platform
 import sys
 import time
 import warnings
+from sklearn.exceptions import ConvergenceWarning
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, Tuple
@@ -38,7 +39,10 @@ from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.preprocessing import StandardScaler
 
-warnings.filterwarnings("ignore")
+# Suppress sklearn convergence and numpy deprecation warnings
+warnings.filterwarnings("ignore", category=ConvergenceWarning)
+warnings.filterwarnings("ignore", category=FutureWarning)
+warnings.filterwarnings("ignore", category=UserWarning, module="sklearn")
 
 # Set style
 sns.set_style("whitegrid")

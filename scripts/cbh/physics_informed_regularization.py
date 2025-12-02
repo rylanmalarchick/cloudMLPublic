@@ -15,7 +15,11 @@ from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
 from scipy.stats import pearsonr
 import matplotlib.pyplot as plt
 import warnings
-warnings.filterwarnings('ignore')
+from sklearn.exceptions import ConvergenceWarning
+# Suppress sklearn convergence and numpy deprecation warnings
+warnings.filterwarnings("ignore", category=ConvergenceWarning)
+warnings.filterwarnings("ignore", category=FutureWarning)
+warnings.filterwarnings("ignore", category=UserWarning, module="sklearn")
 
 # Paths
 BASE_DIR = Path(__file__).resolve().parents[2]

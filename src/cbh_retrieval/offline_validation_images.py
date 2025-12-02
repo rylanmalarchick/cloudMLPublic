@@ -14,6 +14,7 @@ Date: 2025
 import json
 import sys
 import warnings
+from sklearn.exceptions import ConvergenceWarning
 from datetime import datetime
 from pathlib import Path
 
@@ -27,7 +28,10 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.model_selection import StratifiedKFold
 from torch.utils.data import DataLoader, Subset
 
-warnings.filterwarnings("ignore")
+# Suppress sklearn convergence and numpy deprecation warnings
+warnings.filterwarnings("ignore", category=ConvergenceWarning)
+warnings.filterwarnings("ignore", category=FutureWarning)
+warnings.filterwarnings("ignore", category=UserWarning, module="sklearn")
 
 # Add project root to path
 PROJECT_ROOT = Path(__file__).resolve().parents[3]

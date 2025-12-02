@@ -20,6 +20,7 @@ import json
 from pathlib import Path
 import sys
 import warnings
+from sklearn.exceptions import ConvergenceWarning
 
 import h5py
 import numpy as np
@@ -34,7 +35,10 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader, Subset
 
-warnings.filterwarnings("ignore")
+# Suppress sklearn convergence and numpy deprecation warnings
+warnings.filterwarnings("ignore", category=ConvergenceWarning)
+warnings.filterwarnings("ignore", category=FutureWarning)
+warnings.filterwarnings("ignore", category=UserWarning, module="sklearn")
 
 # Add project root to path
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
