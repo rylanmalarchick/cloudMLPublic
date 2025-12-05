@@ -225,9 +225,13 @@ class ImageValidationAnalyzer:
         val_subset = Subset(dataset, val_idx)
 
         train_loader = DataLoader(
-            train_subset, batch_size=32, shuffle=True, num_workers=0
+            train_subset, batch_size=32, shuffle=True, num_workers=2,
+            pin_memory=True, persistent_workers=True
         )
-        val_loader = DataLoader(val_subset, batch_size=32, shuffle=False, num_workers=0)
+        val_loader = DataLoader(
+            val_subset, batch_size=32, shuffle=False, num_workers=2,
+            pin_memory=True, persistent_workers=True
+        )
 
         # Initialize model
         model = SimpleCNN(dropout=0.3).to(self.device)

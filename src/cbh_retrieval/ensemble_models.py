@@ -256,7 +256,10 @@ class EnsembleEvaluator:
         val_dataset = TemporalDataset(
             image_dataset, val_indices, cbh_values, n_frames=5
         )
-        val_loader = DataLoader(val_dataset, batch_size=4, shuffle=False, num_workers=2)
+        val_loader = DataLoader(
+            val_dataset, batch_size=4, shuffle=False, num_workers=2,
+            pin_memory=True, persistent_workers=True
+        )
 
         # Load pre-trained model (from Task 1.1)
         checkpoint_dir = self.output_dir / "checkpoints"
