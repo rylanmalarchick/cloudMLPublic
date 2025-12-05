@@ -27,8 +27,10 @@ Date: 2025
 
 from __future__ import annotations
 
+import atexit
 import json
-from typing import Any, Dict, List, Tuple, Union
+import threading
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import h5py
 import numpy as np
@@ -36,6 +38,41 @@ import numpy.typing as npt
 import torch
 from torch import Tensor
 from torch.utils.data import Dataset
+
+
+# Global HDF5 file cache for efficient data loading
+_h5_file_cache: Dict[str, h5py.File] = {}
+_h5_cache_lock = threading.Lock()
+
+
+def _get_h5_file(path: str) -> h5py.File:
+    """Get a cached HDF5 file handle (thread-safe).
+    
+    Args:
+        path: Path to the HDF5 file.
+        
+    Returns:
+        Open HDF5 file handle.
+    """
+    if path not in _h5_file_cache:
+        with _h5_cache_lock:
+            if path not in _h5_file_cache:
+                _h5_file_cache[path] = h5py.File(path, "r", swmr=True)
+    return _h5_file_cache[path]
+
+
+def _cleanup_h5_cache() -> None:
+    """Close all cached HDF5 file handles on exit."""
+    for f in _h5_file_cache.values():
+        try:
+            f.close()
+        except Exception:
+            pass
+    _h5_file_cache.clear()
+
+
+# Register cleanup function
+atexit.register(_cleanup_h5_cache)
 
 
 class ImageCBHDataset(Dataset[Tuple[Tensor, ...]]):
@@ -236,8 +273,9 @@ class ImageCBHDataset(Dataset[Tuple[Tensor, ...]]):
         Raises:
             IndexError: If ssl_index is out of bounds.
         """
-        with h5py.File(self.ssl_images_path, "r") as f:
-            img_flat = f["images"][ssl_index]  # type: ignore[index]
+        # Use cached file handle for efficiency (avoids reopening on every access)
+        f = _get_h5_file(self.ssl_images_path)
+        img_flat = f["images"][ssl_index]  # type: ignore[index]
 
         # Reshape to 2D
         img: npt.NDArray[np.float64] = img_flat.reshape(self.image_shape)  # type: ignore[union-attr]
