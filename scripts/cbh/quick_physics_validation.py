@@ -51,15 +51,25 @@ def load_data():
         cbh_km = f["metadata/cbh_km"][:]
         flight_ids = f["metadata/flight_id"][:]
         
-        # Load atmospheric features (ERA5)
-        era5_features = f["atmospheric_features/era5_features"][:]
-        era5_names = [n.decode() if isinstance(n, bytes) else n 
-                     for n in f["atmospheric_features/era5_feature_names"][:]]
+        # Load atmospheric features (individual arrays)
+        atmo_group = f["atmospheric_features"]
+        era5_names = ['blh', 'lcl', 'inversion_height', 'moisture_gradient',
+                      'stability_index', 't2m', 'd2m', 'sp', 'tcwv']
+        era5_features = []
+        for name in era5_names:
+            if name in atmo_group:
+                era5_features.append(atmo_group[name][:])
+        era5_features = np.column_stack(era5_features) if era5_features else np.zeros((len(cbh_km), 0))
         
-        # Load shadow features
-        shadow_features = f["shadow_features/shadow_features"][:]
-        shadow_names = [n.decode() if isinstance(n, bytes) else n 
-                       for n in f["shadow_features/shadow_feature_names"][:]]
+        # Load geometric features (individual arrays)
+        geo_group = f["geometric_features"]
+        shadow_names = ['sza_deg', 'saa_deg', 'shadow_length_pixels', 
+                       'shadow_angle_deg', 'shadow_detection_confidence']
+        shadow_features = []
+        for name in shadow_names:
+            if name in geo_group:
+                shadow_features.append(geo_group[name][:])
+        shadow_features = np.column_stack(shadow_features) if shadow_features else np.zeros((len(cbh_km), 0))
         
         # Combine features
         X = np.concatenate([era5_features, shadow_features], axis=1)
