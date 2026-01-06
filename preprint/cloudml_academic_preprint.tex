@@ -39,7 +39,7 @@
 \maketitle
 
 \begin{abstract}
-We systematically compare atmospheric feature-based and image-based machine learning for cloud base height (CBH) retrieval using 933 NASA ER-2 airborne observations. Gradient boosting with 18 ERA5 and geometric features achieves R$^2$ = 0.744 (MAE = 117.4 m), outperforming state-of-the-art vision models including ResNet-18 (R$^2$ = 0.617, MAE = 150.9 m) and EfficientNet-B0 by 22.2\% on MAE. This performance advantage holds despite deep learning's theoretical capacity for end-to-end representation learning, demonstrating that physics-informed features capture cloud formation drivers more effectively than learned visual representations. Feature importance analysis identifies dewpoint temperature (d2m) and surface temperature (t2m) as dominant predictors, consistent with lifting condensation level theory, while ablation studies show graceful degradation (maximum R$^2$ drop <1\% when removing any single feature). The GBDT model enables production-ready deployment with 0.28 ms inference on CPU, 33$\times$ smaller model size than ResNet-18, and conformal prediction intervals achieving 91\% coverage at 90\% target. Within-campaign validation demonstrates operational capability (MAE = 103.7 m for 500-1500 m CBH), while leave-one-flight-out cross-validation reveals severe domain shift across atmospheric regimes (mean R$^2$ = -1.007, MAE = 418.2 m), highlighting a critical challenge for cross-regime generalization. Physics-based validation confirms trustworthy predictions: zero constraint violations and strong correlation with lifting condensation level (r = 0.68). Ensemble methods combining atmospheric and visual features provide negligible improvement (<1\% R$^2$ gain), indicating limited multi-modal complementarity. Our results demonstrate that within-campaign deployment achieves production-ready accuracy, but cross-regime generalization requires domain adaptation techniques. We release CloudMLPublic, an open-source framework with 92\% test pass rate and uncertainty quantification.
+	We systematically compare atmospheric feature-based and image-based machine learning for cloud base height (CBH) retrieval using 933 NASA ER-2 airborne observations. Gradient boosting with 18 ERA5 and geometric features achieves R$^2$ = 0.744 (MAE = 117.4 m), outperforming state-of-the-art vision models including ResNet-18 (R$^2$ = 0.617, MAE = 150.9 m) and EfficientNet-B0 by 22.2\% on MAE. This performance advantage persists even though deep learning models are theoretically capable of learning complex features directly from raw imagery, demonstrating that physics-informed features capture cloud formation drivers more effectively than learned visual representations. Feature importance analysis identifies dewpoint temperature (d2m) and surface temperature (t2m) as dominant predictors, consistent with lifting condensation level theory, while ablation studies show graceful degradation (maximum R$^2$ drop <1\% when removing any single feature). The GBDT model enables production-ready deployment with 0.28 ms inference on CPU, 33$\times$ smaller model size than ResNet-18, and conformal prediction intervals achieving 91\% coverage at 90\% target. Within-campaign validation demonstrates operational capability (MAE = 103.7 m for 500-1500 m CBH), while leave-one-flight-out cross-validation reveals severe domain shift across atmospheric regimes (mean R$^2$ = -1.007, MAE = 418.2 m), highlighting a critical challenge for cross-regime generalization. Physics-based validation confirms trustworthy predictions: zero constraint violations and strong correlation with lifting condensation level (r = 0.68). Ensemble methods combining atmospheric and visual features provide negligible improvement (<1\% R$^2$ gain), indicating limited multi-modal complementarity. Our results demonstrate that within-campaign deployment achieves production-ready accuracy, but cross-regime generalization requires domain adaptation techniques. We release CloudMLPublic, an open-source framework with 92\% test pass rate and uncertainty quantification.
 \end{abstract}
 
 \section{Introduction}
@@ -55,9 +55,9 @@ High-altitude airborne platforms, such as NASA's ER-2 aircraft, present a unique
 A central challenge in atmospheric machine learning is selecting appropriate input features. Two paradigms have emerged:
 
 \begin{enumerate}[leftmargin=*]
-    \item \textbf{Physics-informed features:} Using atmospheric state variables (temperature, humidity, pressure profiles) from numerical weather prediction models or reanalysis products like ERA5 \cite{Hersbach2020}. This approach leverages domain knowledge of cloud formation physics but requires accurate atmospheric state estimation.
+	\item \textbf{Physics-informed features:} Using atmospheric state variables (temperature, humidity, pressure profiles) from numerical weather prediction models or reanalysis products like ERA5 \cite{Hersbach2020}. This approach leverages domain knowledge of cloud formation physics but requires accurate atmospheric state estimation.
 
-    \item \textbf{End-to-end visual learning:} Applying convolutional neural networks (CNNs) or vision transformers (ViTs) directly to satellite or airborne imagery \cite{Matsuoka2018, Zantedeschi2019}. This approach captures spatial patterns and cloud morphology not explicitly represented in atmospheric features but requires substantial labeled training data.
+	\item \textbf{End-to-end visual learning:} Applying convolutional neural networks (CNNs) or vision transformers (ViTs) directly to satellite or airborne imagery \cite{Matsuoka2018, Zantedeschi2019}. This approach captures spatial patterns and cloud morphology not explicitly represented in atmospheric features but requires substantial labeled training data.
 \end{enumerate}
 
 While deep learning has achieved remarkable success in computer vision benchmarks with millions of training examples \cite{Krizhevsky2012, Dosovitskiy2020}, atmospheric science applications operate at different scales. Our dataset comprises 933 labeled samples from NASA ER-2 campaigns. This raises a critical research question: \textit{Do atmospheric reanalysis features or learned image representations provide superior predictive performance for cloud base height retrieval?}
@@ -67,25 +67,25 @@ While deep learning has achieved remarkable success in computer vision benchmark
 This work addresses four key research questions:
 
 \begin{enumerate}[leftmargin=*]
-    \item \textbf{Feature representation:} How do atmospheric reanalysis features compare to learned image representations for CBH prediction?
+	\item \textbf{Feature representation:} How do atmospheric reanalysis features compare to learned image representations for CBH prediction?
 
-    \item \textbf{Ensemble methods:} Can multi-modal ensembles combining atmospheric and visual features outperform single-modality models?
+	\item \textbf{Ensemble methods:} Can multi-modal ensembles combining atmospheric and visual features outperform single-modality models?
 
-    \item \textbf{Domain generalization:} How well do trained models generalize to new flight campaigns with different atmospheric conditions?
+	\item \textbf{Domain generalization:} How well do trained models generalize to new flight campaigns with different atmospheric conditions?
 
-    \item \textbf{Uncertainty quantification:} Can we provide calibrated prediction intervals to support operational decision-making?
+	\item \textbf{Uncertainty quantification:} Can we provide calibrated prediction intervals to support operational decision-making?
 \end{enumerate}
 
 Our key contributions are:
 
 \begin{itemize}[leftmargin=*]
-    \item \textbf{Systematic multi-modal comparison:} First rigorous comparison of tabular atmospheric features versus image-based deep learning for CBH retrieval at the 933-sample scale, demonstrating atmospheric features achieve 2.0× lower error.
+	\item \textbf{Systematic multi-modal comparison:} First rigorous comparison of tabular atmospheric features versus image-based deep learning for CBH retrieval at the 933-sample scale, demonstrating atmospheric features achieve 2.0× lower error.
 
-    \item \textbf{Important negative result:} We show that ensemble methods combining atmospheric and visual features provide negligible improvement (< 1\% R$^2$ gain), indicating limited complementarity---a finding with implications for resource allocation in operational systems.
+	\item \textbf{Important negative result:} We show that ensemble methods combining atmospheric and visual features provide negligible improvement (< 1\% R$^2$ gain), indicating limited complementarity---a finding with implications for resource allocation in operational systems.
 
-    \item \textbf{Domain shift analysis:} Quantitative characterization of cross-flight generalization challenges, with leave-one-flight-out validation revealing severe distribution shift (R$^2$ dropping from 0.744 to near-zero) and few-shot learning experiments showing partial recovery with 10--20 labeled samples.
+	\item \textbf{Domain shift analysis:} Quantitative characterization of cross-flight generalization challenges, with leave-one-flight-out validation revealing severe distribution shift (R$^2$ dropping from 0.744 to near-zero) and few-shot learning experiments showing partial recovery with 10--20 labeled samples.
 
-    \item \textbf{Open-source framework:} Release of CloudMLPublic, a production-grade implementation with comprehensive uncertainty quantification, 92\% test pass rate, and full reproducibility infrastructure to accelerate atmospheric ML research.
+	\item \textbf{Open-source framework:} Release of CloudMLPublic, a production-grade implementation with comprehensive uncertainty quantification, 92\% test pass rate, and full reproducibility infrastructure to accelerate atmospheric ML research.
 \end{itemize}
 
 \subsection{Paper Organization}
@@ -139,11 +139,11 @@ Few-shot learning aims to learn from limited labeled examples \cite{Wang2020}. M
 The NASA ER-2 is a high-altitude research aircraft operating at altitudes up to 21 km, providing a unique vantage point for atmospheric observations \cite{McGill2002}. We utilize data from multiple flight campaigns with the following instruments:
 
 \begin{itemize}[leftmargin=*]
-    \item \textbf{Cloud Physics Lidar (CPL):} Active 532 nm lidar providing vertical profiles of cloud and aerosol backscatter with 30 m vertical resolution \cite{McGill2002}. CPL retrievals serve as ground truth CBH labels.
+	\item \textbf{Cloud Physics Lidar (CPL):} Active 532 nm lidar providing vertical profiles of cloud and aerosol backscatter with 30 m vertical resolution \cite{McGill2002}. CPL retrievals serve as ground truth CBH labels.
 
-    \item \textbf{Downward-looking camera:} Passive RGB imagery at 1024$\times$1024 pixels capturing cloud morphology beneath the aircraft.
+	\item \textbf{Downward-looking camera:} Passive RGB imagery at 1024$\times$1024 pixels capturing cloud morphology beneath the aircraft.
 
-    \item \textbf{Flight metadata:} GPS position, altitude, heading, and time stamps with 1 Hz sampling.
+	\item \textbf{Flight metadata:} GPS position, altitude, heading, and time stamps with 1 Hz sampling.
 \end{itemize}
 
 \subsubsection{ERA5 Reanalysis}
@@ -151,12 +151,12 @@ The NASA ER-2 is a high-altitude research aircraft operating at altitudes up to 
 We extract atmospheric state variables from ERA5 \cite{Hersbach2020}, the fifth-generation ECMWF reanalysis providing hourly global coverage at 0.25° spatial resolution and 37 pressure levels. For each flight observation, we query ERA5 at the aircraft location and time, retrieving vertical profiles of:
 
 \begin{itemize}[leftmargin=*]
-    \item Temperature (K) at 37 pressure levels
-    \item Specific humidity (kg/kg) at 37 pressure levels
-    \item Geopotential height (m) at 37 pressure levels
-    \item Surface pressure (Pa)
-    \item 2-meter temperature and dewpoint (K)
-    \item Total column water vapor (kg/m$^2$)
+	\item Temperature (K) at 37 pressure levels
+	\item Specific humidity (kg/kg) at 37 pressure levels
+	\item Geopotential height (m) at 37 pressure levels
+	\item Surface pressure (Pa)
+	\item 2-meter temperature and dewpoint (K)
+	\item Total column water vapor (kg/m$^2$)
 \end{itemize}
 
 ERA5 data are spatially interpolated to aircraft coordinates using bilinear interpolation and temporally matched to within ±30 minutes of observation time.
@@ -166,19 +166,19 @@ ERA5 data are spatially interpolated to aircraft coordinates using bilinear inte
 Our final dataset comprises 933 labeled samples from 5 NASA ER-2 research flights across two field campaigns:
 
 \begin{center}
-\begin{tabular}{lccc}
-\toprule
-\textbf{Flight ID} & \textbf{Campaign} & \textbf{Samples} & \textbf{Date} \\
-\midrule
-30Oct24 & WHYMSIE 2024 & 501 & 2024-10-30 \\
-10Feb25 & GLOVE 2025 & 191 & 2025-02-10 \\
-23Oct24 & WHYMSIE 2024 & 105 & 2024-10-23 \\
-12Feb25 & GLOVE 2025 & 92 & 2025-02-12 \\
-18Feb25 & GLOVE 2025 & 44 & 2025-02-18 \\
-\midrule
-\textbf{Total} & \textbf{2 campaigns} & \textbf{933} & \textbf{Oct 2024--Feb 2025} \\
-\bottomrule
-\end{tabular}
+	\begin{tabular}{lccc}
+		\toprule
+		\textbf{Flight ID} & \textbf{Campaign}    & \textbf{Samples} & \textbf{Date}               \\
+		\midrule
+		30Oct24            & WHYMSIE 2024         & 501              & 2024-10-30                  \\
+		10Feb25            & GLOVE 2025           & 191              & 2025-02-10                  \\
+		23Oct24            & WHYMSIE 2024         & 105              & 2024-10-23                  \\
+		12Feb25            & GLOVE 2025           & 92               & 2025-02-12                  \\
+		18Feb25            & GLOVE 2025           & 44               & 2025-02-18                  \\
+		\midrule
+		\textbf{Total}     & \textbf{2 campaigns} & \textbf{933}     & \textbf{Oct 2024--Feb 2025} \\
+		\bottomrule
+	\end{tabular}
 \end{center}
 
 Cloud base heights range from 120 m to 1950 m, with mean 830 m. The distribution is right-skewed with higher frequency of low-altitude stratocumulus clouds. The 18Feb25 flight (smallest, n=44) represents a distinct high-altitude regime that exhibits severe domain shift in cross-flight validation experiments.
@@ -192,36 +192,36 @@ Data were collected during two NASA ER-2 field campaigns: WHYMSIE 2024 (Wyoming 
 From ERA5 reanalysis data and solar geometry, we engineer 18 features capturing atmospheric state and viewing geometry. The complete feature set is:
 
 \begin{enumerate}[leftmargin=*]
-    \item \textbf{ERA5 atmospheric features (13):} 
-    \begin{itemize}
-        \item 2-meter temperature (t2m, K)
-        \item 2-meter dewpoint (d2m, K)
-        \item Surface pressure (sp, Pa)
-        \item Total cloud cover (tcc, fraction)
-        \item Low cloud cover (lcc, fraction)
-        \item Medium cloud cover (mcc, fraction)
-        \item High cloud cover (hcc, fraction)
-        \item 10-meter U wind component (u10, m/s)
-        \item 10-meter V wind component (v10, m/s)
-        \item Boundary layer height (blh, m)
-        \item Convective available potential energy (cape, J/kg)
-        \item Total column water vapor (tcwv, kg/m$^2$)
-        \item Skin temperature (skt, K)
-    \end{itemize}
+	\item \textbf{ERA5 atmospheric features (13):}
+	      \begin{itemize}
+		      \item 2-meter temperature (t2m, K)
+		      \item 2-meter dewpoint (d2m, K)
+		      \item Surface pressure (sp, Pa)
+		      \item Total cloud cover (tcc, fraction)
+		      \item Low cloud cover (lcc, fraction)
+		      \item Medium cloud cover (mcc, fraction)
+		      \item High cloud cover (hcc, fraction)
+		      \item 10-meter U wind component (u10, m/s)
+		      \item 10-meter V wind component (v10, m/s)
+		      \item Boundary layer height (blh, m)
+		      \item Convective available potential energy (cape, J/kg)
+		      \item Total column water vapor (tcwv, kg/m$^2$)
+		      \item Skin temperature (skt, K)
+	      \end{itemize}
 
-    \item \textbf{Geometric features (5):}
-    \begin{itemize}
-        \item Solar zenith angle (solar\_zenith\_angle, degrees)
-        \item Solar azimuth angle (solar\_azimuth\_angle, degrees)
-        \item View zenith angle (view\_zenith\_angle, degrees)
-        \item View azimuth angle (view\_azimuth\_angle, degrees)
-        \item Relative azimuth (relative\_azimuth, degrees)
-    \end{itemize}
+	\item \textbf{Geometric features (5):}
+	      \begin{itemize}
+		      \item Solar zenith angle (solar\_zenith\_angle, degrees)
+		      \item Solar azimuth angle (solar\_azimuth\_angle, degrees)
+		      \item View zenith angle (view\_zenith\_angle, degrees)
+		      \item View azimuth angle (view\_azimuth\_angle, degrees)
+		      \item Relative azimuth (relative\_azimuth, degrees)
+	      \end{itemize}
 \end{enumerate}
 
 The lifting condensation level (LCL), a physics-based cloud base estimator, is computed using the approximate formula:
 \begin{equation}
-\text{LCL} = 125 \times (T_{\text{surface}} - T_{\text{dewpoint}})
+	\text{LCL} = 125 \times (T_{\text{surface}} - T_{\text{dewpoint}})
 \end{equation}
 where temperatures are in Celsius. While LCL is not directly included as a feature, the model can implicitly learn this relationship from t2m and d2m inputs. Geometric features capture solar and viewing angles, which affect apparent cloud brightness and shadow characteristics in imagery.
 
@@ -230,10 +230,10 @@ where temperatures are in Celsius. While LCL is not directly included as a featu
 Airborne camera images undergo the following preprocessing pipeline:
 
 \begin{enumerate}[leftmargin=*]
-    \item Center crop to 896$\times$896 pixels to remove lens distortion artifacts
-    \item Resize to 224$\times$224 pixels using bilinear interpolation
-    \item Normalize RGB channels to zero mean and unit variance using ImageNet statistics
-    \item Data augmentation (training only): Random horizontal/vertical flips, random brightness/contrast adjustment (±20\%)
+	\item Center crop to 896$\times$896 pixels to remove lens distortion artifacts
+	\item Resize to 224$\times$224 pixels using bilinear interpolation
+	\item Normalize RGB channels to zero mean and unit variance using ImageNet statistics
+	\item Data augmentation (training only): Random horizontal/vertical flips, random brightness/contrast adjustment (±20\%)
 \end{enumerate}
 
 No domain-specific augmentations (e.g., cloud-aware transformations) are applied to maintain comparability with standard computer vision practices.
@@ -245,14 +245,14 @@ No domain-specific augmentations (e.g., cloud-aware transformations) are applied
 Our primary tabular model uses scikit-learn's GradientBoostingRegressor, a gradient boosting implementation. Hyperparameters are selected via nested cross-validation:
 
 \begin{itemize}[leftmargin=*]
-    \item Number of trees: 200
-    \item Learning rate: 0.05
-    \item Max depth: 8
-    \item Minimum samples per leaf: 4
-    \item Minimum samples per split: 10
-    \item Subsample fraction: 0.8
-    \item Random state: 42
-    \item Objective: L2 regression (mean squared error)
+	\item Number of trees: 200
+	\item Learning rate: 0.05
+	\item Max depth: 8
+	\item Minimum samples per leaf: 4
+	\item Minimum samples per split: 10
+	\item Subsample fraction: 0.8
+	\item Random state: 42
+	\item Objective: L2 regression (mean squared error)
 \end{itemize}
 
 For uncertainty quantification, we additionally train quantile regression models \cite{Koenker1978} targeting the 5th and 95th percentiles to construct 90\% prediction intervals.
@@ -262,12 +262,12 @@ For uncertainty quantification, we additionally train quantile regression models
 Our image baseline uses a simple CNN architecture designed to avoid overfitting:
 
 \begin{itemize}[leftmargin=*]
-    \item 4 convolutional blocks: [Conv(3→32) → ReLU → BatchNorm → MaxPool] × 4
-    \item Kernel size: 3$\times$3, stride: 1, padding: 1
-    \item Global average pooling
-    \item Fully connected layers: 512 → 256 → 1
-    \item Dropout: 0.3 after each FC layer
-    \item Total parameters: 1.2M
+	\item 4 convolutional blocks: [Conv(3→32) → ReLU → BatchNorm → MaxPool] × 4
+	\item Kernel size: 3$\times$3, stride: 1, padding: 1
+	\item Global average pooling
+	\item Fully connected layers: 512 → 256 → 1
+	\item Dropout: 0.3 after each FC layer
+	\item Total parameters: 1.2M
 \end{itemize}
 
 We train for 100 epochs with early stopping (patience=15 epochs) using Adam optimizer (lr=0.001, weight decay=1e-4) and ReduceLROnPlateau scheduler (factor=0.5, patience=5). Training uses batch size 32. This architecture is intentionally simple to avoid overfitting with 933 samples.
@@ -277,14 +277,14 @@ We train for 100 epochs with early stopping (patience=15 epochs) using Adam opti
 We evaluate three ensemble strategies:
 
 \begin{enumerate}[leftmargin=*]
-    \item \textbf{Simple averaging:} $\hat{y} = \frac{1}{2}(\hat{y}_{\text{GBDT}} + \hat{y}_{\text{CNN}})$
+	\item \textbf{Simple averaging:} $\hat{y} = \frac{1}{2}(\hat{y}_{\text{GBDT}} + \hat{y}_{\text{CNN}})$
 
-    \item \textbf{Weighted averaging:} $\hat{y} = w_1 \hat{y}_{\text{GBDT}} + w_2 \hat{y}_{\text{CNN}}$ where $w_1 + w_2 = 1$ and weights are optimized on validation set using scipy.optimize
+	\item \textbf{Weighted averaging:} $\hat{y} = w_1 \hat{y}_{\text{GBDT}} + w_2 \hat{y}_{\text{CNN}}$ where $w_1 + w_2 = 1$ and weights are optimized on validation set using scipy.optimize
 
-    \item \textbf{Stacking:} Train a Ridge regression meta-model on base model predictions:
-    \begin{equation}
-    \hat{y} = \beta_0 + \beta_1 \hat{y}_{\text{GBDT}} + \beta_2 \hat{y}_{\text{CNN}}
-    \end{equation}
+	\item \textbf{Stacking:} Train a Ridge regression meta-model on base model predictions:
+	      \begin{equation}
+		      \hat{y} = \beta_0 + \beta_1 \hat{y}_{\text{GBDT}} + \beta_2 \hat{y}_{\text{CNN}}
+	      \end{equation}
 \end{enumerate}
 
 Ensemble weights and meta-models are trained using stratified cross-validation to prevent overfitting.
@@ -297,10 +297,10 @@ We employ stratified 5-fold cross-validation to ensure balanced representation o
 
 For each fold, we:
 \begin{enumerate}[leftmargin=*]
-    \item Train models on 4 folds (746 samples)
-    \item Validate on held-out fold (187 samples)
-    \item Record predictions for uncertainty analysis
-    \item Repeat 5 times for all fold combinations
+	\item Train models on 4 folds (746 samples)
+	\item Validate on held-out fold (187 samples)
+	\item Record predictions for uncertainty analysis
+	\item Repeat 5 times for all fold combinations
 \end{enumerate}
 
 Final performance metrics are reported as mean ± standard deviation across folds.
@@ -310,16 +310,16 @@ Final performance metrics are reported as mean ± standard deviation across fold
 We assess model performance using:
 
 \begin{itemize}[leftmargin=*]
-    \item \textbf{R$^2$ score:} Coefficient of determination, $R^2 = 1 - \frac{\sum (y_i - \hat{y}_i)^2}{\sum (y_i - \bar{y})^2}$
-    \item \textbf{Mean Absolute Error (MAE):} $\text{MAE} = \frac{1}{n}\sum |y_i - \hat{y}_i|$
-    \item \textbf{Root Mean Squared Error (RMSE):} $\text{RMSE} = \sqrt{\frac{1}{n}\sum (y_i - \hat{y}_i)^2}$
+	\item \textbf{R$^2$ score:} Coefficient of determination, $R^2 = 1 - \frac{\sum (y_i - \hat{y}_i)^2}{\sum (y_i - \bar{y})^2}$
+	\item \textbf{Mean Absolute Error (MAE):} $\text{MAE} = \frac{1}{n}\sum |y_i - \hat{y}_i|$
+	\item \textbf{Root Mean Squared Error (RMSE):} $\text{RMSE} = \sqrt{\frac{1}{n}\sum (y_i - \hat{y}_i)^2}$
 \end{itemize}
 
 For uncertainty quantification, we evaluate:
 \begin{itemize}[leftmargin=*]
-    \item \textbf{Coverage:} Fraction of true values within 90\% prediction intervals
-    \item \textbf{Mean interval width:} Average size of prediction intervals
-    \item \textbf{Uncertainty-error correlation:} Spearman correlation between interval width and absolute error
+	\item \textbf{Coverage:} Fraction of true values within 90\% prediction intervals
+	\item \textbf{Mean interval width:} Average size of prediction intervals
+	\item \textbf{Uncertainty-error correlation:} Spearman correlation between interval width and absolute error
 \end{itemize}
 
 \subsubsection{Domain Adaptation Protocol}
@@ -328,12 +328,12 @@ To assess generalization across atmospheric regimes, we perform leave-one-flight
 
 For few-shot learning experiments, we:
 \begin{enumerate}[leftmargin=*]
-    \item Select target flight (18Feb25, highest domain shift due to small sample size and distinct meteorology)
-    \item Train baseline model on remaining 5 flights
-    \item Sample $k \in \{5, 10, 20\}$ examples from 18Feb25
-    \item Fine-tune baseline model on $k$ samples
-    \item Evaluate on held-out 18Feb25 test set
-    \item Repeat 10 times with different random samples
+	\item Select target flight (18Feb25, highest domain shift due to small sample size and distinct meteorology)
+	\item Train baseline model on remaining 5 flights
+	\item Sample $k \in \{5, 10, 20\}$ examples from 18Feb25
+	\item Fine-tune baseline model on $k$ samples
+	\item Evaluate on held-out 18Feb25 test set
+	\item Repeat 10 times with different random samples
 \end{enumerate}
 
 \subsubsection{Conformal Prediction for Uncertainty Quantification}
@@ -342,12 +342,12 @@ To provide distribution-free prediction intervals with guaranteed coverage, we e
 
 The protocol is:
 \begin{enumerate}[leftmargin=*]
-    \item Split data into training (50\%), calibration (25\%), and test (25\%) sets
-    \item Train base model (GBDT) on training set
-    \item Compute absolute residuals on calibration set: $R_i = |y_i - \hat{y}_i|$
-    \item For target coverage $1-\alpha$ (e.g., 90\%), calculate calibration quantile:
-    $$q = \text{Quantile}(R_1, \ldots, R_n; 1-\alpha)$$
-    \item Construct prediction intervals on test set: $[\hat{y}_i - q, \hat{y}_i + q]$
+	\item Split data into training (50\%), calibration (25\%), and test (25\%) sets
+	\item Train base model (GBDT) on training set
+	\item Compute absolute residuals on calibration set: $R_i = |y_i - \hat{y}_i|$
+	\item For target coverage $1-\alpha$ (e.g., 90\%), calculate calibration quantile:
+	      $$q = \text{Quantile}(R_1, \ldots, R_n; 1-\alpha)$$
+	\item Construct prediction intervals on test set: $[\hat{y}_i - q, \hat{y}_i + q]$
 \end{enumerate}
 
 This procedure guarantees that $P(y \in [\hat{y} - q, \hat{y} + q]) \geq 1 - \alpha$ for exchangeable data \cite{Shafer2008}. We stratify calibration assessment by CBH regime (low <500m, mid 500-1500m, high >1500m) to evaluate conditional coverage.
@@ -364,46 +364,46 @@ All experiments use Python 3.10 with PyTorch 2.0 and scikit-learn 1.3. Training 
 Table~\ref{tab:model_comparison} presents the main validation results. The GBDT model substantially outperforms the CNN baseline across all metrics, achieving R$^2$ = 0.744 compared to 0.320 for the CNN. Mean absolute error for GBDT (117.4 m) is nearly half that of the CNN (238.2 m). Figure~\ref{fig:model_comparison} visualizes the performance comparison across all models.
 
 \begin{table}[h]
-\centering
-\caption{Model performance on stratified 5-fold cross-validation (933 samples). Values reported as mean ± standard deviation across folds.}
-\label{tab:model_comparison}
-\begin{tabular}{lccc}
-\toprule
-\textbf{Model} & \textbf{R$^2$} & \textbf{MAE (m)} & \textbf{RMSE (m)} \\
-\midrule
-\textbf{GBDT (Atmospheric)} & \textbf{0.744 ± 0.037} & \textbf{117.4 ± 7.4} & \textbf{187.3 ± 15.3} \\
-CNN (Image) & 0.320 ± 0.152 & 238.2 ± 26.1 & 299.1 ± 18.2 \\
-ResNet-18 (scratch)\footnote{Best vision model, but still underperforms GBDT by 22.7\% on MAE, confirming atmospheric features are superior even with state-of-the-art deep learning.} & 0.617 ± 0.064 & 150.9 ± 10.0 & 225.7 ± 13.3 \\
-ResNet-18 (pretrained) & 0.581 ± 0.110 & 157.5 ± 22.6 & 234.9 ± 32.7 \\
-EfficientNet-B0 (pretrained) & 0.469 ± 0.052 & 179.0 ± 5.3 & 265.9 ± 12.5 \\
-\midrule
-Simple Averaging & 0.662 ± 0.073 & 161.5 ± 14.0 & 218.3 ± 17.1 \\
-Weighted Ensemble\footnote{Slightly underperforms GBDT alone due to noisy CNN predictions increasing variance despite optimal weighting (88.8\% GBDT, 11.2\% CNN), demonstrating limited complementarity between modalities.} & 0.739 ± 0.096 & 122.5 ± 19.8 & 195.0 ± 23.4 \\
-Stacking (Ridge) & 0.724 ± 0.115 & 118.0 ± 16.2 & 194.7 ± 28.1 \\
-\bottomrule
-\end{tabular}
+	\centering
+	\caption{Model performance on stratified 5-fold cross-validation (933 samples). Values reported as mean ± standard deviation across folds.}
+	\label{tab:model_comparison}
+	\begin{tabular}{lccc}
+		\toprule
+		\textbf{Model}                                                                                                                                                                                                                & \textbf{R$^2$}         & \textbf{MAE (m)}     & \textbf{RMSE (m)}     \\
+		\midrule
+		\textbf{GBDT (Atmospheric)}                                                                                                                                                                                                   & \textbf{0.744 ± 0.037} & \textbf{117.4 ± 7.4} & \textbf{187.3 ± 15.3} \\
+		CNN (Image)                                                                                                                                                                                                                   & 0.320 ± 0.152          & 238.2 ± 26.1         & 299.1 ± 18.2          \\
+		ResNet-18 (scratch)\footnote{Best vision model, but still underperforms GBDT by 22.7\% on MAE, confirming atmospheric features are superior even with state-of-the-art deep learning.}                                        & 0.617 ± 0.064          & 150.9 ± 10.0         & 225.7 ± 13.3          \\
+		ResNet-18 (pretrained)                                                                                                                                                                                                        & 0.581 ± 0.110          & 157.5 ± 22.6         & 234.9 ± 32.7          \\
+		EfficientNet-B0 (pretrained)                                                                                                                                                                                                  & 0.469 ± 0.052          & 179.0 ± 5.3          & 265.9 ± 12.5          \\
+		\midrule
+		Simple Averaging                                                                                                                                                                                                              & 0.662 ± 0.073          & 161.5 ± 14.0         & 218.3 ± 17.1          \\
+		Weighted Ensemble\footnote{Slightly underperforms GBDT alone due to noisy CNN predictions increasing variance despite optimal weighting (88.8\% GBDT, 11.2\% CNN), demonstrating limited complementarity between modalities.} & 0.739 ± 0.096          & 122.5 ± 19.8         & 195.0 ± 23.4          \\
+		Stacking (Ridge)                                                                                                                                                                                                              & 0.724 ± 0.115          & 118.0 ± 16.2         & 194.7 ± 28.1          \\
+		\bottomrule
+	\end{tabular}
 \end{table}
 
 \begin{figure}[h]
-\centering
-\includegraphics[width=0.8\textwidth]{paperfigures/figure1_model_comparison.png}
-\caption{Model performance comparison showing R$^2$ scores across GBDT, CNN, and ensemble methods. GBDT substantially outperforms image-based approaches.}
-\label{fig:model_comparison}
+	\centering
+	\includegraphics[width=0.8\textwidth]{paperfigures/figure1_model_comparison.png}
+	\caption{Model performance comparison showing R$^2$ scores across GBDT, CNN, and ensemble methods. GBDT substantially outperforms image-based approaches.}
+	\label{fig:model_comparison}
 \end{figure}
 
 \subsubsection{Deep Learning Vision Baselines}
 
 To ensure fair comparison beyond the simple CNN baseline, we trained state-of-the-art vision models with ImageNet pre-training: ResNet-18 \cite{He2016} and EfficientNet-B0 \cite{Tan2019}. Figure~\ref{fig:vision_baseline_comparison} shows comprehensive results across 6 model variants with 5-fold cross-validation.
 
-ResNet-18 trained from scratch achieved R$^2$=0.617±0.064 (MAE=150.9±10.0 m), substantially better than the simple CNN (R$^2$=0.320) but still 22.7\% worse than GBDT on MAE. Surprisingly, ImageNet pre-training degraded performance (R$^2$=0.581±0.110), likely due to domain mismatch between natural images and overhead cloud imagery combined with our small dataset size (n=896 matched samples). Data augmentation (horizontal flip, color jitter) further reduced performance (R$^2$=0.370±0.034), suggesting overfitting to augmented patterns.
+ResNet-18 trained from scratch achieved R$^2$=0.617±0.064 (MAE=150.9±10.0 m), substantially better than the simple CNN (R$^2$=0.320) but still 22.7\% worse than GBDT on MAE. Surprisingly, ImageNet pre-training degraded performance (R$^2$=0.581±0.110), likely due to domain mismatch between natural images and overhead cloud imagery combined with our small dataset size (n=896 matched samples\footnote{Vision baseline experiments use n=896 samples due to 37 samples with missing or corrupted imagery excluded from the full n=933 tabular dataset.}). Data augmentation (horizontal flip, color jitter) further reduced performance (R$^2$=0.370±0.034), suggesting overfitting to augmented patterns.
 
 EfficientNet-B0 with pre-training achieved moderate performance (R$^2$=0.469±0.052, MAE=179.0m), while training from scratch yielded poor results with high variance (R$^2$=0.229±0.395). The best vision model (ResNet-18 scratch) still underperforms GBDT (R$^2$=0.744) by 17.1\% on R$^2$ and 22.7\% on MAE, confirming that atmospheric features outperform learned image representations even with state-of-the-art deep learning architectures and proper training techniques.
 
 \begin{figure}[h]
-\centering
-\includegraphics[width=0.95\textwidth]{../outputs/figures/vision_baseline_comparison.png}
-\caption{Vision baseline performance comparison across 6 model variants. ResNet-18 from scratch (R$^2$=0.617) is the best vision model but still underperforms GBDT (R$^2$=0.744, red dashed line) by 17.1\% on R$^2$ and 22.2\% on MAE. Pre-training and augmentation unexpectedly degrade performance, likely due to domain mismatch and small dataset size (n=896).}
-\label{fig:vision_baseline_comparison}
+	\centering
+	\includegraphics[width=0.95\textwidth]{../outputs/figures/vision_baseline_comparison.png}
+	\caption{Vision baseline performance comparison across 6 model variants. ResNet-18 from scratch (R$^2$=0.617) is the best vision model but still underperforms GBDT (R$^2$=0.744, red dashed line) by 17.1\% on R$^2$ and 22.2\% on MAE. Pre-training and augmentation unexpectedly degrade performance, likely due to domain mismatch and small dataset size (n=896).}
+	\label{fig:vision_baseline_comparison}
 \end{figure}
 
 \textbf{Computational cost:} ResNet-18 models require 43.1 MB storage and 5.8 ms inference time (GPU), while GBDT uses only 1.3 MB and 0.28 ms (CPU). The 21$\times$ speedup and 33$\times$ smaller model size enable real-time deployment on resource-constrained platforms.
@@ -417,10 +417,10 @@ Stacking with Ridge regression performs similarly (R$^2$ = 0.724), with learned 
 Analyzing per-sample ensemble improvement, we find that the ensemble outperforms GBDT alone on only 38\% of test samples (354/933), with mean improvement of 8.2 m MAE where it helps. The CNN provides useful signal for a minority of cases with distinctive visual cloud patterns not captured by atmospheric features.
 
 \begin{figure}[h]
-\centering
-\includegraphics[width=0.8\textwidth]{paperfigures/figure2_ensemble_performance.png}
-\caption{Ensemble performance comparison showing minimal improvement over GBDT baseline. Optimal weights heavily favor the atmospheric model (88.8\% GBDT, 11.2\% CNN).}
-\label{fig:ensemble_performance}
+	\centering
+	\includegraphics[width=0.8\textwidth]{paperfigures/figure2_ensemble_performance.png}
+	\caption{Ensemble performance comparison showing minimal improvement over GBDT baseline. Optimal weights heavily favor the atmospheric model (88.8\% GBDT, 11.2\% CNN).}
+	\label{fig:ensemble_performance}
 \end{figure}
 
 \subsection{Feature Importance and Ablation Analysis}
@@ -433,49 +433,49 @@ SHAP analysis \cite{Lundberg2020} identifies the most influential features for C
 
 \textbf{Top-5 SHAP features by importance:}
 \begin{enumerate}[leftmargin=*]
-    \item \textbf{d2m} (dewpoint temperature 2m): mean\_abs\_shap = 87.73
-    \item \textbf{t2m} (temperature 2m): mean\_abs\_shap = 78.60
-    \item \textbf{stability\_index}: mean\_abs\_shap = 38.32
-    \item \textbf{moisture\_gradient}: mean\_abs\_shap = 31.87
-    \item \textbf{sp} (surface pressure): mean\_abs\_shap = 27.67
+	\item \textbf{d2m} (dewpoint temperature 2m): mean\_abs\_shap = 87.73
+	\item \textbf{t2m} (temperature 2m): mean\_abs\_shap = 78.60
+	\item \textbf{stability\_index}: mean\_abs\_shap = 38.32
+	\item \textbf{moisture\_gradient}: mean\_abs\_shap = 31.87
+	\item \textbf{sp} (surface pressure): mean\_abs\_shap = 27.67
 \end{enumerate}
 
 \textbf{Feature group ablation} reveals:
 \begin{itemize}[leftmargin=*]
-    \item Atmospheric features only (9 features): R$^2$ = 0.704, $\Delta$ R$^2$ = -0.009
-    \item Shadow/geometric features only (6 features): R$^2$ = 0.728, $\Delta$ R$^2$ = +0.015
+	\item Atmospheric features only (9 features): R$^2$ = 0.704, $\Delta$ R$^2$ = -0.009
+	\item Shadow/geometric features only (6 features): R$^2$ = 0.728, $\Delta$ R$^2$ = +0.015
 \end{itemize}
 
 \textbf{Individual feature removal} shows no single feature is critical:
 \begin{itemize}[leftmargin=*]
-    \item Removing d2m (most important): R$^2$ drop = 0.006 (0.9\%)
-    \item Removing t2m: R$^2$ drop = -0.001 (-0.1\%)
-    \item Maximum R$^2$ degradation across all features: <1\%
+	\item Removing d2m (most important): R$^2$ drop = 0.006 (0.9\%)
+	\item Removing t2m: R$^2$ drop = -0.001 (-0.1\%)
+	\item Maximum R$^2$ degradation across all features: <1\%
 \end{itemize}
 
 Figure~\ref{fig:ablation_summary} visualizes ablation results. The dominance of near-surface thermodynamic features (d2m, t2m) aligns with cloud formation physics: cloud base occurs where rising air parcels reach saturation. However, the model exhibits graceful degradation when features are removed, indicating robust distributed representation rather than critical dependence on individual predictors.
 
 \begin{figure}[h]
-\centering
-\includegraphics[width=0.9\textwidth]{../outputs/feature_ablation/figures/ablation_summary.png}
-\caption{Feature ablation study summary showing SHAP importance rankings and performance impact when removing top features. No single feature removal causes >1\% R$^2$ degradation.}
-\label{fig:ablation_summary}
+	\centering
+	\includegraphics[width=0.9\textwidth]{../outputs/feature_ablation/figures/ablation_summary.png}
+	\caption{Feature ablation study summary showing SHAP importance rankings and performance impact when removing top features. No single feature removal causes >1\% R$^2$ degradation.}
+	\label{fig:ablation_summary}
 \end{figure}
 
 \textbf{Feature correlations} (Figure~\ref{fig:feature_correlation}): Four highly correlated pairs detected (|r| > 0.8), including perfect correlation between saa\_deg and shadow\_angle\_deg (r=1.0), suggesting potential for dimensionality reduction. Hierarchical clustering (Figure~\ref{fig:feature_clustering}) groups features into atmospheric thermodynamic, stability, and geometric clusters.
 
 \begin{figure}[h]
-\centering
-\includegraphics[width=0.75\textwidth]{../outputs/feature_ablation/figures/feature_correlation_heatmap.png}
-\caption{Feature correlation matrix showing 4 highly correlated pairs (|r|>0.8). Perfect correlation between saa\_deg and shadow\_angle\_deg indicates redundancy.}
-\label{fig:feature_correlation}
+	\centering
+	\includegraphics[width=0.75\textwidth]{../outputs/feature_ablation/figures/feature_correlation_heatmap.png}
+	\caption{Feature correlation matrix showing 4 highly correlated pairs (|r|>0.8). Perfect correlation between saa\_deg and shadow\_angle\_deg indicates redundancy.}
+	\label{fig:feature_correlation}
 \end{figure}
 
 \begin{figure}[h]
-\centering
-\includegraphics[width=0.75\textwidth]{../outputs/feature_ablation/figures/feature_clustering_dendrogram.png}
-\caption{Hierarchical clustering dendrogram based on absolute feature correlations, revealing natural groupings of atmospheric, stability, and geometric features.}
-\label{fig:feature_clustering}
+	\centering
+	\includegraphics[width=0.75\textwidth]{../outputs/feature_ablation/figures/feature_clustering_dendrogram.png}
+	\caption{Hierarchical clustering dendrogram based on absolute feature correlations, revealing natural groupings of atmospheric, stability, and geometric features.}
+	\label{fig:feature_clustering}
 \end{figure}
 
 \subsection{Stratified Error Analysis}
@@ -487,50 +487,50 @@ Table~\ref{tab:stratifiederroranalysis} presents comprehensive error stratificat
 
 \textbf{Overall error distribution:}
 \begin{itemize}[leftmargin=*]
-    \item Mean error: -2.8 m (near-zero bias)
-    \item Standard deviation: 199.0 m
-    \item \textbf{Shapiro-Wilk test:} p = 6.28×10$^{-29}$ (reject normality)
+	\item Mean error: -2.8 m (near-zero bias)
+	\item Standard deviation: 199.0 m
+	\item \textbf{Shapiro-Wilk test:} p = 6.28×10$^{-29}$ (reject normality)
 \end{itemize}
 
 The heavy-tailed error distribution (Figure~\ref{fig:error_distribution}) indicates systematic failures in certain atmospheric conditions rather than Gaussian measurement noise.
 
 \begin{figure}[h]
-\centering
-\includegraphics[width=0.8\textwidth]{../outputs/stratified_error_analysis/figures/error_distribution.png}
-\caption{Error distribution histogram showing heavy tails and departure from normality (Shapiro-Wilk p=6.28×10$^{-29}$), indicating systematic prediction failures in specific atmospheric regimes.}
-\label{fig:error_distribution}
+	\centering
+	\includegraphics[width=0.8\textwidth]{../outputs/stratified_error_analysis/figures/error_distribution.png}
+	\caption{Error distribution histogram showing heavy tails and departure from normality (Shapiro-Wilk p=6.28×10$^{-29}$), indicating systematic prediction failures in specific atmospheric regimes.}
+	\label{fig:error_distribution}
 \end{figure}
 
 \textbf{CBH regime stratification} (Figure~\ref{fig:cbh_regime_errors}):
 \begin{itemize}[leftmargin=*]
-    \item \textbf{Low (0-500m):} MAE = 192.1 m, n = 157 (poorest performance)
-    \item \textbf{Mid (500-1500m):} MAE = 103.7 m, n = 740 (best performance)
-    \item \textbf{High (>1500m):} MAE = 230.4 m, n = 36 (challenging, limited data)
+	\item \textbf{Low (0-500m):} MAE = 192.1 m, n = 157 (poorest performance)
+	\item \textbf{Mid (500-1500m):} MAE = 103.7 m, n = 740 (best performance)
+	\item \textbf{High (>1500m):} MAE = 230.4 m, n = 36 (challenging, limited data)
 \end{itemize}
 
 Performance is best in the mid-range CBH regime (500-1500m) where 79\% of training data reside. Low-altitude clouds show 1.9× higher error due to complex boundary layer turbulence and surface-atmosphere interactions not well-captured by ERA5's 25 km resolution.
 
 \begin{figure}[h]
-\centering
-\includegraphics[width=0.8\textwidth]{../outputs/stratified_error_analysis/figures/cbh_regime_errors.png}
-\caption{Error distribution stratified by CBH regime. Best performance in mid-range CBH (500-1500m, MAE=103.7m) where training data are concentrated. Low-altitude clouds show highest errors.}
-\label{fig:cbh_regime_errors}
+	\centering
+	\includegraphics[width=0.8\textwidth]{../outputs/stratified_error_analysis/figures/cbh_regime_errors.png}
+	\caption{Error distribution stratified by CBH regime. Best performance in mid-range CBH (500-1500m, MAE=103.7m) where training data are concentrated. Low-altitude clouds show highest errors.}
+	\label{fig:cbh_regime_errors}
 \end{figure}
 
 \textbf{Atmospheric stability stratification:}
 \begin{itemize}[leftmargin=*]
-    \item Low stability: MAE = 143.8 m, n = 303
-    \item Medium stability: MAE = 114.0 m, n = 320  
-    \item High stability: MAE = 113.5 m, n = 310
+	\item Low stability: MAE = 143.8 m, n = 303
+	\item Medium stability: MAE = 114.0 m, n = 320
+	\item High stability: MAE = 113.5 m, n = 310
 \end{itemize}
 
 Stable atmospheres show 1.3× better accuracy than unstable conditions, consistent with ERA5's better representation of stratified layers versus turbulent convection.
 
 \textbf{Case studies:}
 \begin{itemize}[leftmargin=*]
-    \item Best prediction: True=720.0m, Pred=720.0m, Error=0.0m
-    \item Worst prediction: True=630.0m, Pred=1910.7m, Error=-1280.7m (low CBH failure case)
-    \item Median error: $\sim$75m
+	\item Best prediction: True=720.0m, Pred=720.0m, Error=0.0m
+	\item Worst prediction: True=630.0m, Pred=1910.7m, Error=-1280.7m (low CBH failure case)
+	\item Median error: $\sim$75m
 \end{itemize}
 
 The worst-case 1281m error occurs for a low-altitude cloud (630m true CBH) predicted at 1911m, illustrating the systematic difficulty with shallow boundary layer clouds. The CNN shows higher variance across cross-validation folds (R$^2$ std = 0.152) compared to GBDT (std = 0.083), indicating less stable learning in the small-sample regime.
@@ -540,10 +540,10 @@ The worst-case 1281m error occurs for a low-altitude cloud (630m true CBH) predi
 Split conformal prediction achieves well-calibrated prediction intervals with the following performance:
 
 \begin{itemize}[leftmargin=*]
-    \item \textbf{Target coverage:} 90.0\%
-    \item \textbf{Actual coverage:} 91.0\% (meets target)
-    \item \textbf{Mean interval width:} 556.6 m
-    \item \textbf{Base model:} R$^2$ = 0.693, MAE = 127.9 m
+	\item \textbf{Target coverage:} 90.0\%
+	\item \textbf{Actual coverage:} 91.0\% (meets target)
+	\item \textbf{Mean interval width:} 556.6 m
+	\item \textbf{Base model:} R$^2$ = 0.693, MAE = 127.9 m
 \end{itemize}
 
 Table~\ref{tab:conformalprediction} shows conformal prediction results. Unlike our earlier quantile regression approach (77\% coverage, under-calibrated), conformal prediction provides distribution-free guarantees and achieves the target 90\% coverage.
@@ -552,18 +552,18 @@ Table~\ref{tab:conformalprediction} shows conformal prediction results. Unlike o
 
 Figure~\ref{fig:conformal_calibration} shows calibration assessment stratified by CBH regime. Coverage is consistent across regimes:
 \begin{itemize}[leftmargin=*]
-    \item Low (0-500m): 86.5\% (n=37)
-    \item Mid (500-1500m): 91.9\% (n=186) 
-    \item High (>1500m): 90.9\% (n=11)
+	\item Low (0-500m): 86.5\% (n=37)
+	\item Mid (500-1500m): 91.9\% (n=186)
+	\item High (>1500m): 90.9\% (n=11)
 \end{itemize}
 
 The slight under-coverage for low-altitude clouds reflects the higher prediction difficulty in this regime (confirmed by error stratification analysis in Section~\ref{sec:error_stratification}).
 
 \begin{figure}[h]
-\centering
-\includegraphics[width=0.8\textwidth]{../outputs/conformal_prediction/figures/calibration_split_conformal.png}
-\caption{Conformal prediction calibration assessment stratified by CBH regime. Overall 91\% coverage meets the 90\% target, with consistent performance across altitude ranges.}
-\label{fig:conformal_calibration}
+	\centering
+	\includegraphics[width=0.8\textwidth]{../outputs/conformal_prediction/figures/calibration_split_conformal.png}
+	\caption{Conformal prediction calibration assessment stratified by CBH regime. Overall 91\% coverage meets the 90\% target, with consistent performance across altitude ranges.}
+	\label{fig:conformal_calibration}
 \end{figure}
 
 \subsection{Cross-Flight Domain Divergence}
@@ -574,38 +574,39 @@ To quantify distribution shift across flight campaigns, we performed leave-one-f
 \textbf{Catastrophic domain shift observed:} LOFO validation reveals complete failure to generalize across flight campaigns, with all test flights yielding negative R$^2$ values (Table~\ref{tab:lofo_results}). Mean LOFO performance is R$^2$=-1.007±0.552, MAE=418.2±93.3 m, representing a 256\% degradation compared to within-campaign performance (R$^2$=0.744, MAE=117.4m). This indicates models predict worse than a constant mean baseline when tested on unseen atmospheric regimes.
 
 \begin{table}[h]
-\centering
-\caption{Leave-one-flight-out cross-validation results showing catastrophic generalization failure across flight campaigns. All test flights achieve negative R$^2$ values.}
-\label{tab:lofo_results}
-\begin{tabular}{lccccc}
-\toprule
-\textbf{Test Flight} & \textbf{n\_test} & \textbf{n\_train} & \textbf{R$^2$} & \textbf{MAE (m)} & \textbf{RMSE (m)} \\
-\midrule
-Flight 0 (30Oct24) & 423 & 390 & -1.138 & 341.3 & 428.8 \\
-Flight 1 (10Feb25) & 182 & 631 & -0.585 & 318.8 & 372.4 \\
-Flight 2 (23Oct24) & 102 & 711 & -1.817 & 542.6 & 677.6 \\
-Flight 3 (12Feb25) & 84 & 729 & -0.488 & 470.0 & 672.4 \\
-\midrule
-\textbf{Average} & - & - & \textbf{-1.007} & \textbf{418.2} & \textbf{537.7} \\
-\bottomrule
-\multicolumn{6}{l}{\footnotesize \textit{Note: Flight 4 (18Feb25, n=44) excluded due to insufficient sample size ($<$60).}} \\
-\end{tabular}
+	\centering
+	\caption{Leave-one-flight-out cross-validation results showing severe generalization failure across flight campaigns. All test flights achieve negative R$^2$ values.}
+	\label{tab:lofo_results}
+	\begin{tabular}{lccccc}
+		\toprule
+		\textbf{Test Flight} & \textbf{n\_test} & \textbf{n\_train} & \textbf{R$^2$}  & \textbf{MAE (m)} & \textbf{RMSE (m)}                                \\
+		\midrule
+		Flight 0 (30Oct24)   & 423              & 390               & -1.138          & 341.3            & 428.8                                            \\
+		Flight 1 (10Feb25)   & 182              & 631               & -0.585          & 318.8            & 372.4                                            \\
+		Flight 2 (23Oct24)   & 102              & 711               & -1.817          & 542.6            & 677.6                                            \\
+		Flight 3 (12Feb25)   & 84               & 729               & -0.488          & 470.0            & 672.4                                            \\
+		\midrule
+		\textbf{Average}     & -                & -                 & \textbf{-1.007} & \textbf{418.2}   & \textbf{537.7}                                   \\
+		\bottomrule
+		\multicolumn{6}{l}{\footnotesize \textit{Note: Flight 4 (18Feb25, n=44) excluded due to insufficient sample size ($<$60). Total samples per row}}   \\
+		\multicolumn{6}{l}{\footnotesize \textit{(n\_test + n\_train = 813) reflect 120 additional samples excluded due to temporal matching constraints.}} \\
+	\end{tabular}
 \end{table}
 
 K-S divergence analysis (Figure~\ref{fig:ks_divergence}) shows significant feature distribution shifts across flights, with atmospheric variables (d2m, t2m, sp) exhibiting highest cross-flight divergence (K-S $>$ 0.4, p $<$ 0.001). PCA visualization (Figure~\ref{fig:pca_clustering}) reveals flights cluster by campaign, with PC1 explaining 36.0\% of variance and PC2 explaining 14.4\%. October 2024 flights separate from February 2025 flights along PC1, confirming domain shift arises from genuine meteorological differences across seasons and geographic regions, not sampling artifacts.
 
 \begin{figure}[h]
-\centering
-\includegraphics[width=0.9\textwidth]{../outputs/domain_analysis/figures/ks_divergence_heatmap.png}
-\caption{Kolmogorov-Smirnov divergence heatmap showing top 10 most divergent features across flight pairs. High K-S statistics (red) indicate significant distribution shifts. Atmospheric variables (d2m, t2m, sp) show strongest divergence (K-S $>$ 0.4).}
-\label{fig:ks_divergence}
+	\centering
+	\includegraphics[width=0.9\textwidth]{../outputs/domain_analysis/figures/ks_divergence_heatmap.png}
+	\caption{Kolmogorov-Smirnov divergence heatmap showing top 10 most divergent features across flight pairs. High K-S statistics (red) indicate significant distribution shifts. Atmospheric variables (d2m, t2m, sp) show strongest divergence (K-S $>$ 0.4).}
+	\label{fig:ks_divergence}
 \end{figure}
 
 \begin{figure}[h]
-\centering
-\includegraphics[width=0.8\textwidth]{../outputs/domain_analysis/figures/pca_flight_clustering.png}
-\caption{PCA visualization of feature distributions colored by flight ID. Distinct clustering demonstrates domain shift across flight campaigns (PC1: 36.0\% variance, PC2: 14.4\% variance). October 2024 and February 2025 campaigns separate along PC1.}
-\label{fig:pca_clustering}
+	\centering
+	\includegraphics[width=0.8\textwidth]{../outputs/domain_analysis/figures/pca_flight_clustering.png}
+	\caption{PCA visualization of feature distributions colored by flight ID. Distinct clustering demonstrates domain shift across flight campaigns (PC1: 36.0\% variance, PC2: 14.4\% variance). October 2024 and February 2025 campaigns separate along PC1.}
+	\label{fig:pca_clustering}
 \end{figure}
 
 \textbf{Implications:} The severe domain shift highlights a critical limitation for operational deployment. Models trained on historical campaigns cannot reliably predict CBH for new flights without domain adaptation techniques (e.g., transfer learning, domain-adversarial training). This motivates future work on few-shot learning and meta-learning approaches for rapid adaptation to new meteorological conditions.
@@ -618,28 +619,28 @@ Table~\ref{tab:computationalcost} compares training time, inference latency, and
 
 \textbf{Key findings:}
 \begin{itemize}[leftmargin=*]
-    \item \textbf{GBDT:} 1.04s training, 0.28ms inference, 1.3 MB model, CPU-only
-    \item \textbf{SimpleCNN:} 19.3s training, 1.22ms inference, 98.4 MB model, GPU preferred
-    \item \textbf{ResNet-18:} 7.4s training, 2.62ms inference, 42.7 MB model, GPU preferred
-    \item \textbf{EfficientNet-B0:} 14.6s training, 7.35ms inference, 15.6 MB model, GPU preferred
+	\item \textbf{GBDT:} 1.04s training, 0.28ms inference, 1.3 MB model, CPU-only
+	\item \textbf{SimpleCNN:} 19.3s training, 1.22ms inference, 98.4 MB model, GPU preferred
+	\item \textbf{ResNet-18:} 7.4s training, 2.62ms inference, 42.7 MB model, GPU preferred
+	\item \textbf{EfficientNet-B0:} 14.6s training, 7.35ms inference, 15.6 MB model, GPU preferred
 \end{itemize}
 
 GBDT offers:
 \begin{itemize}[leftmargin=*]
-    \item \textbf{4.3× faster inference} than SimpleCNN (0.28ms vs 1.22ms)
-    \item \textbf{9.3× faster inference} than ResNet-18
-    \item \textbf{26× faster inference} than EfficientNet-B0
-    \item \textbf{76× smaller model} than SimpleCNN (1.3 MB vs 98.4 MB)
-    \item \textbf{No GPU requirement} (CPU inference sufficient)
+	\item \textbf{4.3× faster inference} than SimpleCNN (0.28ms vs 1.22ms)
+	\item \textbf{9.3× faster inference} than ResNet-18
+	\item \textbf{26× faster inference} than EfficientNet-B0
+	\item \textbf{76× smaller model} than SimpleCNN (1.3 MB vs 98.4 MB)
+	\item \textbf{No GPU requirement} (CPU inference sufficient)
 \end{itemize}
 
 \textbf{Deployment implications:}
 \begin{enumerate}[leftmargin=*]
-    \item \textbf{Real-time aircraft deployment:} GBDT's 0.28ms latency enables 3571 predictions/second on CPU, far exceeding typical aerial imaging frame rates (1-10 Hz). The 1.3 MB model fits in embedded system memory.
-    
-    \item \textbf{Ground-based batch processing:} All models are viable. Vision models benefit from GPU batch parallelism but require 50-300× more memory.
-    
-    \item \textbf{Edge computing:} GBDT is the only feasible option for low-power edge devices (Raspberry Pi, embedded CPUs) due to CPU-only inference and minimal memory footprint.
+	\item \textbf{Real-time aircraft deployment:} GBDT's 0.28ms latency enables 3571 predictions/second on CPU, far exceeding typical aerial imaging frame rates (1-10 Hz). The 1.3 MB model fits in embedded system memory.
+
+	\item \textbf{Ground-based batch processing:} All models are viable. Vision models benefit from GPU batch parallelism but require 50-300× more memory.
+
+	\item \textbf{Edge computing:} GBDT is the only feasible option for low-power edge devices (Raspberry Pi, embedded CPUs) due to CPU-only inference and minimal memory footprint.
 \end{enumerate}
 
 For operational systems, GBDT provides the optimal accuracy-efficiency trade-off: near-state-of-the-art performance (R$^2$=0.744) with inference costs 5-26× lower than vision alternatives. The lack of GPU dependency simplifies deployment and reduces operational costs.
@@ -647,23 +648,23 @@ For operational systems, GBDT provides the optimal accuracy-efficiency trade-off
 \subsection{Domain Adaptation}
 \label{sec:domain_adaptation}
 
-Leave-one-flight-out (LOFO) validation on Flight 18Feb25 reveals severe domain shift. When this flight is excluded from training, the model shows catastrophic failure (R$^2$ = -0.98, MAE = 142.0 m), indicating strong distributional differences from the other flights in the dataset.
+Leave-one-flight-out (LOFO) validation on Flight 18Feb25 reveals severe domain shift. When this flight is excluded from training, the model shows complete failure (R$^2$ = -0.98, MAE = 142.0 m), indicating strong distributional differences from the other flights in the dataset.
 
 Few-shot learning experiments on 18Feb25 (Figure~\ref{fig:few_shot}) show:
 
 \begin{itemize}[leftmargin=*]
-    \item 5-shot: R$^2$ = -0.53 ± 0.77 (high variance, mostly negative)
-    \item 10-shot: R$^2$ = -0.22 ± 0.18 (slight improvement)
-    \item 20-shot: R$^2$ = -0.71 ± 0.70 (degradation from 10-shot)
+	\item 5-shot: R$^2$ = -0.53 ± 0.77 (high variance, mostly negative)
+	\item 10-shot: R$^2$ = -0.22 ± 0.18 (slight improvement)
+	\item 20-shot: R$^2$ = -0.71 ± 0.70 (degradation from 10-shot)
 \end{itemize}
 
 The counterintuitive performance degradation from 10-shot to 20-shot likely reflects overfitting on unrepresentative samples given the small test set (n=44) and high variance in this out-of-distribution regime. Even with 20 labeled 18Feb25 samples, performance remains far below within-distribution accuracy, suggesting fundamental distributional differences require investigation (e.g., different cloud types, extreme atmospheric conditions).
 
 \begin{figure}[h]
-\centering
-\includegraphics[width=0.8\textwidth]{paperfigures/figure5_few_shot_learning.png}
-\caption{Few-shot learning curves for Flight 18Feb25 domain adaptation. Performance remains poor even with 20 labeled samples, indicating severe distribution shift requiring more sophisticated adaptation methods.}
-\label{fig:few_shot}
+	\centering
+	\includegraphics[width=0.8\textwidth]{paperfigures/figure5_few_shot_learning.png}
+	\caption{Few-shot learning curves for Flight 18Feb25 domain adaptation. Performance remains poor even with 20 labeled samples, indicating severe distribution shift requiring more sophisticated adaptation methods.}
+	\label{fig:few_shot}
 \end{figure}
 
 \section{Discussion}
@@ -695,7 +696,7 @@ Our SHAP analysis reveals that near-surface thermodynamic variables (d2m, t2m) d
 
 \textbf{Dewpoint temperature (d2m) as primary predictor:} The dewpoint marks the temperature at which air becomes saturated. For rising air parcels, the lifting condensation level (LCL)---a first-order approximation of cloud base height---can be estimated from surface temperature and dewpoint via:
 \begin{equation}
-\text{LCL} \approx 125 \times (T - T_d) \text{ meters}
+	\text{LCL} \approx 125 \times (T - T_d) \text{ meters}
 \end{equation}
 where $T$ is surface temperature and $T_d$ is dewpoint temperature \cite{Lawrence2005}. The dominance of d2m (mean\_abs\_shap=87.73) directly reflects this physical relationship.
 
@@ -717,22 +718,22 @@ To verify that the GBDT model learns physically consistent relationships rather 
 Table~\ref{tab:physics_validation} presents constraint violation rates. The model achieves 100\% compliance with hard physical limits: zero predictions exceed the tropopause height (12,000 m) or fall below the surface (0 m).
 
 \begin{table}[ht]
-\centering
-\caption{Physical Plausibility Constraint Validation. All hard constraints satisfied (0\% violations). Correlation with atmospheric indicators confirms physically consistent learning.}
-\label{tab:physics_validation}
-\begin{tabular}{lccc}
-\toprule
-\textbf{Constraint} & \textbf{Expected} & \textbf{Observed} & \textbf{Violations} \\
-\midrule
-CBH $\leq$ 12,000 m (Tropopause) & 100\% & 100\% & 0/163 (0.0\%) \\
-CBH $\geq$ 0 m (Surface) & 100\% & 100\% & 0/163 (0.0\%) \\
-Corr(LCL, CBH$_{\text{pred}}$) $> 0$ & Positive & r=0.68*** & N/A \\
-Corr(BLH, CBH$_{\text{pred}}$) $> 0$ & Positive & r=0.14* & N/A \\
-\midrule
-\textbf{Model Performance} & \multicolumn{3}{c}{R$^2$ = 0.672, MAE = 134.4 m, RMSE = 220.1 m} \\
-\bottomrule
-\multicolumn{4}{l}{\footnotesize \textit{Note: *** p$<$0.001, * p$<$0.05}} \\
-\end{tabular}
+	\centering
+	\caption{Physical Plausibility Constraint Validation. All hard constraints satisfied (0\% violations). Correlation with atmospheric indicators confirms physically consistent learning.}
+	\label{tab:physics_validation}
+	\begin{tabular}{lccc}
+		\toprule
+		\textbf{Constraint}                  & \textbf{Expected}                                                & \textbf{Observed} & \textbf{Violations} \\
+		\midrule
+		CBH $\leq$ 12,000 m (Tropopause)     & 100\%                                                            & 100\%             & 0/163 (0.0\%)       \\
+		CBH $\geq$ 0 m (Surface)             & 100\%                                                            & 100\%             & 0/163 (0.0\%)       \\
+		Corr(LCL, CBH$_{\text{pred}}$) $> 0$ & Positive                                                         & r=0.68***         & N/A                 \\
+		Corr(BLH, CBH$_{\text{pred}}$) $> 0$ & Positive                                                         & r=0.14*           & N/A                 \\
+		\midrule
+		\textbf{Model Performance}           & \multicolumn{3}{c}{R$^2$ = 0.672, MAE = 134.4 m, RMSE = 220.1 m}                                           \\
+		\bottomrule
+		\multicolumn{4}{l}{\footnotesize \textit{Note: *** p$<$0.001, * p$<$0.05}}                                                                        \\
+	\end{tabular}
 \end{table}
 
 \textbf{Boundary layer height correlation:} Predicted CBH shows expected positive correlation with boundary layer height (BLH, r=0.136, p=0.083), though the relationship is weak. This is physically consistent: while deeper boundary layers can support higher cloud bases through enhanced mixing, CBH is primarily determined by moisture availability and lifting condensation level rather than turbulent mixing depth.
@@ -742,28 +743,28 @@ Corr(BLH, CBH$_{\text{pred}}$) $> 0$ & Positive & r=0.14* & N/A \\
 The lifting condensation level (LCL) provides a physics-based first-order estimate of cloud base height from surface thermodynamics. Figure~\ref{fig:cbh_vs_lcl} compares true and predicted CBH against LCL.
 
 \begin{figure}[ht]
-\centering
-\includegraphics[width=0.9\textwidth]{../outputs/physics_validation/figures/cbh_vs_lcl_validation.png}
-\caption{Cloud base height vs. lifting condensation level validation. \textbf{Left:} Predicted CBH correlates strongly with LCL (r=0.68, p$<$0.001), demonstrating the model learns physically consistent relationships. \textbf{Right:} True CBH vs. LCL (r=0.71, p$<$0.001) serves as a reference baseline. The model's LCL correlation approaches the physical relationship, confirming it captures fundamental atmospheric processes. Deviations from 1:1 line occur when boundary layer turbulence or cloud microphysics cause CBH to differ from simple LCL estimates.}
-\label{fig:cbh_vs_lcl}
+	\centering
+	\includegraphics[width=0.9\textwidth]{../outputs/physics_validation/figures/cbh_vs_lcl_validation.png}
+	\caption{Cloud base height vs. lifting condensation level validation. \textbf{Left:} Predicted CBH correlates strongly with LCL (r=0.68, p$<$0.001), demonstrating the model learns physically consistent relationships. \textbf{Right:} True CBH vs. LCL (r=0.71, p$<$0.001) serves as a reference baseline. The model's LCL correlation approaches the physical relationship, confirming it captures fundamental atmospheric processes. Deviations from 1:1 line occur when boundary layer turbulence or cloud microphysics cause CBH to differ from simple LCL estimates.}
+	\label{fig:cbh_vs_lcl}
 \end{figure}
 
 \textbf{Key findings:}
 \begin{itemize}[leftmargin=*]
-    \item \textbf{Predicted CBH vs. LCL:} Strong correlation r=0.68 (p$<$0.001), comparable to the true CBH-LCL correlation (r=0.71). This demonstrates the GBDT learns physically meaningful atmospheric relationships, not spurious correlations.
-    
-    \item \textbf{True CBH vs. LCL:} Correlation r=0.71 (p$<$0.001), confirming LCL as a strong physics-based CBH indicator. The imperfect correlation reflects that actual CBH depends on additional factors: atmospheric stability, entrainment, radiative effects, and multi-layer cloud systems.
-    
-    \item \textbf{Interpretation:} The model's ability to nearly match the true CBH-LCL correlation (0.68 vs. 0.71) while achieving superior overall performance (R$^2$=0.672) indicates it has learned to incorporate both the fundamental LCL relationship and additional atmospheric structure from the full 15-feature set.
+	\item \textbf{Predicted CBH vs. LCL:} Strong correlation r=0.68 (p$<$0.001), comparable to the true CBH-LCL correlation (r=0.71). This demonstrates the GBDT learns physically meaningful atmospheric relationships, not spurious correlations.
+
+	\item \textbf{True CBH vs. LCL:} Correlation r=0.71 (p$<$0.001), confirming LCL as a strong physics-based CBH indicator. The imperfect correlation reflects that actual CBH depends on additional factors: atmospheric stability, entrainment, radiative effects, and multi-layer cloud systems.
+
+	\item \textbf{Interpretation:} The model's ability to nearly match the true CBH-LCL correlation (0.68 vs. 0.71) while achieving superior overall performance (R$^2$=0.672) indicates it has learned to incorporate both the fundamental LCL relationship and additional atmospheric structure from the full 15-feature set.
 \end{itemize}
 
 \subsubsection{Case Study Analysis}
 
 Examining extreme prediction cases (Table~\ref{tab:physics_validation}) reveals:
 \begin{itemize}[leftmargin=*]
-    \item \textbf{Best prediction:} 1.4 m error (True=1320 m, Pred=1321 m), demonstrating near-perfect retrieval in favorable conditions
-    \item \textbf{Worst prediction:} 1008 m error (True=690 m, Pred=1698 m), a low-altitude cloud misclassified as mid-level---consistent with stratified error analysis showing poorest performance for CBH <500 m
-    \item \textbf{Median error:} 84 m, indicating typical performance exceeds MAE (134 m) due to heavy-tailed error distribution with occasional large failures
+	\item \textbf{Best prediction:} 1.4 m error (True=1320 m, Pred=1321 m), demonstrating near-perfect retrieval in favorable conditions
+	\item \textbf{Worst prediction:} 1008 m error (True=690 m, Pred=1698 m), a low-altitude cloud misclassified as mid-level---consistent with stratified error analysis showing poorest performance for CBH <500 m
+	\item \textbf{Median error:} 84 m, indicating typical performance exceeds MAE (134 m) due to heavy-tailed error distribution with occasional large failures
 \end{itemize}
 
 These results validate that the model learns physically plausible CBH retrievals: zero unphysical predictions, expected correlation with atmospheric boundary layer, and error patterns consistent with known ERA5 limitations (boundary layer resolution). The lack of constraint violations provides confidence for operational deployment within the tested atmospheric regime range (120-1950 m CBH).
@@ -774,23 +775,23 @@ Stratified error analysis reveals systematic performance variations across atmos
 
 \textbf{Low CBH difficulty (0-500m, MAE=192m):} Shallow boundary layer clouds pose challenges because:
 \begin{enumerate}[leftmargin=*]
-    \item ERA5's 25 km horizontal resolution cannot resolve small-scale turbulent eddies that control boundary layer mixing
-    \item Surface heterogeneity (vegetation, urban heat islands) creates local CBH variability not captured by gridded reanalysis
-    \item Radiation fog and stratus are sensitive to micro-meteorological conditions (surface cooling, local moisture sources)
+	\item ERA5's 25 km horizontal resolution cannot resolve small-scale turbulent eddies that control boundary layer mixing
+	\item Surface heterogeneity (vegetation, urban heat islands) creates local CBH variability not captured by gridded reanalysis
+	\item Radiation fog and stratus are sensitive to micro-meteorological conditions (surface cooling, local moisture sources)
 \end{enumerate}
 
 \textbf{Mid-range CBH success (500-1500m, MAE=104m):} Best performance occurs where:
 \begin{enumerate}[leftmargin=*]
-    \item 79\% of training data reside (statistical advantage)
-    \item Cloud formation is governed by large-scale lifting and moisture convergence well-represented in ERA5
-    \item Stratocumulus and cumulus clouds follow more predictable thermodynamic relationships
+	\item 79\% of training data reside (statistical advantage)
+	\item Cloud formation is governed by large-scale lifting and moisture convergence well-represented in ERA5
+	\item Stratocumulus and cumulus clouds follow more predictable thermodynamic relationships
 \end{enumerate}
 
 \textbf{High CBH challenges (>1500m, MAE=230m):} Deep convective clouds and cirrus show larger errors due to:
 \begin{enumerate}[leftmargin=*]
-    \item Limited training data (n=36, only 4\% of dataset)
-    \item Multi-layer cloud systems where CPL may detect middle/high clouds rather than true base
-    \item Convective instability making cloud base height more variable and less predictable from reanalysis
+	\item Limited training data (n=36, only 4\% of dataset)
+	\item Multi-layer cloud systems where CPL may detect middle/high clouds rather than true base
+	\item Convective instability making cloud base height more variable and less predictable from reanalysis
 \end{enumerate}
 
 \textbf{Stability dependence:} 1.3× better accuracy in stable atmospheres (MAE=113m) versus unstable (MAE=144m) reflects ERA5's superior representation of stratified layers. Turbulent convective regimes involve sub-grid processes not resolved at 25 km resolution.
@@ -815,9 +816,9 @@ Three factors contribute to cross-flight generalization failure:
 
 \textbf{1. Campaign-level atmospheric differences:} K-S divergence analysis (Figure~\ref{fig:ks_divergence}) reveals substantial distribution shift in key features:
 \begin{itemize}[leftmargin=*]
-    \item Total column water vapor (K-S = 0.80): Fall WHYMSIE 2024 (Flights 0, 2) vs. winter GLOVE 2025 (Flights 1, 3) campaigns have fundamentally different moisture regimes
-    \item Surface temperature (K-S = 0.72): Seasonal differences (October vs. February) create non-overlapping temperature distributions
-    \item Lifting condensation level (K-S = 0.75): Different cloud formation mechanisms across campaigns
+	\item Total column water vapor (K-S = 0.80): Fall WHYMSIE 2024 (Flights 0, 2) vs. winter GLOVE 2025 (Flights 1, 3) campaigns have fundamentally different moisture regimes
+	\item Surface temperature (K-S = 0.72): Seasonal differences (October vs. February) create non-overlapping temperature distributions
+	\item Lifting condensation level (K-S = 0.75): Different cloud formation mechanisms across campaigns
 \end{itemize}
 
 \textbf{2. Feature space non-overlap:} PCA analysis (Figure~\ref{fig:pca_clustering}) shows flights occupy distinct regions of the 15-dimensional feature space with minimal overlap. Training on Flights 1, 2, 3 provides zero coverage of Flight 0's atmospheric regime, forcing the model to extrapolate rather than interpolate during LOFO validation.
@@ -829,11 +830,11 @@ Three factors contribute to cross-flight generalization failure:
 The severe domain shift has critical implications:
 
 \begin{enumerate}[leftmargin=*]
-    \item \textbf{Geographic generalization uncertain:} Our flights span limited geographic regions (primarily continental U.S.). Deployment to tropical, polar, or oceanic environments may exhibit even worse generalization than observed in LOFO validation.
-    
-    \item \textbf{Seasonal adaptation required:} The model cannot reliably transfer between fall and winter campaigns without retraining or fine-tuning. Operational systems require continuous model updating as atmospheric conditions evolve.
-    
-    \item \textbf{Campaign-specific calibration necessary:} High within-campaign performance (R$^2$ = 0.71) suggests the approach is fundamentally sound, but each new deployment region requires local labeled data for calibration.
+	\item \textbf{Geographic generalization uncertain:} Our flights span limited geographic regions (primarily continental U.S.). Deployment to tropical, polar, or oceanic environments may exhibit even worse generalization than observed in LOFO validation.
+
+	\item \textbf{Seasonal adaptation required:} The model cannot reliably transfer between fall and winter campaigns without retraining or fine-tuning. Operational systems require continuous model updating as atmospheric conditions evolve.
+
+	\item \textbf{Campaign-specific calibration necessary:} High within-campaign performance (R$^2$ = 0.71) suggests the approach is fundamentally sound, but each new deployment region requires local labeled data for calibration.
 \end{enumerate}
 
 \subsubsection{Paths Forward}
@@ -841,14 +842,14 @@ The severe domain shift has critical implications:
 More sophisticated approaches may address cross-flight generalization:
 
 \begin{enumerate}[leftmargin=*]
-    \item \textbf{Domain adversarial training:} Learn features invariant to flight ID \cite{Ganin2016}
-    \item \textbf{Meta-learning:} Optimize for fast adaptation to new flights \cite{Finn2017}
-    \item \textbf{Covariate shift correction:} Re-weight training samples to match test distribution \cite{Shimodaira2000}
-    \item \textbf{Physics-informed regularization:} Constrain predictions to obey atmospheric stability criteria, preventing unphysical extrapolation
-    \item \textbf{Multi-campaign training:} Aggregate data across diverse atmospheric regimes to improve generalization, though our results suggest this may be insufficient without architectural changes
+	\item \textbf{Domain adversarial training:} Learn features invariant to flight ID \cite{Ganin2016}
+	\item \textbf{Meta-learning:} Optimize for fast adaptation to new flights \cite{Finn2017}
+	\item \textbf{Covariate shift correction:} Re-weight training samples to match test distribution \cite{Shimodaira2000}
+	\item \textbf{Physics-informed regularization:} Constrain predictions to obey atmospheric stability criteria, preventing unphysical extrapolation
+	\item \textbf{Multi-campaign training:} Aggregate data across diverse atmospheric regimes to improve generalization, though our results suggest this may be insufficient without architectural changes
 \end{enumerate}
 
-The domain shift problem is critical for operational deployment: if models trained on one region fail catastrophically in another, they cannot be trusted for global applications without extensive local validation. This finding challenges the assumption that high cross-validation performance guarantees real-world generalization.
+The domain shift problem is critical for operational deployment: if models trained on one region fail dramatically in another, they cannot be trusted for global applications without extensive local validation. This finding challenges the assumption that high cross-validation performance guarantees real-world generalization.
 
 \subsubsection{Practical Deployment Considerations}
 
@@ -857,13 +858,13 @@ The domain shift problem is critical for operational deployment: if models train
 \textbf{Within-campaign deployment is production-ready:} Our within-campaign cross-validation results (R$^2$ = 0.744, MAE = 117.4 m) demonstrate that models achieve operational accuracy when applied to the same atmospheric regime they were trained on. For practical applications:
 
 \begin{itemize}[leftmargin=*]
-    \item \textbf{Intra-season deployment:} A model trained on October 2024 WHYMSIE flights can reliably predict CBH for subsequent October 2024 flights in the same geographic region, as these share similar atmospheric conditions.
-    
-    \item \textbf{Regional operational systems:} Aircraft operating within a specific geographic region and season can use models trained on representative local data, achieving the 117.4 m MAE performance demonstrated in our validation.
-    
-    \item \textbf{Periodic recalibration:} Operational systems should retrain models seasonally or when deploying to new geographic regions, rather than attempting universal generalization.
-    
-    \item \textbf{Uncertainty-aware deployment:} Conformal prediction intervals (91\% coverage) enable real-time detection of distribution shift. When prediction intervals exceed operational thresholds, the system can flag uncertain predictions for operator review or trigger model retraining.
+	\item \textbf{Intra-season deployment:} A model trained on October 2024 WHYMSIE flights can reliably predict CBH for subsequent October 2024 flights in the same geographic region, as these share similar atmospheric conditions.
+
+	\item \textbf{Regional operational systems:} Aircraft operating within a specific geographic region and season can use models trained on representative local data, achieving the 117.4 m MAE performance demonstrated in our validation.
+
+	\item \textbf{Periodic recalibration:} Operational systems should retrain models seasonally or when deploying to new geographic regions, rather than attempting universal generalization.
+
+	\item \textbf{Uncertainty-aware deployment:} Conformal prediction intervals (91\% coverage) enable real-time detection of distribution shift. When prediction intervals exceed operational thresholds, the system can flag uncertain predictions for operator review or trigger model retraining.
 \end{itemize}
 
 \textbf{The key takeaway:} Our results demonstrate that atmospheric feature-based CBH retrieval achieves production-ready accuracy (MAE = 117.4 m, 0.28 ms inference) for within-regime deployment. The domain shift challenge arises only when attempting cross-regime generalization without adaptation. Practical systems should treat each meteorological regime as requiring regime-specific calibration, not as a failure of the approach.
@@ -873,11 +874,11 @@ The domain shift problem is critical for operational deployment: if models train
 Direct comparison to prior CBH retrieval methods is challenging due to differences in data sources, evaluation metrics, and spatial scales. However, we can contextualize our results:
 
 \begin{itemize}[leftmargin=*]
-    \item \textbf{Satellite retrievals:} MODIS cloud base products achieve ~500 m uncertainty \cite{Minnis2008}, worse than our 117 m MAE but over global scales.
+	\item \textbf{Satellite retrievals:} MODIS cloud base products achieve ~500 m uncertainty \cite{Minnis2008}, worse than our 117 m MAE but over global scales.
 
-    \item \textbf{Ceilometer networks:} Ground-based lidars achieve ~15 m accuracy \cite{Martucci2010} but with limited coverage.
+	\item \textbf{Ceilometer networks:} Ground-based lidars achieve ~15 m accuracy \cite{Martucci2010} but with limited coverage.
 
-    \item \textbf{Reanalysis products:} ERA5 cloud base estimates show ~800 m RMSE vs radiosonde \cite{Benas2020}, higher than our 187 m.
+	\item \textbf{Reanalysis products:} ERA5 cloud base estimates show ~800 m RMSE vs radiosonde \cite{Benas2020}, higher than our 187 m.
 \end{itemize}
 
 Our approach occupies a middle ground: better accuracy than passive satellite methods, worse than active lidars, but with broader spatial coverage than ground-based sensors.
@@ -887,19 +888,19 @@ Our approach occupies a middle ground: better accuracy than passive satellite me
 Our findings provide several lessons for ML applications in atmospheric science:
 
 \begin{enumerate}[leftmargin=*]
-    \item \textbf{Physics-informed features outperform vision:} Domain knowledge for feature engineering captures cloud formation physics more effectively than end-to-end learning. GBDT with 15 atmospheric features achieves 22.7\% lower MAE than ResNet-18 despite deep learning's theoretical capacity for arbitrary representation learning.
+	\item \textbf{Physics-informed features outperform vision:} Domain knowledge for feature engineering captures cloud formation physics more effectively than end-to-end learning. GBDT with 15 atmospheric features achieves 22.7\% lower MAE than ResNet-18 despite deep learning's theoretical capacity for arbitrary representation learning.
 
-    \item \textbf{Computational efficiency enables deployment:} GBDT's 0.28ms inference and CPU-only requirements make real-time aircraft deployment feasible, whereas vision models demand GPU infrastructure. For operational systems, the 5-26× computational advantage often outweighs minor accuracy differences.
+	\item \textbf{Computational efficiency enables deployment:} GBDT's 0.28ms inference and CPU-only requirements make real-time aircraft deployment feasible, whereas vision models demand GPU infrastructure. For operational systems, the 5-26× computational advantage often outweighs minor accuracy differences.
 
-    \item \textbf{Negative results are valuable:} Documenting when ensembles and images \textit{don't} help guides resource allocation. Our finding that multi-modal fusion provides <1\% R$^2$ gain suggests practitioners can avoid the engineering complexity of image pipelines.
+	\item \textbf{Negative results are valuable:} Documenting when ensembles and images \textit{don't} help guides resource allocation. Our finding that multi-modal fusion provides <1\% R$^2$ gain suggests practitioners can avoid the engineering complexity of image pipelines.
 
-    \item \textbf{Generalization requires attention:} High within-distribution performance (R$^2$=0.744) masks severe domain shift (R$^2$=-0.98 on out-of-distribution flight). Models must be validated across atmospheric regimes before deployment.
+	\item \textbf{Generalization requires attention:} High within-distribution performance (R$^2$=0.744) masks severe domain shift (R$^2$=-0.98 on out-of-distribution flight). Models must be validated across atmospheric regimes before deployment.
 
-    \item \textbf{Uncertainty quantification is essential:} Conformal prediction provides operational decision support by flagging uncertain predictions. The 91\% coverage achieved at the 90\% target level demonstrates practical calibration.
-    
-    \item \textbf{Feature ablation reveals robustness:} No single feature causes >1\% performance degradation, indicating graceful handling of missing sensors or ERA5 fields in operational scenarios.
-    
-    \item \textbf{Error stratification guides improvements:} Identifying low-CBH difficulty (MAE=192m) and high-CBH challenges (MAE=230m) prioritizes future research on boundary layer turbulence and multi-layer clouds.
+	\item \textbf{Uncertainty quantification is essential:} Conformal prediction provides operational decision support by flagging uncertain predictions. The 91\% coverage achieved at the 90\% target level demonstrates practical calibration.
+
+	\item \textbf{Feature ablation reveals robustness:} No single feature causes >1\% performance degradation, indicating graceful handling of missing sensors or ERA5 fields in operational scenarios.
+
+	\item \textbf{Error stratification guides improvements:} Identifying low-CBH difficulty (MAE=192m) and high-CBH challenges (MAE=230m) prioritizes future research on boundary layer turbulence and multi-layer clouds.
 \end{enumerate}
 
 \section{Limitations and Future Work}
@@ -926,13 +927,13 @@ Uncertainty quantification via earlier quantile regression was under-calibrated 
 Our approach has several methodological constraints:
 
 \begin{itemize}[leftmargin=*]
-    \item \textbf{ERA5 spatial resolution:} The 25 km horizontal grid cannot capture fine-scale atmospheric variability (turbulent eddies, local moisture sources), limiting accuracy for low-altitude clouds controlled by micro-meteorology.
-    
-    \item \textbf{Limited temporal coverage:} Our dataset comprises 933 samples from 6 specific flight campaigns, constraining generalization to other geographic regions, seasons, and climate regimes.
-    
-    \item \textbf{Shadow detection assumptions:} Automated cloud shadow detection relies on brightness thresholds that may fail in complex illumination (thin clouds, multiple cloud layers, low solar elevation), introducing noise in geometric features.
-    
-    \item \textbf{Domain generalization failure:} Leave-one-flight-out validation reveals catastrophic failure (mean R$^2$ = -1.01, MAE = 418 m across 4 held-out flights) for out-of-distribution atmospheric regimes, limiting deployment confidence without extensive local validation. This represents the most critical limitation of the current approach.
+	\item \textbf{ERA5 spatial resolution:} The 25 km horizontal grid cannot capture fine-scale atmospheric variability (turbulent eddies, local moisture sources), limiting accuracy for low-altitude clouds controlled by micro-meteorology.
+
+	\item \textbf{Limited temporal coverage:} Our dataset comprises 933 samples from 6 specific flight campaigns, constraining generalization to other geographic regions, seasons, and climate regimes.
+
+	\item \textbf{Shadow detection assumptions:} Automated cloud shadow detection relies on brightness thresholds that may fail in complex illumination (thin clouds, multiple cloud layers, low solar elevation), introducing noise in geometric features.
+
+	\item \textbf{Domain generalization failure:} Leave-one-flight-out validation reveals catastrophic failure (mean R$^2$ = -1.01, MAE = 418 m across 4 held-out flights) for out-of-distribution atmospheric regimes, limiting deployment confidence without extensive local validation. This represents the most critical limitation of the current approach.
 \end{itemize}
 
 \subsubsection{Evaluation Limitations}
@@ -946,41 +947,41 @@ Cross-flight validation assesses one axis of distribution shift (meteorological 
 \subsubsection{Improved Image Models}
 
 \begin{itemize}[leftmargin=*]
-    \item \textbf{Pre-training on atmospheric data:} Self-supervised learning on unlabeled cloud imagery (e.g., SimCLR \cite{Chen2020}) could provide better initialization than ImageNet.
+	\item \textbf{Pre-training on atmospheric data:} Self-supervised learning on unlabeled cloud imagery (e.g., SimCLR \cite{Chen2020}) could provide better initialization than ImageNet.
 
-    \item \textbf{Temporal modeling:} Video sequences of cloud evolution may contain more information than single frames. Temporal convolutional networks or transformers could exploit this.
+	\item \textbf{Temporal modeling:} Video sequences of cloud evolution may contain more information than single frames. Temporal convolutional networks or transformers could exploit this.
 
-    \item \textbf{Multi-scale architectures:} Clouds exhibit structure across spatial scales. Feature pyramids or attention mechanisms targeting different resolutions may improve performance.
+	\item \textbf{Multi-scale architectures:} Clouds exhibit structure across spatial scales. Feature pyramids or attention mechanisms targeting different resolutions may improve performance.
 \end{itemize}
 
 \subsubsection{Hybrid Physics-ML Approaches}
 
 \begin{itemize}[leftmargin=*]
-    \item \textbf{Physics-informed neural networks:} Constrain predictions to satisfy thermodynamic equations (e.g., LCL formula as a soft constraint).
+	\item \textbf{Physics-informed neural networks:} Constrain predictions to satisfy thermodynamic equations (e.g., LCL formula as a soft constraint).
 
-    \item \textbf{Differentiable physics models:} Embed simplified cloud formation equations in the neural network architecture.
+	\item \textbf{Differentiable physics models:} Embed simplified cloud formation equations in the neural network architecture.
 
-    \item \textbf{Residual learning:} Predict corrections to physics-based LCL estimates rather than CBH directly.
+	\item \textbf{Residual learning:} Predict corrections to physics-based LCL estimates rather than CBH directly.
 \end{itemize}
 
 \subsubsection{Domain Adaptation}
 
 \begin{itemize}[leftmargin=*]
-    \item \textbf{Root-cause analysis:} Investigate why 18Feb25 fails (feature distribution analysis, covariate shift decomposition).
+	\item \textbf{Root-cause analysis:} Investigate why 18Feb25 fails (feature distribution analysis, covariate shift decomposition).
 
-    \item \textbf{Active learning:} Intelligently select which samples to label in new domains to maximize adaptation efficiency.
+	\item \textbf{Active learning:} Intelligently select which samples to label in new domains to maximize adaptation efficiency.
 
-    \item \textbf{Multi-source learning:} Combine ER-2 data with ground-based ceilometers or satellite retrievals for broader coverage.
+	\item \textbf{Multi-source learning:} Combine ER-2 data with ground-based ceilometers or satellite retrievals for broader coverage.
 \end{itemize}
 
 \subsubsection{Operational Deployment}
 
 \begin{itemize}[leftmargin=*]
-    \item \textbf{Real-time inference:} Optimize models for low-latency prediction during flight operations.
+	\item \textbf{Real-time inference:} Optimize models for low-latency prediction during flight operations.
 
-    \item \textbf{Model monitoring:} Detect distribution shift and performance degradation in production.
+	\item \textbf{Model monitoring:} Detect distribution shift and performance degradation in production.
 
-    \item \textbf{Human-in-the-loop:} Design interfaces for meteorologists to provide feedback and corrections.
+	\item \textbf{Human-in-the-loop:} Design interfaces for meteorologists to provide feedback and corrections.
 \end{itemize}
 
 \section{Conclusion}
@@ -989,28 +990,28 @@ Cross-flight validation assesses one axis of distribution shift (meteorological 
 We have presented a systematic comparison of atmospheric feature-based and image-based machine learning approaches for cloud base height retrieval from NASA ER-2 airborne observations. Our key findings are:
 
 \begin{enumerate}[leftmargin=*]
-    \item \textbf{Atmospheric features dominate:} GBDT models using 18 ERA5-derived and geometric features achieve R$^2$ = 0.744 (MAE = 117.4 m), outperforming CNNs on imagery by 2× in error reduction.
+	\item \textbf{Atmospheric features dominate:} GBDT models using 18 ERA5-derived and geometric features achieve R$^2$ = 0.744 (MAE = 117.4 m), outperforming CNNs on imagery by 2× in error reduction.
 
-    \item \textbf{Feature importance and robustness:} SHAP analysis identifies dewpoint temperature (d2m) and surface temperature (t2m) as dominant predictors, consistent with cloud physics. No single feature is critical (max R$^2$ drop <1\%), indicating graceful degradation under sensor failures.
+	\item \textbf{Feature importance and robustness:} SHAP analysis identifies dewpoint temperature (d2m) and surface temperature (t2m) as dominant predictors, consistent with cloud physics. No single feature is critical (max R$^2$ drop <1\%), indicating graceful degradation under sensor failures.
 
-    \item \textbf{Calibrated uncertainty quantification:} Conformal prediction provides distribution-free prediction intervals achieving 91\% coverage at the 90\% target level, enabling operational decision support.
+	\item \textbf{Calibrated uncertainty quantification:} Conformal prediction provides distribution-free prediction intervals achieving 91\% coverage at the 90\% target level, enabling operational decision support.
 
-    \item \textbf{Computational efficiency:} GBDT enables real-time aircraft deployment (0.28 ms inference, 1.3 MB model, CPU-only) with 5-26× faster inference than vision models requiring GPUs.
+	\item \textbf{Computational efficiency:} GBDT enables real-time aircraft deployment (0.28 ms inference, 1.3 MB model, CPU-only) with 5-26× faster inference than vision models requiring GPUs.
 
-    \item \textbf{Error regime identification:} Stratified analysis reveals best performance in mid-range CBH (500-1500m, MAE=104m) with degraded accuracy for low-altitude clouds (<500m, MAE=192m) due to unresolved boundary layer turbulence.
+	\item \textbf{Error regime identification:} Stratified analysis reveals best performance in mid-range CBH (500-1500m, MAE=104m) with degraded accuracy for low-altitude clouds (<500m, MAE=192m) due to unresolved boundary layer turbulence.
 
-    \item \textbf{Limited multi-modal benefit:} Ensemble methods combining atmospheric and visual features provide <1\% R$^2$ improvement, indicating minimal complementarity and suggesting operational systems can rely on tabular features alone.
+	\item \textbf{Limited multi-modal benefit:} Ensemble methods combining atmospheric and visual features provide <1\% R$^2$ improvement, indicating minimal complementarity and suggesting operational systems can rely on tabular features alone.
 
-    \item \textbf{Domain shift is catastrophic and systematic:} Leave-one-flight-out validation reveals complete generalization failure across all four held-out flights (mean R$^2$ = -1.01, MAE = 418 m), representing 240\% performance degradation compared to within-campaign validation. K-S divergence analysis and PCA demonstrate substantial feature distribution shift between campaigns, with flights occupying non-overlapping regions of atmospheric state space.
+	\item \textbf{Domain shift is severe and systematic:} Leave-one-flight-out validation reveals complete generalization failure across all four held-out flights (mean R$^2$ = -1.01, MAE = 418 m), representing 240\% performance degradation compared to within-campaign validation. K-S divergence analysis and PCA demonstrate substantial feature distribution shift between campaigns, with flights occupying non-overlapping regions of atmospheric state space.
 
-    \item \textbf{Physics-based validation confirms trustworthiness:} Despite domain shift challenges, the model learns physically consistent relationships: zero constraint violations (0\% predictions exceeding tropopause or below surface), expected positive correlation with boundary layer height (r=0.14), and weak but positive correlation with lifting condensation level, confirming predictions respect fundamental atmospheric physics within trained regimes.
+	\item \textbf{Physics-based validation confirms trustworthiness:} Despite domain shift challenges, the model learns physically consistent relationships: zero constraint violations (0\% predictions exceeding tropopause or below surface), expected positive correlation with boundary layer height (r=0.14), and weak but positive correlation with lifting condensation level, confirming predictions respect fundamental atmospheric physics within trained regimes.
 
-    \item \textbf{Open-source framework released:} CloudMLPublic provides production-grade infrastructure with comprehensive uncertainty quantification and 92\% test pass rate to support reproducible atmospheric ML research.
+	\item \textbf{Open-source framework released:} CloudMLPublic provides production-grade infrastructure with comprehensive uncertainty quantification and 92\% test pass rate to support reproducible atmospheric ML research.
 \end{enumerate}
 
 Our results demonstrate that physics-informed feature engineering leveraging reanalysis products captures cloud formation processes more effectively than end-to-end deep learning on raw imagery. Our comprehensive vision baseline experiments with ResNet-18 and EfficientNet-B0 confirm that atmospheric features outperform learned image representations by 22.7\% on MAE even with state-of-the-art architectures and transfer learning, validating that our core claim is not an artifact of weak baseline design. This challenges the prevailing trend toward universal application of deep learning and highlights the continued importance of domain expertise in scientific machine learning.
 
-\textbf{The severe domain shift represents our most important negative result:} While within-campaign cross-validation achieves strong performance (R$^2$ = 0.71), all out-of-distribution flights fail catastrophically (mean R$^2$ = -1.007, MAE = 418 m), representing a 240\% degradation from within-campaign performance. This underscores the need for rigorous cross-domain evaluation in atmospheric ML---high held-out test performance can mask generalization failures that emerge in operational deployment across different atmospheric regimes. The model learns campaign-specific correlations that do not transfer, despite using physically meaningful ERA5 features.
+\textbf{The severe domain shift represents our most important negative result:} While within-campaign cross-validation achieves strong performance (R$^2$ = 0.71), all out-of-distribution flights fail dramatically (mean R$^2$ = -1.007, MAE = 418 m), representing a 240\% degradation from within-campaign performance. This underscores the need for rigorous cross-domain evaluation in atmospheric ML---high held-out test performance can mask generalization failures that emerge in operational deployment across different atmospheric regimes. The model learns campaign-specific correlations that do not transfer, despite using physically meaningful ERA5 features.
 
 Future work should prioritize: (1) domain adaptation methods (adversarial training, meta-learning) to improve cross-regime generalization, (2) few-shot learning approaches for rapid adaptation to new meteorological regimes with minimal labeled samples, (3) hybrid physics-ML approaches that constrain predictions using atmospheric stability criteria and incorporate LCL as a physics-informed loss component to prevent unphysical extrapolation, and (4) multi-task learning predicting cloud top height and optical depth jointly with CBH to leverage correlated atmospheric properties. The physics validation results (zero constraint violations, strong LCL correlation r=0.68) provide confidence that the approach is fundamentally sound within trained atmospheric regimes, but the domain shift findings demonstrate that extensive local calibration is essential before operational deployment.
 
@@ -1018,7 +1019,7 @@ We hope that our open-source release enables the atmospheric science community t
 
 \section*{Acknowledgments}
 
-This work builds upon methods developed during the author's NASA OSTEM internship (May--August 2025) with the NASA Goddard Space Flight Center High Altitude Research Program. The author thanks Dr. Dong Wu and the NASA ER-2 flight team for data access and technical discussions during the internship period. All analysis, code development, model training, and results presented in this paper were conducted independently by the author following the internship conclusion. ERA5 reanalysis data were provided by the European Centre for Medium-Range Weather Forecasts (ECMWF) Copernicus Climate Data Store. NASA ER-2 camera and Cloud Physics Lidar data are available through the NASA High Altitude Research Program. The author acknowledges Embry-Riddle Aeronautical University as well.
+This work builds upon methods developed during the author's NASA OSTEM internship (May--August 2025) with the NASA Goddard Space Flight Center High Altitude Research Program. The author thanks Dr. Dong Wu and the NASA ER-2 flight team for data access and technical discussions during the internship period. All analysis, code development, model training, and results presented in this paper were conducted independently by the author following the internship conclusion. ERA5 reanalysis data were provided by the European Centre for Medium-Range Weather Forecasts (ECMWF) Copernicus Climate Data Store. NASA ER-2 camera and Cloud Physics Lidar data are available through the NASA High Altitude Research Program. The author also acknowledges Embry-Riddle Aeronautical University for providing the academic support and resources necessary to complete this independent study.
 
 \section*{Code and Data Availability}
 
@@ -1035,265 +1036,265 @@ All data used in this work are from publicly available NASA Earth science missio
 \bibliographystyle{plain}
 \begin{thebibliography}{99}
 
-\bibitem[Alishouse et al.(1990)]{Alishouse1990}
-Alishouse, J.C., et al. (1990).
-\newblock Determination of oceanic total precipitable water from the SSM/I.
-\newblock \textit{IEEE Trans. Geosci. Remote Sens.}, 28(5), 811--816.
+	\bibitem[Alishouse et al.(1990)]{Alishouse1990}
+	Alishouse, J.C., et al. (1990).
+	\newblock Determination of oceanic total precipitable water from the SSM/I.
+	\newblock \textit{IEEE Trans. Geosci. Remote Sens.}, 28(5), 811--816.
 
-\bibitem[Baltrušaitis et al.(2019)]{Baltrušaitis2019}
-Baltrušaitis, T., Ahuja, C., \& Morency, L.P. (2019).
-\newblock Multimodal machine learning: A survey and taxonomy.
-\newblock \textit{IEEE Trans. Pattern Anal. Mach. Intell.}, 41(2), 423--443.
+	\bibitem[Baltrušaitis et al.(2019)]{Baltrušaitis2019}
+	Baltrušaitis, T., Ahuja, C., \& Morency, L.P. (2019).
+	\newblock Multimodal machine learning: A survey and taxonomy.
+	\newblock \textit{IEEE Trans. Pattern Anal. Mach. Intell.}, 41(2), 423--443.
 
-\bibitem[Benas et al.(2020)]{Benas2020}
-Benas, N., et al. (2020).
-\newblock Evaluation of ERA5 cloud properties against space-based observations.
-\newblock \textit{Atmos. Chem. Phys.}, 20, 10799--10816.
+	\bibitem[Benas et al.(2020)]{Benas2020}
+	Benas, N., et al. (2020).
+	\newblock Evaluation of ERA5 cloud properties against space-based observations.
+	\newblock \textit{Atmos. Chem. Phys.}, 20, 10799--10816.
 
-\bibitem[Boucher et al.(2013)]{Boucher2013}
-Boucher, O., et al. (2013).
-\newblock Clouds and aerosols. In \textit{Climate Change 2013: The Physical Science Basis}.
-\newblock Cambridge University Press.
+	\bibitem[Boucher et al.(2013)]{Boucher2013}
+	Boucher, O., et al. (2013).
+	\newblock Clouds and aerosols. In \textit{Climate Change 2013: The Physical Science Basis}.
+	\newblock Cambridge University Press.
 
-\bibitem[Breiman(1996)]{Breiman1996}
-Breiman, L. (1996).
-\newblock Bagging predictors.
-\newblock \textit{Mach. Learn.}, 24(2), 123--140.
+	\bibitem[Breiman(1996)]{Breiman1996}
+	Breiman, L. (1996).
+	\newblock Bagging predictors.
+	\newblock \textit{Mach. Learn.}, 24(2), 123--140.
 
-\bibitem[Chen \& Guestrin(2016)]{Chen2016}
-Chen, T., \& Guestrin, C. (2016).
-\newblock XGBoost: A scalable tree boosting system.
-\newblock \textit{Proc. KDD}, 785--794.
+	\bibitem[Chen \& Guestrin(2016)]{Chen2016}
+	Chen, T., \& Guestrin, C. (2016).
+	\newblock XGBoost: A scalable tree boosting system.
+	\newblock \textit{Proc. KDD}, 785--794.
 
-\bibitem[Chen et al.(2019)]{Chen2019}
-Chen, T.M., et al. (2019).
-\newblock Outdoor air pollution: Ozone health effects.
-\newblock \textit{Am. J. Med. Sci.}, 357(3), 266--273.
+	\bibitem[Chen et al.(2019)]{Chen2019}
+	Chen, T.M., et al. (2019).
+	\newblock Outdoor air pollution: Ozone health effects.
+	\newblock \textit{Am. J. Med. Sci.}, 357(3), 266--273.
 
-\bibitem[Chen et al.(2020)]{Chen2020}
-Chen, T., Kornblith, S., Norouzi, M., \& Hinton, G. (2020).
-\newblock A simple framework for contrastive learning of visual representations.
-\newblock \textit{Proc. ICML}, 1597--1607.
+	\bibitem[Chen et al.(2020)]{Chen2020}
+	Chen, T., Kornblith, S., Norouzi, M., \& Hinton, G. (2020).
+	\newblock A simple framework for contrastive learning of visual representations.
+	\newblock \textit{Proc. ICML}, 1597--1607.
 
-\bibitem[Dietterich(2000)]{Dietterich2000}
-Dietterich, T.G. (2000).
-\newblock Ensemble methods in machine learning.
-\newblock \textit{Proc. Int. Workshop Multiple Classifier Systems}, 1--15.
+	\bibitem[Dietterich(2000)]{Dietterich2000}
+	Dietterich, T.G. (2000).
+	\newblock Ensemble methods in machine learning.
+	\newblock \textit{Proc. Int. Workshop Multiple Classifier Systems}, 1--15.
 
-\bibitem[Dosovitskiy et al.(2020)]{Dosovitskiy2020}
-Dosovitskiy, A., et al. (2020).
-\newblock An image is worth 16x16 words: Transformers for image recognition at scale.
-\newblock \textit{Proc. ICLR}.
+	\bibitem[Dosovitskiy et al.(2020)]{Dosovitskiy2020}
+	Dosovitskiy, A., et al. (2020).
+	\newblock An image is worth 16x16 words: Transformers for image recognition at scale.
+	\newblock \textit{Proc. ICLR}.
 
-\bibitem[Finn et al.(2017)]{Finn2017}
-Finn, C., Abbeel, P., \& Levine, S. (2017).
-\newblock Model-agnostic meta-learning for fast adaptation of deep networks.
-\newblock \textit{Proc. ICML}, 1126--1135.
+	\bibitem[Finn et al.(2017)]{Finn2017}
+	Finn, C., Abbeel, P., \& Levine, S. (2017).
+	\newblock Model-agnostic meta-learning for fast adaptation of deep networks.
+	\newblock \textit{Proc. ICML}, 1126--1135.
 
-\bibitem[Freund \& Schapire(1997)]{Freund1997}
-Freund, Y., \& Schapire, R.E. (1997).
-\newblock A decision-theoretic generalization of on-line learning.
-\newblock \textit{J. Comput. Syst. Sci.}, 55(1), 119--139.
+	\bibitem[Freund \& Schapire(1997)]{Freund1997}
+	Freund, Y., \& Schapire, R.E. (1997).
+	\newblock A decision-theoretic generalization of on-line learning.
+	\newblock \textit{J. Comput. Syst. Sci.}, 55(1), 119--139.
 
-\bibitem[Ganin et al.(2016)]{Ganin2016}
-Ganin, Y., et al. (2016).
-\newblock Domain-adversarial training of neural networks.
-\newblock \textit{J. Mach. Learn. Res.}, 17(1), 2096--2030.
+	\bibitem[Ganin et al.(2016)]{Ganin2016}
+	Ganin, Y., et al. (2016).
+	\newblock Domain-adversarial training of neural networks.
+	\newblock \textit{J. Mach. Learn. Res.}, 17(1), 2096--2030.
 
-\bibitem[Hahn \& Warren(1995)]{Hahn1995}
-Hahn, C.J., \& Warren, S.G. (1995).
-\newblock A gridded climatology of clouds over land and ocean.
-\newblock \textit{ORNL Tech. Rep.} NDP-026E.
+	\bibitem[Hahn \& Warren(1995)]{Hahn1995}
+	Hahn, C.J., \& Warren, S.G. (1995).
+	\newblock A gridded climatology of clouds over land and ocean.
+	\newblock \textit{ORNL Tech. Rep.} NDP-026E.
 
-\bibitem[Hamill(2006)]{Hamill2006}
-Hamill, T.M. (2006).
-\newblock Ensemble-based atmospheric data assimilation.
-\newblock In \textit{Predictability of Weather and Climate}, 124--156.
+	\bibitem[Hamill(2006)]{Hamill2006}
+	Hamill, T.M. (2006).
+	\newblock Ensemble-based atmospheric data assimilation.
+	\newblock In \textit{Predictability of Weather and Climate}, 124--156.
 
-\bibitem[He et al.(2016)]{He2016}
-He, K., Zhang, X., Ren, S., \& Sun, J. (2016).
-\newblock Deep residual learning for image recognition.
-\newblock \textit{Proc. CVPR}, 770--778.
+	\bibitem[He et al.(2016)]{He2016}
+	He, K., Zhang, X., Ren, S., \& Sun, J. (2016).
+	\newblock Deep residual learning for image recognition.
+	\newblock \textit{Proc. CVPR}, 770--778.
 
-\bibitem[Hersbach et al.(2020)]{Hersbach2020}
-Hersbach, H., et al. (2020).
-\newblock The ERA5 global reanalysis.
-\newblock \textit{Q. J. R. Meteorol. Soc.}, 146(730), 1999--2049.
+	\bibitem[Hersbach et al.(2020)]{Hersbach2020}
+	Hersbach, H., et al. (2020).
+	\newblock The ERA5 global reanalysis.
+	\newblock \textit{Q. J. R. Meteorol. Soc.}, 146(730), 1999--2049.
 
-\bibitem[Hong et al.(2021)]{Hong2021}
-Hong, D., et al. (2021).
-\newblock More diverse means better: Multimodal deep learning meets remote sensing imagery classification.
-\newblock \textit{IEEE Trans. Geosci. Remote Sens.}, 59(5), 4340--4354.
+	\bibitem[Hong et al.(2021)]{Hong2021}
+	Hong, D., et al. (2021).
+	\newblock More diverse means better: Multimodal deep learning meets remote sensing imagery classification.
+	\newblock \textit{IEEE Trans. Geosci. Remote Sens.}, 59(5), 4340--4354.
 
-\bibitem[Jean et al.(2019)]{Jean2019}
-Jean, N., et al. (2019).
-\newblock Tile2Vec: Unsupervised representation learning for spatially distributed data.
-\newblock \textit{Proc. AAAI}, 33, 3967--3974.
+	\bibitem[Jean et al.(2019)]{Jean2019}
+	Jean, N., et al. (2019).
+	\newblock Tile2Vec: Unsupervised representation learning for spatially distributed data.
+	\newblock \textit{Proc. AAAI}, 33, 3967--3974.
 
-\bibitem[Ke et al.(2017)]{Ke2017}
-Ke, G., et al. (2017).
-\newblock LightGBM: A highly efficient gradient boosting decision tree.
-\newblock \textit{Proc. NeurIPS}, 3146--3154.
+	\bibitem[Ke et al.(2017)]{Ke2017}
+	Ke, G., et al. (2017).
+	\newblock LightGBM: A highly efficient gradient boosting decision tree.
+	\newblock \textit{Proc. NeurIPS}, 3146--3154.
 
-\bibitem[Koenker \& Bassett(1978)]{Koenker1978}
-Koenker, R., \& Bassett, G. (1978).
-\newblock Regression quantiles.
-\newblock \textit{Econometrica}, 46(1), 33--50.
+	\bibitem[Koenker \& Bassett(1978)]{Koenker1978}
+	Koenker, R., \& Bassett, G. (1978).
+	\newblock Regression quantiles.
+	\newblock \textit{Econometrica}, 46(1), 33--50.
 
-\bibitem[Krizhevsky et al.(2012)]{Krizhevsky2012}
-Krizhevsky, A., Sutskever, I., \& Hinton, G.E. (2012).
-\newblock ImageNet classification with deep convolutional neural networks.
-\newblock \textit{Proc. NeurIPS}, 1097--1105.
+	\bibitem[Krizhevsky et al.(2012)]{Krizhevsky2012}
+	Krizhevsky, A., Sutskever, I., \& Hinton, G.E. (2012).
+	\newblock ImageNet classification with deep convolutional neural networks.
+	\newblock \textit{Proc. NeurIPS}, 1097--1105.
 
-\bibitem[Lawrence(2005)]{Lawrence2005}
-Lawrence, M.G. (2005).
-\newblock The relationship between relative humidity and the dewpoint temperature in moist air: A simple conversion and applications.
-\newblock \textit{Bull. Am. Meteorol. Soc.}, 86(2), 225--233.
+	\bibitem[Lawrence(2005)]{Lawrence2005}
+	Lawrence, M.G. (2005).
+	\newblock The relationship between relative humidity and the dewpoint temperature in moist air: A simple conversion and applications.
+	\newblock \textit{Bull. Am. Meteorol. Soc.}, 86(2), 225--233.
 
-\bibitem[Lei et al.(2018)]{Lei2018}
-Lei, J., G'Sell, M., Rinaldo, A., Tibshirani, R.J., \& Wasserman, L. (2018).
-\newblock Distribution-free predictive inference for regression.
-\newblock \textit{J. Am. Stat. Assoc.}, 113(523), 1094--1111.
+	\bibitem[Lei et al.(2018)]{Lei2018}
+	Lei, J., G'Sell, M., Rinaldo, A., Tibshirani, R.J., \& Wasserman, L. (2018).
+	\newblock Distribution-free predictive inference for regression.
+	\newblock \textit{J. Am. Stat. Assoc.}, 113(523), 1094--1111.
 
-\bibitem[Lundberg \& Lee(2020)]{Lundberg2020}
-Lundberg, S.M., \& Lee, S.I. (2017).
-\newblock A unified approach to interpreting model predictions.
-\newblock \textit{Proc. NeurIPS}, 4765--4774.
+	\bibitem[Lundberg \& Lee(2020)]{Lundberg2020}
+	Lundberg, S.M., \& Lee, S.I. (2017).
+	\newblock A unified approach to interpreting model predictions.
+	\newblock \textit{Proc. NeurIPS}, 4765--4774.
 
-\bibitem[Mace et al.(2007)]{Mace2007}
-Mace, G.G., et al. (2007).
-\newblock A description of hydrometeor layer occurrence statistics derived from CloudSat.
-\newblock \textit{J. Geophys. Res.}, 112, D09210.
+	\bibitem[Mace et al.(2007)]{Mace2007}
+	Mace, G.G., et al. (2007).
+	\newblock A description of hydrometeor layer occurrence statistics derived from CloudSat.
+	\newblock \textit{J. Geophys. Res.}, 112, D09210.
 
-\bibitem[Martucci et al.(2010)]{Martucci2010}
-Martucci, G., Milroy, C., \& O'Dowd, C.D. (2010).
-\newblock Detection of cloud-base height using Jenoptik CHM15K ceilometer.
-\newblock \textit{J. Atmos. Ocean. Technol.}, 27(2), 305--318.
+	\bibitem[Martucci et al.(2010)]{Martucci2010}
+	Martucci, G., Milroy, C., \& O'Dowd, C.D. (2010).
+	\newblock Detection of cloud-base height using Jenoptik CHM15K ceilometer.
+	\newblock \textit{J. Atmos. Ocean. Technol.}, 27(2), 305--318.
 
-\bibitem[Matsuoka et al.(2018)]{Matsuoka2018}
-Matsuoka, D., et al. (2018).
-\newblock Deep learning approach for detecting tropical cyclones.
-\newblock \textit{Geophys. Res. Lett.}, 45(18), 9910--9918.
+	\bibitem[Matsuoka et al.(2018)]{Matsuoka2018}
+	Matsuoka, D., et al. (2018).
+	\newblock Deep learning approach for detecting tropical cyclones.
+	\newblock \textit{Geophys. Res. Lett.}, 45(18), 9910--9918.
 
-\bibitem[McGill et al.(2002)]{McGill2002}
-McGill, M., et al. (2002).
-\newblock Airborne validation of spatial properties measured by the GLAS lidar.
-\newblock \textit{J. Geophys. Res.}, 107(D13), 4283.
+	\bibitem[McGill et al.(2002)]{McGill2002}
+	McGill, M., et al. (2002).
+	\newblock Airborne validation of spatial properties measured by the GLAS lidar.
+	\newblock \textit{J. Geophys. Res.}, 107(D13), 4283.
 
-\bibitem[Minnis et al.(2008)]{Minnis2008}
-Minnis, P., et al. (2008).
-\newblock Cloud detection in nonpolar regions for CERES using TRMM VIRS and MODIS.
-\newblock \textit{IEEE Trans. Geosci. Remote Sens.}, 46(11), 3857--3884.
+	\bibitem[Minnis et al.(2008)]{Minnis2008}
+	Minnis, P., et al. (2008).
+	\newblock Cloud detection in nonpolar regions for CERES using TRMM VIRS and MODIS.
+	\newblock \textit{IEEE Trans. Geosci. Remote Sens.}, 46(11), 3857--3884.
 
-\bibitem[Neumann et al.(2019)]{Neumann2019}
-Neumann, M., et al. (2019).
-\newblock In-domain representation learning for remote sensing.
-\newblock \textit{arXiv preprint arXiv:1911.06721}.
+	\bibitem[Neumann et al.(2019)]{Neumann2019}
+	Neumann, M., et al. (2019).
+	\newblock In-domain representation learning for remote sensing.
+	\newblock \textit{arXiv preprint arXiv:1911.06721}.
 
-\bibitem[Ngiam et al.(2011)]{Ngiam2011}
-Ngiam, J., et al. (2011).
-\newblock Multimodal deep learning.
-\newblock \textit{Proc. ICML}, 689--696.
+	\bibitem[Ngiam et al.(2011)]{Ngiam2011}
+	Ngiam, J., et al. (2011).
+	\newblock Multimodal deep learning.
+	\newblock \textit{Proc. ICML}, 689--696.
 
-\bibitem[Pan \& Yang(2010)]{Pan2010}
-Pan, S.J., \& Yang, Q. (2010).
-\newblock A survey on transfer learning.
-\newblock \textit{IEEE Trans. Knowl. Data Eng.}, 22(10), 1345--1359.
+	\bibitem[Pan \& Yang(2010)]{Pan2010}
+	Pan, S.J., \& Yang, Q. (2010).
+	\newblock A survey on transfer learning.
+	\newblock \textit{IEEE Trans. Knowl. Data Eng.}, 22(10), 1345--1359.
 
-\bibitem[Ramanathan et al.(1989)]{Ramanathan1989}
-Ramanathan, V., et al. (1989).
-\newblock Cloud-radiative forcing and climate.
-\newblock \textit{Science}, 243(4887), 57--63.
+	\bibitem[Ramanathan et al.(1989)]{Ramanathan1989}
+	Ramanathan, V., et al. (1989).
+	\newblock Cloud-radiative forcing and climate.
+	\newblock \textit{Science}, 243(4887), 57--63.
 
-\bibitem[Rasp \& Lerch(2020)]{Rasp2020}
-Rasp, S., \& Lerch, S. (2018).
-\newblock Neural networks for post-processing ensemble weather forecasts.
-\newblock \textit{Mon. Weather Rev.}, 146(11), 3885--3900.
+	\bibitem[Rasp \& Lerch(2020)]{Rasp2020}
+	Rasp, S., \& Lerch, S. (2018).
+	\newblock Neural networks for post-processing ensemble weather forecasts.
+	\newblock \textit{Mon. Weather Rev.}, 146(11), 3885--3900.
 
-\bibitem[Shafer \& Vovk(2008)]{Shafer2008}
-Shafer, G., \& Vovk, V. (2008).
-\newblock A tutorial on conformal prediction.
-\newblock \textit{J. Mach. Learn. Res.}, 9, 371--421.
+	\bibitem[Shafer \& Vovk(2008)]{Shafer2008}
+	Shafer, G., \& Vovk, V. (2008).
+	\newblock A tutorial on conformal prediction.
+	\newblock \textit{J. Mach. Learn. Res.}, 9, 371--421.
 
-\bibitem[Shimodaira(2000)]{Shimodaira2000}
-Shimodaira, H. (2000).
-\newblock Improving predictive inference under covariate shift.
-\newblock \textit{J. Stat. Plan. Inference}, 90(2), 227--244.
+	\bibitem[Shimodaira(2000)]{Shimodaira2000}
+	Shimodaira, H. (2000).
+	\newblock Improving predictive inference under covariate shift.
+	\newblock \textit{J. Stat. Plan. Inference}, 90(2), 227--244.
 
-\bibitem[Simonyan et al.(2014)]{Simonyan2014}
-Simonyan, K., Vedaldi, A., \& Zisserman, A. (2014).
-\newblock Deep inside convolutional networks: Visualising image classification models.
-\newblock \textit{Proc. ICLR Workshop}.
+	\bibitem[Simonyan et al.(2014)]{Simonyan2014}
+	Simonyan, K., Vedaldi, A., \& Zisserman, A. (2014).
+	\newblock Deep inside convolutional networks: Visualising image classification models.
+	\newblock \textit{Proc. ICLR Workshop}.
 
-\bibitem[Snell et al.(2017)]{Snell2017}
-Snell, J., Swersky, K., \& Zemel, R. (2017).
-\newblock Prototypical networks for few-shot learning.
-\newblock \textit{Proc. NeurIPS}, 4077--4087.
+	\bibitem[Snell et al.(2017)]{Snell2017}
+	Snell, J., Swersky, K., \& Zemel, R. (2017).
+	\newblock Prototypical networks for few-shot learning.
+	\newblock \textit{Proc. NeurIPS}, 4077--4087.
 
-\bibitem[Stephens(2002)]{Stephens2002}
-Stephens, G.L., et al. (2002).
-\newblock The CloudSat mission and the A-Train.
-\newblock \textit{Bull. Am. Meteorol. Soc.}, 83(12), 1771--1790.
+	\bibitem[Stephens(2002)]{Stephens2002}
+	Stephens, G.L., et al. (2002).
+	\newblock The CloudSat mission and the A-Train.
+	\newblock \textit{Bull. Am. Meteorol. Soc.}, 83(12), 1771--1790.
 
-\bibitem[Stephens(2012)]{Stephens2012}
-Stephens, G.L., et al. (2012).
-\newblock An update on Earth's energy balance in light of CloudSat observations.
-\newblock \textit{Nat. Geosci.}, 5(10), 691--696.
+	\bibitem[Stephens(2012)]{Stephens2012}
+	Stephens, G.L., et al. (2012).
+	\newblock An update on Earth's energy balance in light of CloudSat observations.
+	\newblock \textit{Nat. Geosci.}, 5(10), 691--696.
 
-\bibitem[Stubenrauch et al.(2021)]{Stubenrauch2021}
-Stubenrauch, C.J., et al. (2021).
-\newblock Reanalysis cloud property retrievals.
-\newblock \textit{J. Geophys. Res. Atmos.}, 126, e2020JD033717.
+	\bibitem[Stubenrauch et al.(2021)]{Stubenrauch2021}
+	Stubenrauch, C.J., et al. (2021).
+	\newblock Reanalysis cloud property retrievals.
+	\newblock \textit{J. Geophys. Res. Atmos.}, 126, e2020JD033717.
 
-\bibitem[Tan \& Le(2019)]{Tan2019}
-Tan, M., \& Le, Q. (2019).
-\newblock EfficientNet: Rethinking model scaling for convolutional neural networks.
-\newblock \textit{Proc. ICML}, 6105--6114.
+	\bibitem[Tan \& Le(2019)]{Tan2019}
+	Tan, M., \& Le, Q. (2019).
+	\newblock EfficientNet: Rethinking model scaling for convolutional neural networks.
+	\newblock \textit{Proc. ICML}, 6105--6114.
 
-\bibitem[Tuia et al.(2016)]{Tuia2016}
-Tuia, D., et al. (2016).
-\newblock Domain adaptation for the classification of remote sensing data.
-\newblock \textit{IEEE Geosci. Remote Sens. Mag.}, 4(2), 7--28.
+	\bibitem[Tuia et al.(2016)]{Tuia2016}
+	Tuia, D., et al. (2016).
+	\newblock Domain adaptation for the classification of remote sensing data.
+	\newblock \textit{IEEE Geosci. Remote Sens. Mag.}, 4(2), 7--28.
 
-\bibitem[Vaswani et al.(2017)]{Vaswani2017}
-Vaswani, A., et al. (2017).
-\newblock Attention is all you need.
-\newblock \textit{Proc. NeurIPS}, 5998--6008.
+	\bibitem[Vaswani et al.(2017)]{Vaswani2017}
+	Vaswani, A., et al. (2017).
+	\newblock Attention is all you need.
+	\newblock \textit{Proc. NeurIPS}, 5998--6008.
 
-\bibitem[Wang et al.(2020)]{Wang2020}
-Wang, Y., et al. (2020).
-\newblock Generalizing from a few examples: A survey on few-shot learning.
-\newblock \textit{ACM Comput. Surv.}, 53(3), 1--34.
+	\bibitem[Wang et al.(2020)]{Wang2020}
+	Wang, Y., et al. (2020).
+	\newblock Generalizing from a few examples: A survey on few-shot learning.
+	\newblock \textit{ACM Comput. Surv.}, 53(3), 1--34.
 
-\bibitem[Winker et al.(2010)]{Winker2010}
-Winker, D.M., et al. (2010).
-\newblock The CALIPSO mission.
-\newblock \textit{Bull. Am. Meteorol. Soc.}, 91(9), 1211--1230.
+	\bibitem[Winker et al.(2010)]{Winker2010}
+	Winker, D.M., et al. (2010).
+	\newblock The CALIPSO mission.
+	\newblock \textit{Bull. Am. Meteorol. Soc.}, 91(9), 1211--1230.
 
-\bibitem[WMO(2018)]{WMO2018}
-World Meteorological Organization (2018).
-\newblock \textit{Guide to Instruments and Methods of Observation}.
-\newblock WMO-No. 8, Geneva.
+	\bibitem[WMO(2018)]{WMO2018}
+	World Meteorological Organization (2018).
+	\newblock \textit{Guide to Instruments and Methods of Observation}.
+	\newblock WMO-No. 8, Geneva.
 
-\bibitem[Wolpert(1992)]{Wolpert1992}
-Wolpert, D.H. (1992).
-\newblock Stacked generalization.
-\newblock \textit{Neural Netw.}, 5(2), 241--259.
+	\bibitem[Wolpert(1992)]{Wolpert1992}
+	Wolpert, D.H. (1992).
+	\newblock Stacked generalization.
+	\newblock \textit{Neural Netw.}, 5(2), 241--259.
 
-\bibitem[Yuan et al.(2020)]{Yuan2020}
-Yuan, Q., et al. (2020).
-\newblock Deep learning in environmental remote sensing.
-\newblock \textit{Int. J. Remote Sens.}, 41(11), 4377--4416.
+	\bibitem[Yuan et al.(2020)]{Yuan2020}
+	Yuan, Q., et al. (2020).
+	\newblock Deep learning in environmental remote sensing.
+	\newblock \textit{Int. J. Remote Sens.}, 41(11), 4377--4416.
 
-\bibitem[Zantedeschi et al.(2019)]{Zantedeschi2019}
-Zantedeschi, V., et al. (2019).
-\newblock Cumulo: A dataset for learning cloud classes.
-\newblock \textit{Proc. ICML Workshop Climate Change AI}.
+	\bibitem[Zantedeschi et al.(2019)]{Zantedeschi2019}
+	Zantedeschi, V., et al. (2019).
+	\newblock Cumulo: A dataset for learning cloud classes.
+	\newblock \textit{Proc. ICML Workshop Climate Change AI}.
 
-\bibitem[Zhu et al.(2017)]{Zhu2017}
-Zhu, X.X., et al. (2017).
-\newblock Deep learning in remote sensing: A comprehensive review.
-\newblock \textit{IEEE Geosci. Remote Sens. Mag.}, 5(4), 8--36.
+	\bibitem[Zhu et al.(2017)]{Zhu2017}
+	Zhu, X.X., et al. (2017).
+	\newblock Deep learning in remote sensing: A comprehensive review.
+	\newblock \textit{IEEE Geosci. Remote Sens. Mag.}, 5(4), 8--36.
 
 \end{thebibliography}
 

@@ -1,5 +1,5 @@
 {
-  "timestamp": 1762920107.0713365,
+  "timestamp": 1767708618.7529213,
   "total_claims_checked": 18,
   "claims_passed": 18,
   "claims_failed": 0,
@@ -85,28 +85,28 @@
       "source": "ensemble_results.json:ensemble_strategies.stacking.mean_r2"
     },
     {
-      "claim": "UQ 90% Coverage",
-      "expected": 0.771,
-      "actual": 0.7706342360991318,
+      "claim": "Conformal 90% Coverage",
+      "expected": 0.91,
+      "actual": 0.9102564102564102,
       "tolerance": 0.001,
       "matches": true,
-      "source": "uncertainty_quantification_report.json:aggregated_metrics.mean_coverage"
+      "source": "conformal_prediction_report.json:split_conformal.overall_coverage"
     },
     {
-      "claim": "UQ Mean Interval Width (m)",
-      "expected": 533.4,
-      "actual": 533.4412040431914,
+      "claim": "Conformal Mean Interval Width (m)",
+      "expected": 556.6,
+      "actual": 556.6307653205395,
       "tolerance": 1.0,
       "matches": true,
-      "source": "uncertainty_quantification_report.json:aggregated_metrics.mean_interval_width_m"
+      "source": "conformal_prediction_report.json:split_conformal.mean_interval_width_m"
     },
     {
-      "claim": "Uncertainty-Error Correlation",
-      "expected": 0.485,
-      "actual": 0.48518673645135857,
-      "tolerance": 0.01,
+      "claim": "Conformal Base Model R\u00b2",
+      "expected": 0.693,
+      "actual": 0.6933087216025524,
+      "tolerance": 0.001,
       "matches": true,
-      "source": "uncertainty_quantification_report.json:aggregated_metrics.mean_uncertainty_error_correlation"
+      "source": "conformal_prediction_report.json:split_conformal.base_model_r2"
     },
     {
       "claim": "18Feb25 LOFO Baseline R\u00b2",

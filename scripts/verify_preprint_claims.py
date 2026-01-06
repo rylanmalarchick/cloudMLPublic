@@ -209,41 +209,43 @@ class PrePrintVerifier:
         return all_pass
 
     def verify_uncertainty_metrics(self) -> bool:
-        """Verify uncertainty quantification metrics."""
-        print(f"\n{BLUE}=== Uncertainty Quantification Metrics ==={RESET}\n")
+        """Verify uncertainty quantification metrics (Conformal Prediction)."""
+        print(f"\n{BLUE}=== Uncertainty Quantification Metrics (Conformal Prediction) ==={RESET}\n")
 
-        report = self.load_report("uncertainty_quantification_report.json")
-        if not report:
-            print(f"{RED}ERROR: uncertainty_quantification_report.json not found{RESET}\n")
+        # Load conformal prediction report (the paper uses conformal prediction, not quantile regression)
+        conformal_path = self.repo_root / "outputs" / "conformal_prediction" / "reports" / "conformal_prediction_report.json"
+        if not conformal_path.exists():
+            print(f"{RED}ERROR: conformal_prediction_report.json not found{RESET}\n")
             return False
-
-        agg_metrics = report.get("aggregated_metrics", {})
+        
+        with open(conformal_path) as f:
+            report = json.load(f)
+        
+        split_conformal = report.get("split_conformal", {})
 
         all_pass = True
         all_pass &= self.verify_claim(
-            "UQ 90% Coverage",
-            expected=0.771,
-            actual=agg_metrics.get("mean_coverage", 0),
+            "Conformal 90% Coverage",
+            expected=0.910,
+            actual=split_conformal.get("overall_coverage", 0),
             tolerance=0.001,
-            source="uncertainty_quantification_report.json:aggregated_metrics.mean_coverage",
+            source="conformal_prediction_report.json:split_conformal.overall_coverage",
         )
 
         all_pass &= self.verify_claim(
-            "UQ Mean Interval Width (m)",
-            expected=533.4,
-            actual=agg_metrics.get("mean_interval_width_m", 0),
+            "Conformal Mean Interval Width (m)",
+            expected=556.6,
+            actual=split_conformal.get("mean_interval_width_m", 0),
             tolerance=1.0,
-            source="uncertainty_quantification_report.json:aggregated_metrics.mean_interval_width_m",
+            source="conformal_prediction_report.json:split_conformal.mean_interval_width_m",
         )
 
-        # Uncertainty-error correlation
-        corr = agg_metrics.get("mean_uncertainty_error_correlation", 0)
         all_pass &= self.verify_claim(
-            "Uncertainty-Error Correlation",
-            expected=0.485,
-            actual=corr,
-            tolerance=0.01,
-            source="uncertainty_quantification_report.json:aggregated_metrics.mean_uncertainty_error_correlation",
+            "Conformal Base Model R²",
+            expected=0.693,
+            actual=split_conformal.get("base_model_r2", 0),
+            tolerance=0.001,
+            source="conformal_prediction_report.json:split_conformal.base_model_r2",
         )
 
         return all_pass
