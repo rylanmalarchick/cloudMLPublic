@@ -250,3 +250,15 @@ modelImprovements.txt
 test_hpc_setup.py
 test_scripts/
 tools/
+
+# Backup files
+*.bak*
+
+# Evaluation virtual environment
+.venv_eval/
+
+# Audit files
+preprint_repo_audit.txt
+
+# External reference repositories
+research-code-principles/

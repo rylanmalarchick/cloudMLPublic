@@ -280,19 +280,27 @@ class ConformalUncertaintyAnalysis:
             cbh_km = f["metadata/cbh_km"][:]
             flight_ids = f["metadata/flight_id"][:]
             
-            # Load atmospheric features
-            era5_features = f["atmospheric_features/era5_features"][:]
-            era5_feature_names = [
-                name.decode("utf-8") if isinstance(name, bytes) else name
-                for name in f["atmospheric_features/era5_feature_names"][:]
-            ]
+            # Load atmospheric features (individual arrays)
+            atmo_group = f["atmospheric_features"]
+            era5_names = ['blh', 'lcl', 'inversion_height', 'moisture_gradient',
+                          'stability_index', 't2m', 'd2m', 'sp', 'tcwv']
+            era5_features = []
+            for name in era5_names:
+                if name in atmo_group:
+                    era5_features.append(atmo_group[name][:])
+            era5_features = np.column_stack(era5_features) if era5_features else np.zeros((len(cbh_km), 0))
+            era5_feature_names = era5_names
             
-            # Load shadow features
-            shadow_features = f["shadow_features/shadow_features"][:]
-            shadow_feature_names = [
-                name.decode("utf-8") if isinstance(name, bytes) else name
-                for name in f["shadow_features/shadow_feature_names"][:]
-            ]
+            # Load shadow/geometric features (individual arrays)
+            geo_group = f["geometric_features"]
+            shadow_names = ['sza_deg', 'saa_deg', 'shadow_length_pixels', 
+                           'shadow_angle_deg', 'shadow_detection_confidence']
+            shadow_features = []
+            for name in shadow_names:
+                if name in geo_group:
+                    shadow_features.append(geo_group[name][:])
+            shadow_features = np.column_stack(shadow_features) if shadow_features else np.zeros((len(cbh_km), 0))
+            shadow_feature_names = shadow_names
             
             # Combine features
             X = np.concatenate([era5_features, shadow_features], axis=1)
@@ -437,13 +445,17 @@ class ConformalUncertaintyAnalysis:
         
         self.results["split_conformal"] = results
         
-        # Create calibration plot
-        self._plot_calibration_curve(y_test, y_lower, y_upper, "split_conformal")
+        # Create calibration plot (pass calibration scores and test residuals)
+        test_residuals = np.abs(y_test - y_pred)
+        self._plot_calibration_curve(y_test, y_lower, y_upper, "split_conformal",
+                                     cp.calibration_scores, test_residuals)
         
         return results
         
     def _plot_calibration_curve(self, y_true: np.ndarray, y_lower: np.ndarray,
-                               y_upper: np.ndarray, method: str):
+                               y_upper: np.ndarray, method: str,
+                               calibration_scores: np.ndarray = None,
+                               test_residuals: np.ndarray = None):
         """Plot calibration curve showing coverage vs. confidence level."""
         fig, axes = plt.subplots(1, 2, figsize=(14, 5))
         
@@ -452,15 +464,26 @@ class ConformalUncertaintyAnalysis:
         alphas = np.linspace(0.01, 0.5, 50)
         empirical_coverage = []
         
-        interval_width = (y_upper - y_lower) / 2
-        residuals = np.abs(y_true - (y_lower + y_upper) / 2)
-        
-        for alpha in alphas:
-            # Compute quantile for this alpha
-            quantile = np.quantile(interval_width, 1 - alpha)
-            # Compute coverage
-            cov = np.mean(residuals <= quantile)
-            empirical_coverage.append(cov)
+        # Use calibration scores to compute quantiles at different alpha levels
+        # Then check coverage on test set using test_residuals
+        if calibration_scores is not None and test_residuals is not None:
+            n_cal = len(calibration_scores)
+            for alpha in alphas:
+                # Compute conformal quantile at this alpha level
+                q_level = np.ceil((n_cal + 1) * (1 - alpha)) / n_cal
+                q_level = min(q_level, 1.0)  # Clamp to valid range
+                quantile = np.quantile(calibration_scores, q_level)
+                # Compute coverage on test set
+                cov = np.mean(test_residuals <= quantile)
+                empirical_coverage.append(cov)
+        else:
+            # Fallback to old (incorrect) method if scores not provided
+            interval_width = (y_upper - y_lower) / 2
+            residuals = np.abs(y_true - (y_lower + y_upper) / 2)
+            for alpha in alphas:
+                quantile = np.quantile(interval_width, 1 - alpha)
+                cov = np.mean(residuals <= quantile)
+                empirical_coverage.append(cov)
         
         ax.plot(1 - alphas, empirical_coverage, 'o-', label='Empirical', linewidth=2)
         ax.plot([0.5, 1.0], [0.5, 1.0], 'k--', label='Ideal', linewidth=1)

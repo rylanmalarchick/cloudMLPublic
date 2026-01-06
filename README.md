@@ -1,198 +1,214 @@
-# Cloud Base Height Retrieval from Airborne Imagery
+# Cloud Base Height Retrieval from Airborne Observations
 
-Production-ready machine learning system for cloud base height (CBH) retrieval from NASA ER-2 aircraft data, validated against Cloud Physics Lidar (CPL) measurements.
+Machine learning system for cloud base height (CBH) retrieval using NASA ER-2 aircraft data, featuring rigorous validation methodology and honest assessment of performance across atmospheric regimes.
 
-##  Production Model (Sprint 6)
+**Author:** Rylan Malarchick | Embry-Riddle Aeronautical University  
+**Contact:** malarchr@my.erau.edu
 
-**Status:**  Production-Ready | Test Coverage: 93.5% | Deployment: Approved
+---
 
-| Model | R² | MAE | Status |
-|-------|----|----|--------|
-| **GBDT (Tabular)** | **0.744** | **117.4 m** |  Production |
-| Ensemble (GBDT+CNN) | 0.7391 | 122.5 m |  Production |
+## Key Findings
 
-**Key Achievement:** First model to exceed R² = 0.74 target on operational data.
+This project demonstrates that **atmospheric features substantially outperform image-based approaches** for CBH retrieval, while documenting critical limitations in cross-regime generalization.
 
-##  Project Structure
+### Performance Summary
+
+| Validation Strategy | R² | MAE | Assessment |
+|--------------------|----|-----|------------|
+| Pooled K-fold | 0.924 | 49.7 m | **Inflated** (temporal autocorrelation) |
+| Per-flight shuffled | **0.715** | **49.0 m** | Primary honest metric |
+| Per-flight time-ordered | -0.055 | 129.8 m | Strict temporal holdout |
+| Leave-one-flight-out (LOFO) | **-15.4** | 422 m | **Catastrophic domain shift** |
+
+### Why This Matters
+
+1. **Validation methodology is critical:** Pooled K-fold inflates R² by 0.21 due to lag-1 temporal autocorrelation of 0.94
+2. **Domain shift is catastrophic:** Models trained on one atmospheric regime fail completely when deployed to another (R² = -15.4)
+3. **Few-shot adaptation works:** 50 labeled samples from a target flight recovers R² = 0.57-0.85
+4. **Conformal prediction fails:** Split conformal achieves only 27% coverage (target: 90%) due to exchangeability violations
+
+---
+
+## Project Highlights
+
+### What Works
+- **Within-flight deployment:** R² = 0.715, MAE = 49.0 m (per-flight shuffled validation)
+- **Few-shot domain adaptation:** 50 samples → R² = 0.57 (mean), up to 0.85 for similar regimes
+- **Per-flight uncertainty calibration:** 86% coverage with 277 m intervals
+- **Real-time inference:** 0.28 ms per prediction, 1.3 MB model, CPU-only
+
+### What Fails
+- **Cross-regime generalization:** R² = -15.4 without adaptation
+- **Temporal extrapolation:** R² = -0.055 on time-ordered holdout within flights
+- **Split conformal prediction:** 27% coverage (exchangeability violated by autocorrelation)
+- **Vision baselines:** ResNet-18 achieves R² = 0.617, underperforming GBDT
+
+---
+
+## Dataset
+
+- **Samples:** 1,426 CPL-aligned observations from 3 research flights
+- **Campaigns:** GLOVE 2025 (Feb), WHYMSIE 2024 (Oct)
+- **Features:** 10 base ERA5 variables + 28 physics-based derived features (38 total)
+- **Target:** Cloud base height from CPL lidar (0.21-1.95 km)
+- **Key insight:** Surface temperature (t2m) dominates base model predictions (72% importance), consistent with lifting condensation level physics
+
+### Flight Distribution
+| Flight | Campaign | Samples | CBH (km) |
+|--------|----------|---------|----------|
+| Flight 1 | GLOVE 2025 | 1,021 | 1.34 ± 0.22 |
+| Flight 2 | GLOVE 2025 | 129 | 0.85 ± 0.16 |
+| Flight 3 | WHYMSIE 2024 | 276 | 0.88 ± 0.23 |
+
+---
+
+## Technical Approach
+
+### Feature Engineering
+Physics-based derived features from 10 base ERA5 variables:
+- **Thermodynamic:** virtual temperature, potential temperature, saturation vapor pressure
+- **Stability:** stability-moisture interactions, stability anomaly
+- **Moisture:** dew point depression, relative humidity, mixing ratio
+- **Solar/Temporal:** solar geometry transformations, diurnal cycle encodings
+
+Top predictors in enhanced model:
+1. `virtual_temperature` (33% importance)
+2. `stability_x_tcwv` (22%)
+3. `t2m` (14%)
+
+### Domain Adaptation
+Evaluated 5 methods for cross-regime generalization:
+- **Few-shot learning** (recommended): 50 samples → R² = 0.57-0.85
+- **TrAdaBoost:** R² = -0.41 (modest improvement)
+- **Instance weighting:** R² = -19.9 to -21.4 (fails)
+- **MMD alignment:** R² = -39.4 (destroys signal)
+
+### Uncertainty Quantification
+| Method | Coverage | Target | Width (m) |
+|--------|----------|--------|-----------|
+| Split Conformal | 27% | 90% | 278 |
+| Adaptive Conformal | 11% | 90% | 58 |
+| Quantile Regression | 58% | 90% | 510 |
+| **Per-flight Calibration** | **86%** | 90% | 313 |
+
+---
+
+## Known Limitations
+
+### Data & Methodology
+1. **Temporal autocorrelation:** Lag-1 ρ = 0.94 invalidates pooled cross-validation
+2. **Limited regime diversity:** 3 flights from 2 campaigns; generalization to tropical/polar/oceanic regimes unvalidated
+3. **ERA5 resolution:** 25 km horizontal grid cannot capture fine-scale boundary layer variability
+
+### Sensor & Processing
+4. **Camera auto-scaling:** Automatic exposure adjustment creates inconsistent brightness across frames, complicating shadow detection
+5. **Shadow detection thresholds:** Brightness-based detection fails in complex illumination (thin clouds, low solar elevation)
+6. **CPL ground truth uncertainty:** ~30 m vertical resolution, cloud edge detection ambiguity
+
+### Model & Deployment
+7. **Domain shift:** Catastrophic failure (R² = -15.4) when deployed to unseen atmospheric regimes without adaptation
+8. **Conformal prediction assumptions:** Exchangeability violated by temporal structure and domain shift
+9. **Vision model limitations:** CNNs underperform tabular models despite comparable sample sizes
+
+---
+
+## Repository Structure
 
 ```
 cloudMLPublic/
- src/
-    cbh_retrieval/          # Sprint 6 production module
- tests/
-    cbh/                     # Test suite (93.5% coverage)
- scripts/
-    cbh/                     # Production utilities & auditing
- docs/
-    cbh/                     # Complete documentation
- preprint/                   # Academic publication materials
- configs/                    # Legacy configuration files
- outputs/
-     preprocessed_data/       # Integrated features (HDF5)
+├── preprint/                    # Academic preprint (LaTeX)
+├── src/cbh_retrieval/           # Production model code
+├── scripts/                     # Training & analysis scripts
+├── outputs/
+│   ├── feature_engineering/     # Enhanced features dataset
+│   ├── domain_adaptation/       # LOFO & few-shot results
+│   ├── uncertainty/             # Conformal prediction results
+│   └── tabular_model/           # Training results
+├── tests/cbh/                   # Test suite
+└── docs/cbh/                    # Documentation
 ```
 
-##  Quick Start
+---
 
-### Production Model (Sprint 6 - Recommended)
+## Quick Start
 
 ```bash
+# Clone repository
+git clone https://github.com/rylanmalarchick/CloudMLPublic.git
+cd CloudMLPublic
+
+# Create virtual environment
+python3 -m venv venv
+source venv/bin/activate
+
 # Install dependencies
-pip install -r docs/cbh/requirements_production.txt
+pip install -r requirements.txt
 
-# Train production model
-python -c "
-from src.cbh_retrieval import train_production_model
-model, scaler = train_production_model()
-"
+# Run training with per-flight validation
+python scripts/train_tabular_model.py
 
-# Run validation (5-fold CV)
-python -c "
-from src.cbh_retrieval import validate_tabular
-validate_tabular()
-"
+# Run domain adaptation experiments
+python scripts/run_domain_adaptation.py
 
-# Run tests
-pytest tests/cbh/ --cov=src/cbh_retrieval
+# Run uncertainty quantification
+python scripts/run_uncertainty_quantification.py
 ```
 
-### Documentation
+---
 
-- **Model Card:** `docs/cbh/MODEL_CARD.md` - Complete model specifications
-- **Deployment Guide:** `docs/cbh/DEPLOYMENT_GUIDE.md` - Production deployment
-- **Reproducibility:** `docs/cbh/REPRODUCIBILITY_GUIDE.md` - Full reproduction
-- **Future Work:** `docs/cbh/FUTURE_WORK.md` - Roadmap & improvements
+## Reproducibility
 
-##  Dataset
+All experiments are fully reproducible:
+- **Random seed:** 42 (fixed throughout)
+- **Validated dataset:** `outputs/feature_engineering/Enhanced_Features.hdf5` (1,426 × 38 features)
+- **Results JSON files:** All metrics traceable to source
 
-- **Samples:** 933 CPL-aligned observations (5 flights, Oct 2024 - Feb 2025)
-- **Input Features:** 18 features (12 atmospheric from ERA5 + 6 geometric from shadow analysis)
-- **Target:** Cloud base height from CPL lidar (0.12–1.95 km, mean: 0.83 km)
-- **Validation:** 5-fold stratified cross-validation
-- **Data Location:** `outputs/preprocessed_data/Integrated_Features.hdf5`
+### Key Result Files
+| File | Contents |
+|------|----------|
+| `outputs/tabular_model/training_results.json` | Per-flight CV metrics |
+| `outputs/domain_adaptation/domain_adaptation_results.json` | LOFO & few-shot results |
+| `outputs/uncertainty/uncertainty_quantification_results.json` | UQ method comparison |
+| `outputs/feature_engineering/ablation_study_results.json` | Feature importance |
 
-## Technologies and Libraries
-
-- **Machine Learning:** scikit-learn for GBDT production model
-- **Deep Learning (Research):** PyTorch with CUDA acceleration for experimental models
-- **Data Handling:** HDF5 for efficient storage; pandas and NumPy for data manipulation
-- **Visualization:** Matplotlib and Plotly for analysis plots
-- **Testing:** pytest with 93.5% coverage
-- **Configuration:** YAML for experiment management
-
-## Getting Started
-
-### Prerequisites
-
-- Python 3.9+
-- For production model: CPU sufficient
-- For research models: CUDA 11.8+ (optional)
-
-### Installation
-
-1.  **Clone the repository:**
-    ```bash
-    git clone https://github.com/rylanmalarchick/CloudMLPublic.git
-    cd CloudMLPublic
-    ```
-
-2.  **Create and activate a virtual environment:**
-    ```bash
-    python3 -m venv venv
-    source venv/bin/activate
-    ```
-
-3.  **Install dependencies:**
-    ```bash
-    # For production model only
-    pip install -r docs/cbh/requirements_production.txt
-    
-    # For full development (includes research models)
-    pip install -r requirements.txt
-    ```
-
-### Data
-
-This project uses airborne imagery and atmospheric data from NASA ER-2 field campaigns. The data is not included due to size and access restrictions. You will need:
-
-- **Integrated Features Dataset:** `Integrated_Features.hdf5` containing atmospheric variables (ERA5) and geometric features (shadow analysis)
-- **Raw Data (for research):** IRAI camera imagery, CPL lidar measurements, navigation data
-
-Contact: rylan1012@gmail.com for data access.
-
-### Running the Model
-
-#### Production Model (Recommended)
-
-```bash
-# Train production GBDT model
-python -c "
-from src.cbh_retrieval import train_production_model
-model, scaler = train_production_model()
-"
-
-# Run 5-fold cross-validation
-python -c "
-from src.cbh_retrieval import validate_tabular
-validate_tabular()
-"
-
-# Run tests
-pytest tests/cbh/ --cov=src/cbh_retrieval
-```
-
-#### Research Models (Legacy)
-
-The repository contains legacy deep learning models from prior research phases. These are maintained for reproducibility but not recommended for production use.
-
-```bash
-# Run legacy model training
-python main.py --config configs/config.yaml
-```
-
-See `docs/cbh/REPRODUCIBILITY_GUIDE.md` for detailed instructions on reproducing research results.
-
-## Project Structure
-
-```
-cloudMLPublic/
- README.md
- main.py                     # Legacy deep learning training entry point
- requirements.txt
- configs/                    # Legacy configuration files
- scripts/
-    cbh/                     # Production utilities & auditing
- src/
-    cbh_retrieval/          # Sprint 6 production module
-    [legacy modules]        # Research code for reproducibility
- tests/
-    cbh/                     # Test suite (93.5% coverage)
- docs/
-    cbh/                     # Complete documentation
- preprint/                   # Academic publication materials
- outputs/
-    preprocessed_data/      # Integrated features (HDF5)
-```
-
-### Key Files
-
--   **`src/cbh_retrieval/train_production_model.py`**: Production GBDT training
--   **`src/cbh_retrieval/offline_validation_tabular.py`**: Cross-validation framework
--   **`tests/cbh/`**: Comprehensive test suite
--   **`docs/cbh/MODEL_CARD.md`**: Complete model specifications
--   **`docs/cbh/DEPLOYMENT_GUIDE.md`**: Production deployment instructions
-
-## Contributing
-
-Contributions are welcome! Please open an issue or submit a pull request for bug fixes, feature requests, or improvements.
+---
 
 ## Citation
 
-If you use this work in your research, please cite our preprint:
+If you use this work, please cite:
 
+```bibtex
+@article{malarchick2026cbh,
+  title={Atmospheric Features Outperform Images for Cloud Base Height Retrieval: 
+         A Systematic Comparison Using NASA Airborne Observations},
+  author={Malarchick, Rylan},
+  journal={arXiv preprint},
+  year={2026}
+}
 ```
-[Citation details to be added upon publication]
-```
+
+---
+
+## Acknowledgments
+
+This work builds upon methods developed during a NASA OSTEM internship (May-August 2025) with NASA Goddard Space Flight Center High Altitude Research Program. Thanks to Dr. Dong Wu and the NASA ER-2 flight team for data access and technical discussions.
+
+**Data Sources:**
+- ERA5 reanalysis: ECMWF Copernicus Climate Data Store
+- CPL lidar: NASA Goddard Space Flight Center
+- ER-2 imagery: NASA High Altitude Research Program
+
+---
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT License - See [LICENSE](LICENSE) for details.
+
+---
+
+## Contact
+
+**Rylan Malarchick**  
+Embry-Riddle Aeronautical University  
+Email: malarchr@my.erau.edu | rylan1012@gmail.com  
+GitHub: [@rylanmalarchick](https://github.com/rylanmalarchick)

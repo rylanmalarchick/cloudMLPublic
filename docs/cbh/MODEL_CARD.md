@@ -3,17 +3,17 @@
 ## Model Details
 
 ### Model Information
-- **Model Name**: CBH Retrieval Production Model (Sprint 6)
-- **Model Version**: 1.0.0
+- **Model Name**: CBH Retrieval Production Model
+- **Model Version**: 2.0.0 (Validated Restudy)
 - **Model Type**: Gradient Boosting Decision Tree (GBDT) Regressor
 - **Framework**: scikit-learn 1.7.0
-- **Date**: November 2025
-- **Developers**: NASA Cloud ML Team
-- **Contact**: research@nasa.gov
-- **License**: NASA Open Source Agreement
+- **Date**: January 2026
+- **Developer**: Rylan Malarchick
+- **Contact**: malarchr@my.erau.edu
+- **License**: MIT
 
 ### Model Description
-This model predicts Cloud Base Height (CBH) in meters above ground level using a combination of atmospheric features from ERA5 reanalysis data and geometric features derived from cloud shadow analysis in aerial imagery. The model is designed for operational cloud base height retrieval during airborne field campaigns.
+This model predicts Cloud Base Height (CBH) in meters above ground level using atmospheric features from ERA5 reanalysis data and physics-based derived features. The model is designed for operational cloud base height retrieval during airborne field campaigns, with documented limitations for cross-regime deployment.
 
 ### Model Architecture
 - **Algorithm**: Gradient Boosting Regressor (sklearn.ensemble.GradientBoostingRegressor)
@@ -21,283 +21,219 @@ This model predicts Cloud Base Height (CBH) in meters above ground level using a
 - **Max Depth**: 8
 - **Learning Rate**: 0.05
 - **Loss Function**: Least Squares
-- **Input Features**: 18 features (13 ERA5 atmospheric + 5 geometric)
+- **Input Features**: 38 features (10 base ERA5 + 28 physics-based derived)
 - **Output**: Single continuous value (CBH in meters)
 
-### Training Data
-- **Dataset Size**: 933 labeled samples
-- **Data Source**: Integrated features from airborne campaigns (Flights F1, F2, F3, F4, F6)
-- **Temporal Coverage**: Multiple flight campaigns
-- **Geographic Coverage**: Campaign-specific flight paths
-- **Label Source**: Ground truth CBH measurements from flight instruments
-- **Data Format**: HDF5 (Integrated_Features.hdf5)
+---
+
+## Training Data
+
+- **Dataset Size**: 1,426 labeled samples from 3 research flights
+- **Data Source**: NASA ER-2 aircraft observations with CPL lidar ground truth
+- **Campaigns**: GLOVE 2025 (Feb), WHYMSIE 2024 (Oct)
+- **Temporal Coverage**: October 2024 - February 2025
+- **Label Source**: Cloud Physics Lidar (CPL) cloud base retrievals
+- **Data Format**: HDF5 (Enhanced_Features.hdf5)
+
+### Flight Distribution
+| Flight | Campaign | Samples | CBH (km) |
+|--------|----------|---------|----------|
+| Flight 1 | GLOVE 2025 | 1,021 | 1.34 ± 0.22 |
+| Flight 2 | GLOVE 2025 | 129 | 0.85 ± 0.16 |
+| Flight 3 | WHYMSIE 2024 | 276 | 0.88 ± 0.23 |
+
+**Exclusions**: Flights 0 and 4 excluded due to insufficient samples (n=2 and n=8).
 
 ### Feature Engineering
-The model uses 18 engineered features across two categories:
 
-**ERA5 Atmospheric Features (13):**
+**Base ERA5 Features (10):**
 1. `t2m` - Temperature at 2 meters (K)
 2. `d2m` - Dewpoint at 2 meters (K)
 3. `sp` - Surface pressure (Pa)
-4. `tcc` - Total cloud cover (fraction)
-5. `lcc` - Low cloud cover (fraction)
-6. `mcc` - Medium cloud cover (fraction)
-7. `hcc` - High cloud cover (fraction)
-8. `u10` - 10-meter U wind component (m/s)
-9. `v10` - 10-meter V wind component (m/s)
-10. `blh` - Boundary Layer Height (m)
-11. `cape` - Convective available potential energy (J/kg)
-12. `tcwv` - Total column water vapor (kg/m²)
-13. `skt` - Skin temperature (K)
+4. `blh` - Boundary Layer Height (m)
+5. `tcwv` - Total column water vapor (kg/m²)
+6. `lcl` - Lifting condensation level (computed from t2m, d2m)
+7. `stability_index` - Derived stability indicator
+8. `moisture_gradient` - Vertical moisture structure
+9. `sza_deg` - Solar zenith angle (degrees)
+10. `saa_deg` - Solar azimuth angle (degrees)
 
-**Geometric Features (5):**
-14. `solar_zenith_angle` - Solar zenith angle (degrees)
-15. `solar_azimuth_angle` - Solar azimuth angle (degrees)
-16. `view_zenith_angle` - View zenith angle (degrees)
-17. `view_azimuth_angle` - View azimuth angle (degrees)
-18. `relative_azimuth` - Relative azimuth (degrees)
+**Physics-Based Derived Features (28):**
+- Thermodynamic: virtual_temperature, potential_temperature, saturation_vapor_pressure, mixing_ratio
+- Stability: stability_x_tcwv, stability_dpd_product, stability_anomaly
+- Moisture: dew_point_depression, relative_humidity_2m, vapor_pressure
+- Solar/Temporal: sza_cos, sza_sin, saa_cos, saa_sin, solar_heating_proxy, hour_sin, hour_cos
+- Interactions: t2m_x_tcwv, blh_x_lcl, t2m_x_sza_cos, polynomial terms
 
-### Preprocessing
-- **Missing Value Handling**: Mean imputation using SimpleImputer
-- **Feature Scaling**: StandardScaler (zero mean, unit variance)
-- **Outlier Treatment**: None (robust to outliers via tree-based method)
-- **Data Splitting**: Stratified 5-fold cross-validation (stratified by CBH quintiles)
-
-## Intended Use
-
-### Primary Use Cases
-1. **Operational CBH Retrieval**: Real-time cloud base height estimation during airborne field campaigns
-2. **Climate Research**: Support for cloud parameterization and validation studies
-3. **Aviation Safety**: Cloud base height information for flight planning and safety
-
-### Intended Users
-- Climate scientists and researchers
-- Field campaign operators
-- Aviation meteorologists
-- Cloud physics researchers
-
-### Out-of-Scope Use Cases
-- **Real-time aviation safety-critical systems** (requires additional certification)
-- **Non-airborne platforms** (model trained on aerial imagery)
-- **Domains with significantly different cloud types** (requires domain adaptation)
-- **High-altitude clouds** (model optimized for low-to-mid level clouds)
+---
 
 ## Performance Metrics
 
-### Cross-Validation Performance (5-Fold Stratified CV)
-- **R² Score**: 0.744 ± 0.037
-- **Mean Absolute Error (MAE)**: 117.4 ± 7.4 meters
-- **Root Mean Squared Error (RMSE)**: 187.3 ± 15.3 meters
-- **Median Absolute Error**: ~95 meters (estimated from distribution)
-- **90th Percentile Error**: ~280 meters (estimated)
+### Validation Strategy Comparison
 
-### Production Model Performance (Full Dataset Training)
-- **Training R²**: 0.993 (high due to full dataset fit)
-- **Expected Generalization**: R² ≈ 0.74 based on CV
+| Validation Strategy | R² | MAE (m) | Assessment |
+|--------------------|-----|---------|------------|
+| Pooled K-fold | 0.924 | 49.7 | **Inflated** (temporal autocorrelation ρ=0.94) |
+| Per-flight shuffled | **0.715** | **49.0** | **Primary honest metric** |
+| Per-flight time-ordered | -0.055 | 129.8 | Strict temporal holdout |
+| Leave-one-flight-out | **-15.4** | 422 | **Catastrophic domain shift** |
+
+**Critical insight**: The 0.21 R² inflation from pooled to per-flight validation demonstrates that temporal autocorrelation (lag-1 ρ = 0.94) invalidates standard cross-validation.
+
+### Feature Importance (Enhanced Model)
+1. **virtual_temperature**: 33%
+2. **stability_x_tcwv**: 22%
+3. **t2m**: 14%
+4. **saturation_vapor_pressure**: 4.4%
+5. **tcwv**: 2.7%
+
+### Feature Importance (Base Model)
+1. **t2m** (Temperature): 72% - dominates predictions, consistent with LCL physics
+2. **d2m** (Dewpoint): 6.5%
+3. **tcwv** (Total column water vapor): 4.3%
+4. **blh** (Boundary layer height): 4.1%
 
 ### Uncertainty Quantification
-- **Method**: Quantile Regression (90% prediction intervals)
-- **Interval Coverage**: 77.1% (under-calibrated; target: 90%)
-- **Mean Interval Width**: 533.4 ± 20.8 meters
-- **Uncertainty-Error Correlation**: 0.485 (moderate calibration)
-- **Calibration Status**: Poorly calibrated (requires post-hoc calibration)
 
-### Feature Importance (Top 5)
-1. **d2m** (Dewpoint): 19.5% ± 1.2%
-2. **t2m** (Temperature): 17.5% ± 3.1%
-3. **moisture_gradient**: 7.7% ± 2.9%
-4. **sza_deg** (Solar Zenith): 7.0% ± 1.2%
-5. **saa_deg** (Solar Azimuth): 6.4% ± 1.3%
+| Method | Coverage | Target | Width (m) | Assessment |
+|--------|----------|--------|-----------|------------|
+| Split Conformal | 27% | 90% | 278 | **Fails** (exchangeability violated) |
+| Adaptive Conformal | 11% | 90% | 58 | **Fails** (intervals collapse) |
+| Quantile Regression | 58% | 90% | 510 | Moderate under-coverage |
+| Per-flight Calibration | **86%** | 90% | 313 | **Recommended** |
 
-### Ensemble Performance
-The production model is part of a multimodal ensemble system:
+**Root cause of conformal failure**: Temporal autocorrelation (ρ=0.94) and domain shift violate the exchangeability assumption required for conformal prediction guarantees.
 
-- **GBDT (Tabular)**: R² = 0.727 ± 0.112, MAE = 118.5 ± 15.8 m
-- **CNN (Image)**: R² = 0.351 ± 0.075, MAE = 236.8 ± 16.7 m
-- **Weighted Ensemble**: R² = 0.739 ± 0.096, MAE = 122.5 ± 19.8 m (optimal weights: 88% GBDT, 12% CNN)
+---
 
-**Note**: The tabular GBDT model is the primary production model due to superior performance.
+## Domain Adaptation
+
+### Leave-One-Flight-Out (LOFO) Results
+| Test Flight | n_test | R² | MAE (km) |
+|-------------|--------|-----|----------|
+| Flight 1 | 1,021 | -6.61 | 0.577 |
+| Flight 2 | 129 | 0.15 | 0.119 |
+| Flight 3 | 276 | -0.80 | 0.210 |
+| **Mean** | -- | **-15.4** | **0.422** |
+
+### Few-Shot Adaptation (Recommended Solution)
+| Target Flight | 5-shot | 10-shot | 20-shot | 50-shot |
+|---------------|--------|---------|---------|---------|
+| Flight 1 | 0.47 | 0.76 | 0.81 | **0.85** |
+| Flight 2 | 0.14 | 0.22 | 0.39 | **0.64** |
+| Flight 3 | -0.37 | -0.14 | 0.02 | **0.23** |
+| **Mean** | 0.08 | 0.28 | 0.41 | **0.57** |
+
+**Operational protocol**: Collect 20-50 labeled samples from target regime before deployment. This recovers R² = 0.41-0.57 on average.
+
+---
 
 ## Limitations
 
-### Known Limitations
+### Critical Limitations
 
-1. **Domain Shift Sensitivity**
-   - Model exhibits catastrophic failure on Flight F4 (R² = -0.98 in leave-one-out test)
-   - F4 represents a different atmospheric regime or cloud type distribution
-   - Few-shot adaptation with 10 F4 samples improves performance to R² ≈ -0.22 (still poor)
-   - **Mitigation**: Deploy domain adaptation or flag predictions when input distribution differs
+1. **Catastrophic Domain Shift** (LOFO R² = -15.4)
+   - Model fails completely when deployed to unseen atmospheric regimes
+   - Predictions worse than constant baseline without adaptation
+   - **Mitigation**: Few-shot adaptation with 50 samples recovers R² = 0.57-0.85
 
-2. **Uncertainty Calibration**
-   - 90% prediction intervals only achieve 77% coverage (under-confident)
-   - Requires post-hoc calibration (isotonic regression, conformal prediction)
-   - **Mitigation**: Apply calibration methods before using UQ for decision-making
+2. **Temporal Autocorrelation Inflation** (lag-1 ρ = 0.94)
+   - Standard cross-validation inflates R² from 0.715 to 0.924
+   - Adjacent samples are nearly identical, causing information leakage
+   - **Mitigation**: Use per-flight validation as honest metric
 
-3. **Image Model Underperformance**
-   - CNN baseline achieves only R² = 0.35 (vs. GBDT R² = 0.73)
-   - Simple CNN architecture may not capture spatial features effectively
-   - **Mitigation**: Consider Vision Transformer or pretrained ResNet backbone
+3. **Conformal Prediction Failure** (27% coverage vs 90% target)
+   - Exchangeability assumption violated by temporal structure
+   - Split conformal and adaptive conformal fail catastrophically
+   - **Mitigation**: Use per-flight calibration (86% coverage)
 
-4. **Limited Training Data**
-   - Only 933 labeled samples across 5 flights
-   - May not generalize to all cloud types, geographic regions, or seasons
-   - **Mitigation**: Continuous data collection and model retraining
+4. **Temporal Extrapolation Failure** (R² = -0.055)
+   - Model cannot predict forward in time even within same flight
+   - Time-ordered holdout shows near-zero predictive skill
+   - **Mitigation**: Only valid for interpolation, not forecasting
 
-5. **Feature Availability**
-   - Requires ERA5 reanalysis data (3-hour latency in operational mode)
-   - Shadow detection depends on solar illumination (daytime only)
-   - **Mitigation**: Plan campaigns during daylight; use NRT ERA5 data
+### Data Limitations
 
-6. **Outlier Predictions**
-   - Approximately 5-10% of predictions have errors > 300 meters
-   - Typically occur during rapid atmospheric transitions or edge cases
-   - **Mitigation**: Use uncertainty quantification to flag high-uncertainty predictions
+5. **Limited Regime Diversity**
+   - Only 3 flights from 2 campaigns
+   - Generalization to tropical/polar/oceanic regimes unvalidated
+   - **Mitigation**: Expand dataset with diverse campaigns
 
-### Ethical Considerations
+6. **ERA5 Spatial Resolution** (25 km)
+   - Cannot capture fine-scale boundary layer variability
+   - Low-altitude clouds controlled by micro-meteorology are challenging
+   - **Mitigation**: Consider higher-resolution reanalysis (ERA5-Land)
 
-1. **Fairness**: Model performance may vary by geographic region or atmospheric regime (as evidenced by F4 failure)
-2. **Transparency**: All features are physically interpretable; model decisions are explainable via SHAP/feature importance
-3. **Safety**: NOT certified for safety-critical aviation applications; use only for research/planning
-4. **Environmental Impact**: Minimal computational footprint (CPU-based inference, <10ms per sample)
+### Sensor Limitations
 
-## Training Procedure
+7. **Camera Auto-Scaling**
+   - Automatic exposure adjustment creates inconsistent brightness
+   - Complicates shadow detection across frames
+   - **Mitigation**: Use ERA5-only features (vision not recommended)
 
-### Training Process
-1. **Data Loading**: Load integrated features from HDF5 file
-2. **Preprocessing**: Apply mean imputation and standard scaling
-3. **Cross-Validation**: 5-fold stratified CV for model evaluation
-4. **Hyperparameter Tuning**: Manual tuning (n_estimators=200, max_depth=5, lr=0.1)
-5. **Production Training**: Retrain on full dataset with best hyperparameters
-6. **Artifact Export**: Save model, scaler, and configuration
+8. **Shadow Detection Assumptions**
+   - Brightness thresholds fail in complex illumination
+   - Thin clouds, multiple cloud layers, low solar elevation problematic
+   - **Mitigation**: ERA5 features are more robust than shadow-based features
 
-### Hardware & Software
-- **Hardware**: NVIDIA GTX 1070 Ti (8GB VRAM), 16GB RAM, CPU training
-- **OS**: Linux (Ubuntu-based)
-- **Python Version**: 3.12
-- **Key Dependencies**: 
-  - scikit-learn 1.7.0
-  - numpy 2.2.6
-  - pandas 2.3.0
-  - h5py 3.14.0
+9. **CPL Ground Truth Uncertainty**
+   - ~30 m vertical resolution
+   - Cloud edge detection ambiguity
+   - **Mitigation**: Accept ~30 m as floor for achievable MAE
 
-### Training Time
-- **Cross-Validation**: ~2-5 minutes (5 folds × 200 trees)
-- **Production Model**: ~30-60 seconds (full dataset, 200 trees)
-- **Total Pipeline**: <10 minutes including data loading and validation
-
-### Reproducibility
-- **Random Seed**: 42 (fixed for all experiments)
-- **Validation Strategy**: Stratified 5-fold CV (stratify by CBH quintiles)
-- **Environment**: Pinned dependencies in `requirements.txt`
+---
 
 ## Inference
 
 ### Input Specification
 - **Format**: NumPy array or Pandas DataFrame
-- **Shape**: (n_samples, 18) for batch inference or (18,) for single sample
-- **Feature Order**: Must match training feature order (see Feature Engineering section)
-- **Preprocessing**: Apply saved `production_scaler.joblib` before prediction
-- **Missing Values**: Impute with feature means (from training set)
+- **Shape**: (n_samples, 38) for enhanced model or (n_samples, 10) for base model
+- **Feature Order**: Must match training feature order
+- **Preprocessing**: Apply StandardScaler from training
+- **Missing Values**: Mean imputation (from training set)
 
 ### Output Specification
 - **Format**: NumPy array
-- **Shape**: (n_samples,) for point predictions
+- **Shape**: (n_samples,)
 - **Units**: Meters above ground level
-- **Range**: Typically 0-3000 meters (physically constrained)
-- **Uncertainty**: Optional quantile predictions (lower/upper bounds)
+- **Range**: Typically 200-2000 m
 
 ### Inference Performance
-- **Latency**: <1ms per sample (CPU, batch_size=1)
-- **Throughput**: ~10,000 samples/second (CPU, batched)
-- **Memory**: ~5MB model size, ~50MB peak inference memory
+- **Latency**: 0.28 ms per sample (CPU)
+- **Throughput**: ~3,500 samples/second (CPU)
+- **Memory**: 1.3 MB model size
 - **Hardware**: CPU-only (no GPU required)
-
-### Example Usage
-```python
-import joblib
-import numpy as np
-
-# Load artifacts
-model = joblib.load('production_model.joblib')
-scaler = joblib.load('production_scaler.joblib')
-
-# Prepare input (18 features)
-X_raw = np.array([[blh, lcl, inversion_height, moisture_gradient, 
-                   stability_index, t2m, d2m, sp, tcwv, 
-                   cloud_edge_x, cloud_edge_y, saa_deg, 
-                   shadow_angle_deg, shadow_detection_confidence,
-                   shadow_edge_x, shadow_edge_y, 
-                   shadow_length_pixels, sza_deg]])
-
-# Preprocess
-X_scaled = scaler.transform(X_raw)
-
-# Predict
-cbh_meters = model.predict(X_scaled)[0]
-
-print(f"Predicted CBH: {cbh_meters:.1f} meters")
-```
-
-## Model Governance
-
-### Version Control
-- **Model Registry**: Artifacts stored in `sow_outputs/sprint6/checkpoints/`
-- **Version Tagging**: v1.0.0 (production release)
-- **Change Log**: See `PHASE4_COMPLETION_SUMMARY.md` for update history
-
-### Monitoring & Maintenance
-- **Performance Monitoring**: Track MAE/RMSE on new labeled data
-- **Data Drift Detection**: Monitor feature distributions (KS test, PSI)
-- **Retraining Triggers**: 
-  - MAE degrades by >20% on validation set
-  - New flight campaign data available (≥100 samples)
-  - Domain shift detected (distribution shift alert)
-- **Update Frequency**: Quarterly retraining recommended
-
-### Model Card Updates
-- **Update Trigger**: Major version release, significant performance change, new use case
-- **Responsible Party**: NASA Cloud ML Team
-- **Review Cycle**: Annual review minimum
-
-## Validation & Testing
-
-### Validation Strategy
-- **Cross-Validation**: 5-fold stratified CV (primary validation)
-- **Error Analysis**: Per-flight breakdown, error distribution analysis
-- **Domain Adaptation**: Leave-one-flight-out validation (F4 test case)
-- **Uncertainty Quantification**: Coverage and calibration analysis
-
-### Test Sets
-- **In-Distribution**: Held-out folds in CV (R² = 0.744)
-- **Out-of-Distribution**: Flight F4 (R² = -0.98, severe domain shift)
-- **Production Validation**: Ongoing collection of labeled validation data
-
-### Failure Modes
-1. **Flight F4-like atmospheric regimes**: Near-total prediction failure
-2. **High uncertainty samples**: Errors >300m when uncertainty >600m
-3. **Shadow detection failures**: Degraded performance when confidence <0.5
-4. **Missing ERA5 features**: Model cannot handle missing inputs (requires imputation)
-
-## References & Citations
-
-### Related Publications
-- NASA Airborne Cloud Campaign Documentation (internal)
-- ERA5 Reanalysis: Hersbach et al. (2020), QJRMS
-- Gradient Boosting: Friedman (2001), Annals of Statistics
-
-### Model Artifacts
-- **Production Model**: `sow_outputs/sprint6/checkpoints/production_model.joblib`
-- **Scaler**: `sow_outputs/sprint6/checkpoints/production_scaler.joblib`
-- **Configuration**: `sow_outputs/sprint6/checkpoints/production_config.json`
-- **Validation Reports**: `sow_outputs/sprint6/reports/`
-
-### Documentation
-- **Deployment Guide**: See `DEPLOYMENT_GUIDE.md`
-- **Technical Report**: See `PHASE4_COMPLETION_SUMMARY.md`
-- **User Guide**: See `QUICK_START.md`
 
 ---
 
-**Model Card Version**: 1.0.0  
-**Last Updated**: 2025-11-11  
-**Next Review**: 2026-11-11
+## Ethical Considerations
+
+1. **Fairness**: Model performance varies by atmospheric regime; do not assume uniform accuracy
+2. **Transparency**: All features are physically interpretable; predictions explainable via SHAP
+3. **Safety**: NOT certified for safety-critical aviation applications
+4. **Reproducibility**: All experiments reproducible with seed=42
+
+---
+
+## Model Governance
+
+### Version History
+- **v1.0.0** (Nov 2025): Initial production model with inflated metrics
+- **v2.0.0** (Jan 2026): Restudy with validated metrics, domain adaptation, honest UQ
+
+### Artifacts
+- **Model**: `outputs/tabular_model/production_model.joblib`
+- **Scaler**: `outputs/tabular_model/production_scaler.joblib`
+- **Enhanced Features**: `outputs/feature_engineering/Enhanced_Features.hdf5`
+- **Results**: `outputs/*/results.json`
+
+### Documentation
+- **Preprint**: `preprint/cloudml_academic_preprint.tex`
+- **README**: Repository root
+- **Deployment Guide**: `docs/cbh/DEPLOYMENT_GUIDE.md`
+
+---
+
+**Model Card Version**: 2.0.0  
+**Last Updated**: 2026-01-06  
+**Author**: Rylan Malarchick
