@@ -1,16 +1,16 @@
 \begin{table}[ht]
-\centering
-\caption{Computational Cost Comparison Across Models}
-\label{tab:computationalcost}
-\begin{tabular}{lccccc}
-\hline
-\textbf{Model} & \textbf{Training (s)} & \textbf{Inference (ms)} & \textbf{Size (MB)} & \textbf{GPU} & \textbf{Real-time?} \\
-\hline
-GBDT & 1.0434272289276123 & 0.28 & 1.3 & No & Yes \\
-SimpleCNN & 19.24664545059204 & 1.22 & 98.4 & Yes & Yes \\
-ResNet-18 & 7.394647121429443 & 2.62 & 42.7 & Yes & Yes \\
-EfficientNet-B0 & 14.554060220718384 & 7.35 & 15.6 & Yes & Yes \\
-\hline
-\multicolumn{6}{l}{\textit{Note: Inference time measured on cuda. Real-time defined as < 100ms latency.}} \\
-\end{tabular}
+	\centering
+	\caption{Computational Cost Comparison Across Models}
+	\label{tab:computationalcost}
+	\begin{tabular}{lccccc}
+		\hline
+		\textbf{Model}  & \textbf{Training (s)} & \textbf{Inference (ms)} & \textbf{Size (MB)} & \textbf{GPU} & \textbf{Real-time?} \\
+		\hline
+		GBDT            & 1.04                  & 0.28                    & 1.3                & No           & Yes                 \\
+		SimpleCNN       & 19.25                 & 1.22                    & 98.4               & Yes          & Yes                 \\
+		ResNet-18       & 7.39                  & 2.62                    & 42.7               & Yes          & Yes                 \\
+		EfficientNet-B0 & 14.55                 & 7.35                    & 15.6               & Yes          & Yes                 \\
+		\hline
+		\multicolumn{6}{l}{\textit{Note: Inference time measured on cuda. Real-time defined as < 100ms latency.}}                   \\
+	\end{tabular}
 \end{table}
