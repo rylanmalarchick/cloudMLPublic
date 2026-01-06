@@ -39,7 +39,7 @@
 \maketitle
 
 \begin{abstract}
-We systematically compare atmospheric feature-based and image-based machine learning for cloud base height (CBH) retrieval using 933 NASA ER-2 airborne observations. Gradient boosting with 18 ERA5 and geometric features achieves R$^2$ = 0.744 (MAE = 117.4 m), outperforming state-of-the-art vision models including ResNet-18 (R$^2$ = 0.617, MAE = 150.9 m) and EfficientNet-B0 by 22.2\% on MAE. This performance advantage holds despite deep learning's theoretical capacity for end-to-end representation learning, demonstrating that physics-informed features capture cloud formation drivers more effectively than learned visual representations. Feature importance analysis identifies dewpoint temperature (d2m) and surface temperature (t2m) as dominant predictors, consistent with lifting condensation level theory, while ablation studies show graceful degradation (maximum R$^2$ drop <1\% when removing any single feature). The GBDT model enables production-ready deployment with 0.28 ms inference on CPU, 33$\times$ smaller model size than ResNet-18, and conformal prediction intervals achieving 91\% coverage at 90\% target. Within-campaign validation demonstrates operational capability (MAE = 103.7 m for 500-1500 m CBH), while leave-one-flight-out cross-validation reveals severe domain shift across atmospheric regimes (mean R$^2$ = -1.007, MAE = 418.2 m), highlighting a critical challenge for cross-regime generalization. Physics-based validation confirms trustworthy predictions: zero constraint violations and strong correlation with lifting condensation level (r = 0.68). Ensemble methods combining atmospheric and visual features provide negligible improvement (<1\% R$^2$ gain), indicating limited multi-modal complementarity. Our results demonstrate that within-campaign deployment achieves production-ready accuracy, but cross-regime generalization requires domain adaptation techniques. We release CloudMLPublic, an open-source framework with 93.5\% test coverage and comprehensive uncertainty quantification.
+We systematically compare atmospheric feature-based and image-based machine learning for cloud base height (CBH) retrieval using 933 NASA ER-2 airborne observations. Gradient boosting with 18 ERA5 and geometric features achieves R$^2$ = 0.744 (MAE = 117.4 m), outperforming state-of-the-art vision models including ResNet-18 (R$^2$ = 0.617, MAE = 150.9 m) and EfficientNet-B0 by 22.2\% on MAE. This performance advantage holds despite deep learning's theoretical capacity for end-to-end representation learning, demonstrating that physics-informed features capture cloud formation drivers more effectively than learned visual representations. Feature importance analysis identifies dewpoint temperature (d2m) and surface temperature (t2m) as dominant predictors, consistent with lifting condensation level theory, while ablation studies show graceful degradation (maximum R$^2$ drop <1\% when removing any single feature). The GBDT model enables production-ready deployment with 0.28 ms inference on CPU, 33$\times$ smaller model size than ResNet-18, and conformal prediction intervals achieving 91\% coverage at 90\% target. Within-campaign validation demonstrates operational capability (MAE = 103.7 m for 500-1500 m CBH), while leave-one-flight-out cross-validation reveals severe domain shift across atmospheric regimes (mean R$^2$ = -1.007, MAE = 418.2 m), highlighting a critical challenge for cross-regime generalization. Physics-based validation confirms trustworthy predictions: zero constraint violations and strong correlation with lifting condensation level (r = 0.68). Ensemble methods combining atmospheric and visual features provide negligible improvement (<1\% R$^2$ gain), indicating limited multi-modal complementarity. Our results demonstrate that within-campaign deployment achieves production-ready accuracy, but cross-regime generalization requires domain adaptation techniques. We release CloudMLPublic, an open-source framework with 92\% test pass rate and uncertainty quantification.
 \end{abstract}
 
 \section{Introduction}
@@ -85,7 +85,7 @@ Our key contributions are:
 
     \item \textbf{Domain shift analysis:} Quantitative characterization of cross-flight generalization challenges, with leave-one-flight-out validation revealing severe distribution shift (R$^2$ dropping from 0.744 to near-zero) and few-shot learning experiments showing partial recovery with 10--20 labeled samples.
 
-    \item \textbf{Open-source framework:} Release of CloudMLPublic, a production-grade implementation with comprehensive uncertainty quantification, 93.5\% test coverage, and full reproducibility infrastructure to accelerate atmospheric ML research.
+    \item \textbf{Open-source framework:} Release of CloudMLPublic, a production-grade implementation with comprehensive uncertainty quantification, 92\% test pass rate, and full reproducibility infrastructure to accelerate atmospheric ML research.
 \end{itemize}
 
 \subsection{Paper Organization}
@@ -189,39 +189,41 @@ Data were collected during two NASA ER-2 field campaigns: WHYMSIE 2024 (Wyoming 
 
 \subsubsection{Atmospheric Features}
 
-From ERA5 reanalysis data and cloud shadow analysis, we engineer 18 features capturing atmospheric stability, moisture availability, and geometric properties. The complete feature set is:
+From ERA5 reanalysis data and solar geometry, we engineer 18 features capturing atmospheric state and viewing geometry. The complete feature set is:
 
 \begin{enumerate}[leftmargin=*]
-    \item \textbf{Atmospheric features from ERA5 (9):} 
+    \item \textbf{ERA5 atmospheric features (13):} 
     \begin{itemize}
-        \item Boundary layer height (blh, m)
-        \item Lifting condensation level (lcl, m)
-        \item Temperature inversion height (inversion\_height, m)
-        \item Vertical moisture gradient (moisture\_gradient)
-        \item Atmospheric stability index (stability\_index)
         \item 2-meter temperature (t2m, K)
         \item 2-meter dewpoint (d2m, K)
         \item Surface pressure (sp, Pa)
+        \item Total cloud cover (tcc, fraction)
+        \item Low cloud cover (lcc, fraction)
+        \item Medium cloud cover (mcc, fraction)
+        \item High cloud cover (hcc, fraction)
+        \item 10-meter U wind component (u10, m/s)
+        \item 10-meter V wind component (v10, m/s)
+        \item Boundary layer height (blh, m)
+        \item Convective available potential energy (cape, J/kg)
         \item Total column water vapor (tcwv, kg/m$^2$)
+        \item Skin temperature (skt, K)
     \end{itemize}
 
-    \item \textbf{Geometric features from shadow analysis (9):}
+    \item \textbf{Geometric features (5):}
     \begin{itemize}
-        \item Cloud edge coordinates (cloud\_edge\_x, cloud\_edge\_y, pixels)
-        \item Shadow edge coordinates (shadow\_edge\_x, shadow\_edge\_y, pixels)
-        \item Shadow length (shadow\_length\_pixels)
-        \item Shadow detection confidence (shadow\_detection\_confidence, [0-1])
-        \item Shadow angle (shadow\_angle\_deg, degrees)
-        \item Solar azimuth angle (saa\_deg, degrees)
-        \item Solar zenith angle (sza\_deg, degrees)
+        \item Solar zenith angle (solar\_zenith\_angle, degrees)
+        \item Solar azimuth angle (solar\_azimuth\_angle, degrees)
+        \item View zenith angle (view\_zenith\_angle, degrees)
+        \item View azimuth angle (view\_azimuth\_angle, degrees)
+        \item Relative azimuth (relative\_azimuth, degrees)
     \end{itemize}
 \end{enumerate}
 
-The lifting condensation level is computed using the approximate formula:
+The lifting condensation level (LCL), a physics-based cloud base estimator, is computed using the approximate formula:
 \begin{equation}
 \text{LCL} = 125 \times (T_{\text{surface}} - T_{\text{dewpoint}})
 \end{equation}
-where temperatures are in Celsius. This provides a physics-based estimate of cloud base for comparison with data-driven predictions. Shadow-derived geometric features capture cloud-shadow displacement, which provides information about cloud altitude when combined with solar angle.
+where temperatures are in Celsius. While LCL is not directly included as a feature, the model can implicitly learn this relationship from t2m and d2m inputs. Geometric features capture solar and viewing angles, which affect apparent cloud brightness and shadow characteristics in imagery.
 
 \subsubsection{Image Preprocessing}
 
@@ -642,66 +644,6 @@ GBDT offers:
 
 For operational systems, GBDT provides the optimal accuracy-efficiency trade-off: near-state-of-the-art performance (R$^2$=0.744) with inference costs 5-26× lower than vision alternatives. The lack of GPU dependency simplifies deployment and reduces operational costs.
 
-\subsection{Cross-Flight Domain Divergence}
-\label{sec:cross_flight_domain}
-
-To evaluate generalization across atmospheric regimes, we performed leave-one-flight-out (LOFO) cross-validation excluding flights with fewer than 60 samples (Flight 4, n=44). Table~\ref{tab:lofo_results} presents the results, revealing catastrophic performance degradation on out-of-distribution flights.
-
-\begin{table}[ht]
-\centering
-\caption{Leave-One-Flight-Out Cross-Validation Results. All negative R$^2$ values indicate complete failure to generalize across flight campaigns, representing 240\% performance degradation compared to within-campaign validation (R$^2$ = 0.71, MAE = 123 m).}
-\label{tab:lofo_results}
-\begin{tabular}{lccccc}
-\toprule
-\textbf{Test Flight} & \textbf{$n_{\text{test}}$} & \textbf{$n_{\text{train}}$} & \textbf{R$^2$} & \textbf{MAE (m)} & \textbf{RMSE (m)} \\
-\midrule
-Flight 0 & 423 & 390 & -1.138 & 341.3 & 428.8 \\
-Flight 1 & 182 & 631 & -0.585 & 318.8 & 372.4 \\
-Flight 2 & 102 & 711 & -1.817 & 542.6 & 677.6 \\
-Flight 3 & 84 & 729 & -0.488 & 470.0 & 672.4 \\
-\midrule
-\textbf{Mean} & \textbf{198} & \textbf{615} & \textbf{-1.007} & \textbf{418.2} & \textbf{537.8} \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\textbf{Critical finding:} All four LOFO test flights achieve negative R$^2$ values (mean R$^2$ = -1.007), indicating predictions perform worse than a constant mean baseline. This represents a 256\% performance degradation compared to within-campaign stratified cross-validation (R$^2$ = 0.744, MAE = 117.4 m), demonstrating catastrophic generalization failure across atmospheric regimes.
-
-\subsubsection{Feature Distribution Shift}
-
-To quantify distributional differences, we performed two-sample Kolmogorov-Smirnov tests on all 15 input features across flight pairs. Figure~\ref{fig:ks_divergence} shows maximum K-S divergence statistics, revealing substantial distribution shift in key atmospheric features.
-
-\begin{figure}[ht]
-\centering
-\includegraphics[width=0.85\textwidth]{../outputs/domain_analysis/figures/ks_divergence_heatmap.png}
-\caption{Kolmogorov-Smirnov divergence heatmap showing distribution shift across flight pairs. Darker colors indicate higher divergence (max K-S statistic across all features). Top divergent features: total column water vapor (tcwv, K-S=0.80), lifting condensation level (lcl, K-S=0.75), and surface temperature (t2m, K-S=0.72).}
-\label{fig:ks_divergence}
-\end{figure}
-
-The most divergent features are:
-\begin{enumerate}[leftmargin=*]
-    \item \textbf{Total column water vapor (tcwv):} K-S divergence = 0.796, reflecting seasonal and geographic moisture differences
-    \item \textbf{Lifting condensation level (lcl):} K-S = 0.750, indicating different cloud formation regimes
-    \item \textbf{Surface temperature (t2m):} K-S = 0.721, capturing fall vs. winter campaign differences
-    \item \textbf{Boundary layer height (blh):} K-S = 0.715, showing distinct atmospheric stability regimes
-    \item \textbf{Moisture gradient:} K-S = 0.652, reflecting vertical atmospheric structure differences
-\end{enumerate}
-
-These features are among the most important for CBH prediction (Section~\ref{sec:results}), explaining the severe LOFO performance degradation: the model learns campaign-specific relationships that fail to transfer.
-
-\subsubsection{Principal Component Analysis}
-
-PCA on the 15-feature space (Figure~\ref{fig:pca_clustering}) reveals that flights cluster by campaign, confirming distinct atmospheric regimes.
-
-\begin{figure}[ht]
-\centering
-\includegraphics[width=0.85\textwidth]{../outputs/domain_analysis/figures/pca_flight_clustering.png}
-\caption{PCA projection of atmospheric features colored by flight ID. PC1 (36.0\% variance) and PC2 (14.4\% variance) capture 50.4\% of total variability. Clear separation between flights indicates distinct atmospheric regimes, explaining LOFO generalization failure.}
-\label{fig:pca_clustering}
-\end{figure}
-
-PC1 explains 36.0\% of variance and appears to separate WHYMSIE 2024 (fall, Flights 0, 2) from GLOVE 2025 (winter, Flights 1, 3) campaigns. PC2 explains 14.4\% variance, providing additional within-campaign separation. The lack of overlap in feature space between flights explains why LOFO validation fails catastrophically: test flights occupy regions of feature space never seen during training.
-
 \subsection{Domain Adaptation}
 \label{sec:domain_adaptation}
 
@@ -865,7 +807,7 @@ This finding has practical implications: operational systems achieve near-optima
 
 \subsection{Domain Shift and Generalization}
 
-The catastrophic LOFO validation failures (Section~\ref{sec:cross_flight_domain}) represent the most critical finding of this work: all four held-out flights achieve negative R$^2$ values (mean R$^2$ = -1.007, MAE = 418.2 m), indicating predictions worse than a constant mean baseline. This 256\% performance degradation compared to within-campaign validation (R$^2$ = 0.744, MAE = 117.4 m) demonstrates complete generalization failure across atmospheric regimes.
+The catastrophic LOFO validation failures (Section~\ref{sec:domain_shift}) represent the most critical finding of this work: all four held-out flights achieve negative R$^2$ values (mean R$^2$ = -1.007, MAE = 418.2 m), indicating predictions worse than a constant mean baseline. This 256\% performance degradation compared to within-campaign validation (R$^2$ = 0.744, MAE = 117.4 m) demonstrates complete generalization failure across atmospheric regimes.
 
 \subsubsection{Root Causes of Domain Shift}
 
@@ -1063,7 +1005,7 @@ We have presented a systematic comparison of atmospheric feature-based and image
 
     \item \textbf{Physics-based validation confirms trustworthiness:} Despite domain shift challenges, the model learns physically consistent relationships: zero constraint violations (0\% predictions exceeding tropopause or below surface), expected positive correlation with boundary layer height (r=0.14), and weak but positive correlation with lifting condensation level, confirming predictions respect fundamental atmospheric physics within trained regimes.
 
-    \item \textbf{Open-source framework released:} CloudMLPublic provides production-grade infrastructure with comprehensive uncertainty quantification and 93.5\% test coverage to support reproducible atmospheric ML research.
+    \item \textbf{Open-source framework released:} CloudMLPublic provides production-grade infrastructure with comprehensive uncertainty quantification and 92\% test pass rate to support reproducible atmospheric ML research.
 \end{enumerate}
 
 Our results demonstrate that physics-informed feature engineering leveraging reanalysis products captures cloud formation processes more effectively than end-to-end deep learning on raw imagery. Our comprehensive vision baseline experiments with ResNet-18 and EfficientNet-B0 confirm that atmospheric features outperform learned image representations by 22.7\% on MAE even with state-of-the-art architectures and transfer learning, validating that our core claim is not an artifact of weak baseline design. This challenges the prevailing trend toward universal application of deep learning and highlights the continued importance of domain expertise in scientific machine learning.
@@ -1082,7 +1024,7 @@ This work builds upon methods developed during the author's NASA OSTEM internshi
 
 \textbf{Code:} The complete CloudMLPublic framework, including all data preprocessing pipelines, model implementations, training scripts, evaluation code, and visualization tools, is open-source and available at \url{https://github.com/rylanmalarchick/CloudMLPublic} under the MIT License.
 
-\textbf{Data:} NASA ER-2 downward-looking camera imagery is available through the NASA High Altitude Research Program data portal at \url{https://har.gsfc.nasa.gov/}. Cloud Physics Lidar (CPL) data can be requested from the NASA Goddard Space Flight Center (\texttt{will need to add a contact email here - natalie?}). ERA5 reanalysis data are publicly available from the ECMWF Copernicus Climate Data Store (\url{https://cds.climate.copernicus.eu/}).
+\textbf{Data:} NASA ER-2 downward-looking camera imagery is available through the NASA High Altitude Research Program data portal at \url{https://har.gsfc.nasa.gov/}. Cloud Physics Lidar (CPL) data can be requested from the NASA Goddard Space Flight Center Cloud Physics Lidar team (\url{https://cpl.gsfc.nasa.gov/}). ERA5 reanalysis data are publicly available from the ECMWF Copernicus Climate Data Store (\url{https://cds.climate.copernicus.eu/}).
 
 \textbf{Reproducibility:} All experiments are fully reproducible using the provided configuration files and random seeds (seed=42). Trained model weights and preprocessed datasets are available upon request. Estimated compute time for full reproduction: ~18 hours on a single NVIDIA GTX 1070 Ti GPU.
 

@@ -149,14 +149,14 @@ class ReportedMetrics:
     """
     gbdt_r2: float = 0.744
     gbdt_mae_m: float = 117.4
-    gbdt_rmse_m: float = 156.8
+    gbdt_rmse_m: float = 187.3
     
     ensemble_r2: float = 0.7391
     ensemble_mae_m: float = 120.2
     
     # Uncertainty quantification
-    uq_coverage_90: float = 0.89  # 90% PI coverage
-    uq_mpiw_m: float = 450.0      # Mean prediction interval width
+    uq_coverage_90: float = 0.91  # 90% PI coverage (conformal prediction)
+    uq_mpiw_m: float = 556.6      # Mean prediction interval width
 
 
 REPORTED_METRICS = ReportedMetrics()

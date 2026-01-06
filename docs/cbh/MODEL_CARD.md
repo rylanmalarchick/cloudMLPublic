@@ -21,7 +21,7 @@ This model predicts Cloud Base Height (CBH) in meters above ground level using a
 - **Max Depth**: 8
 - **Learning Rate**: 0.05
 - **Loss Function**: Least Squares
-- **Input Features**: 18 features (12 atmospheric + 6 geometric)
+- **Input Features**: 18 features (13 ERA5 atmospheric + 5 geometric)
 - **Output**: Single continuous value (CBH in meters)
 
 ### Training Data
@@ -35,27 +35,27 @@ This model predicts Cloud Base Height (CBH) in meters above ground level using a
 ### Feature Engineering
 The model uses 18 engineered features across two categories:
 
-**Atmospheric Features (ERA5-derived):**
-1. `blh` - Boundary Layer Height (m)
-2. `lcl` - Lifting Condensation Level (m)
-3. `inversion_height` - Temperature inversion height (m)
-4. `moisture_gradient` - Vertical moisture gradient
-5. `stability_index` - Atmospheric stability index
-6. `t2m` - Temperature at 2 meters (K)
-7. `d2m` - Dewpoint at 2 meters (K)
-8. `sp` - Surface pressure (Pa)
-9. `tcwv` - Total column water vapor (kg/m²)
-10. `sza_deg` - Solar zenith angle (degrees)
+**ERA5 Atmospheric Features (13):**
+1. `t2m` - Temperature at 2 meters (K)
+2. `d2m` - Dewpoint at 2 meters (K)
+3. `sp` - Surface pressure (Pa)
+4. `tcc` - Total cloud cover (fraction)
+5. `lcc` - Low cloud cover (fraction)
+6. `mcc` - Medium cloud cover (fraction)
+7. `hcc` - High cloud cover (fraction)
+8. `u10` - 10-meter U wind component (m/s)
+9. `v10` - 10-meter V wind component (m/s)
+10. `blh` - Boundary Layer Height (m)
+11. `cape` - Convective available potential energy (J/kg)
+12. `tcwv` - Total column water vapor (kg/m²)
+13. `skt` - Skin temperature (K)
 
-**Geometric Features (Shadow-derived):**
-11. `cloud_edge_x` - Cloud edge x-coordinate (pixels)
-12. `cloud_edge_y` - Cloud edge y-coordinate (pixels)
-13. `saa_deg` - Solar azimuth angle (degrees)
-14. `shadow_angle_deg` - Shadow angle (degrees)
-15. `shadow_detection_confidence` - Confidence score [0-1]
-16. `shadow_edge_x` - Shadow edge x-coordinate (pixels)
-17. `shadow_edge_y` - Shadow edge y-coordinate (pixels)
-18. `shadow_length_pixels` - Shadow length (pixels)
+**Geometric Features (5):**
+14. `solar_zenith_angle` - Solar zenith angle (degrees)
+15. `solar_azimuth_angle` - Solar azimuth angle (degrees)
+16. `view_zenith_angle` - View zenith angle (degrees)
+17. `view_azimuth_angle` - View azimuth angle (degrees)
+18. `relative_azimuth` - Relative azimuth (degrees)
 
 ### Preprocessing
 - **Missing Value Handling**: Mean imputation using SimpleImputer
