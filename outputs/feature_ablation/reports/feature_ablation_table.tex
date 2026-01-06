@@ -1,0 +1,21 @@
+\begin{table}[ht]
+\centering
+\caption{Feature Ablation Study Results}
+\label{tab:feature\_ablation}
+\begin{tabular}{lcccc}
+\hline
+\textbf{Configuration} & \textbf{N Features} & \textbf{R$^2$} & \textbf{MAE (m)} & \textbf{RMSE (m)} \\
+\hline
+All Features (Baseline) & 15 & 0.713 $\pm$ 0.083 & 123.5 & 199.0 \\
+Atmospheric Only & 9 & 0.704 $\pm$ 0.033 & 124.4 & 201.9 \\
+Shadow Only & 6 & 0.728 $\pm$ 0.078 & 127.6 & 193.6 \\
+\hline
+\multicolumn{5}{l}{\textit{Top-5 SHAP Features Removed (Individual):}} \\
+d2m & 14 & 0.706 & 126.9 & 201.2 \\
+t2m & 14 & 0.713 & 124.2 & 198.7 \\
+stability\_index & 14 & 0.714 & 124.0 & 198.7 \\
+moisture\_gradient & 14 & 0.714 & 124.0 & 198.7 \\
+sp & 14 & 0.711 & 124.3 & 199.6 \\
+\hline
+\end{tabular}
+\end{table}
