@@ -16,13 +16,13 @@ This project demonstrates that **atmospheric features substantially outperform i
 | Validation Strategy | R² | MAE | Assessment |
 |--------------------|----|-----|------------|
 | Pooled K-fold | 0.924 | 49.7 m | **Inflated** (temporal autocorrelation) |
-| Per-flight shuffled | **0.715** | **49.0 m** | Primary honest metric |
+| Per-flight shuffled | **0.744** | **117.4 m** | Primary honest metric |
 | Per-flight time-ordered | -0.055 | 129.8 m | Strict temporal holdout |
 | Leave-one-flight-out (LOFO) | **-15.4** | 422 m | **Catastrophic domain shift** |
 
 ### Why This Matters
 
-1. **Validation methodology is critical:** Pooled K-fold inflates R² by 0.21 due to lag-1 temporal autocorrelation of 0.94
+1. **Validation methodology is critical:** Pooled K-fold inflates R² by 0.18 due to lag-1 temporal autocorrelation of 0.94
 2. **Domain shift is catastrophic:** Models trained on one atmospheric regime fail completely when deployed to another (R² = -15.4)
 3. **Few-shot adaptation works:** 50 labeled samples from a target flight recovers R² = 0.57-0.85
 4. **Conformal prediction fails:** Split conformal achieves only 27% coverage (target: 90%) due to exchangeability violations
@@ -32,7 +32,7 @@ This project demonstrates that **atmospheric features substantially outperform i
 ## Project Highlights
 
 ### What Works
-- **Within-flight deployment:** R² = 0.715, MAE = 49.0 m (per-flight shuffled validation)
+- **Within-flight deployment:** R² = 0.744, MAE = 117.4 m (per-flight shuffled validation)
 - **Few-shot domain adaptation:** 50 samples → R² = 0.57 (mean), up to 0.85 for similar regimes
 - **Per-flight uncertainty calibration:** 86% coverage with 277 m intervals
 - **Real-time inference:** 0.28 ms per prediction, 1.3 MB model, CPU-only

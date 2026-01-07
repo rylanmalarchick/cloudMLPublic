@@ -806,7 +806,7 @@ The lifting condensation level (LCL) provides a physics-based first-order estima
 
 	\item \textbf{True CBH vs. LCL:} Correlation r=0.28 (p$<$0.05), confirming LCL as a valid physics-based CBH indicator. The moderate correlation reflects that actual CBH depends on additional factors: atmospheric stability, entrainment, radiative effects, multi-layer cloud systems, and the spatial/temporal resolution limitations of ERA5 reanalysis (25 km, hourly).
 
-	\item \textbf{Interpretation:} The model's predicted CBH shows correlation with LCL (r=0.26) comparable to the true CBH-LCL relationship (r=0.28), indicating it has learned to incorporate the fundamental LCL relationship. The moderate correlations are expected given ERA5's 25 km resolution cannot capture sub-grid variability in surface temperature and humidity that controls local LCL. The model's superior overall performance (R$^2$=0.96) indicates it successfully exploits additional atmospheric structure from the full feature set beyond LCL alone.
+	\item \textbf{Interpretation:} The model's predicted CBH shows correlation with LCL (r=0.26) comparable to the true CBH-LCL relationship (r=0.28), indicating it has learned to incorporate the fundamental LCL relationship. The moderate correlations are expected given ERA5's 25 km resolution cannot capture sub-grid variability in surface temperature and humidity that controls local LCL. The model's superior overall performance (R$^2$=0.744) indicates it successfully exploits additional atmospheric structure from the full feature set beyond LCL alone.
 \end{itemize}
 
 \subsubsection{Case Study Analysis}
@@ -915,7 +915,7 @@ The domain shift problem is critical for operational deployment: if models train
 
 	\item \textbf{Periodic recalibration:} Operational systems should retrain models seasonally or when deploying to new geographic regions, rather than attempting universal generalization.
 
-	\item \textbf{Uncertainty-aware deployment:} Conformal prediction intervals (91\% coverage) enable real-time detection of distribution shift. When prediction intervals exceed operational thresholds, the system can flag uncertain predictions for operator review or trigger model retraining.
+	\item \textbf{Uncertainty-aware deployment:} Per-flight calibration (86\% coverage) enable real-time detection of distribution shift. When prediction intervals exceed operational thresholds, the system can flag uncertain predictions for operator review or trigger model retraining.
 \end{itemize}
 
 \textbf{The key takeaway:} Our results demonstrate that atmospheric feature-based CBH retrieval achieves production-ready accuracy (MAE = 117.4 m, 0.28 ms inference) for within-regime deployment. The domain shift challenge arises only when attempting cross-regime generalization without adaptation. Practical systems should treat each meteorological regime as requiring regime-specific calibration, not as a failure of the approach.
@@ -947,7 +947,7 @@ Our findings provide several lessons for ML applications in atmospheric science:
 
 	\item \textbf{Generalization requires attention:} High within-distribution performance (R$^2$=0.744) masks severe domain shift (R$^2$=-15.4 on out-of-distribution flights). Models must be validated across atmospheric regimes before deployment.
 
-	\item \textbf{Uncertainty quantification is essential:} Conformal prediction provides operational decision support by flagging uncertain predictions. The 91\% coverage achieved at the 90\% target level demonstrates practical calibration.
+	\item \textbf{Per-flight calibration is essential:} Conformal prediction provides operational decision support by flagging uncertain predictions. Per-flight calibration achieves 86\% coverage
 
 	\item \textbf{Feature ablation reveals robustness:} No single feature causes >1\% performance degradation, indicating graceful handling of missing sensors or ERA5 fields in operational scenarios.
 
