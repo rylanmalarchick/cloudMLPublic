@@ -150,7 +150,7 @@ with h5py.File('sow_outputs/integrated_features/Integrated_Features.hdf5', 'r') 
     # Check sample count
     cbh = f['cbh'][:]
     print(f"Number of samples: {len(cbh)}")
-    assert len(cbh) == 933, f"Expected 933 samples, got {len(cbh)}"
+    assert len(cbh) == 1426, f"Expected 1426 samples, got {len(cbh)}"
     
     # Check feature count
     n_atmo = len(f['atmospheric_features'].keys())
@@ -306,7 +306,7 @@ python domain_adaptation/few_shot_f4_tabular.py \
 
 **Expected results:**
 ```
-Baseline (LOO): R² = -0.98
+Baseline (LOO): R² = -15.4
 10-shot: R² = -0.22 ± 0.18 (best)
 ```
 
@@ -519,7 +519,7 @@ Use this checklist to verify complete reproducibility:
 ### Data Verification
 
 - [ ] Data file exists: `Integrated_Features.hdf5`
-- [ ] Sample count: 933
+- [ ] Sample count: 1426
 - [ ] Feature count: 18
 - [ ] No missing labels
 - [ ] MD5 checksum matches (if available)
