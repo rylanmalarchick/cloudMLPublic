@@ -39,7 +39,7 @@
 \maketitle
 
 \begin{abstract}
-	We systematically compare atmospheric feature-based and image-based machine learning for cloud base height (CBH) retrieval using 1,426 NASA ER-2 airborne observations from five research flights spanning two field campaigns. Using rigorous per-flight cross-validation that accounts for temporal autocorrelation, gradient boosting with 10 ERA5-derived features achieves R$^2$ = 0.715 (MAE = 49.0 m) within flights where models are trained and tested on independent temporal segments. Feature importance analysis identifies surface temperature (t2m) as the dominant predictor (72\% importance), consistent with lifting condensation level thermodynamics. We introduce 28 physics-based engineered features including virtual temperature and stability-moisture interactions, which become top predictors in the enhanced model. However, leave-one-flight-out cross-validation reveals catastrophic domain shift: mean R$^2$ = -15.4, indicating predictions worse than a constant baseline when generalizing across atmospheric regimes. To address this critical limitation, we evaluate five domain adaptation methods. Few-shot learning emerges as the most practical solution: with just 50 labeled samples from a target flight, R$^2$ recovers to 0.57--0.85 depending on target regime similarity. Uncertainty quantification via split conformal prediction achieves only 27\% coverage (target: 90\%) due to exchangeability violations from temporal autocorrelation, but per-flight calibration recovers 86\% coverage with 277 m prediction intervals. Our results demonstrate that atmospheric features substantially outperform image-based approaches, within-flight deployment is production-ready (0.28 ms inference, 1.3 MB model, CPU-only), but cross-regime generalization requires explicit domain adaptation. We provide an honest assessment of when this approach succeeds (within-regime, with calibration data) and when it fails (cross-regime without adaptation), establishing realistic expectations for operational deployment. We release CloudMLPublic, a fully reproducible framework with validated data pipelines and comprehensive uncertainty quantification.
+	We systematically compare atmospheric feature-based and image-based machine learning for cloud base height (CBH) retrieval using 1,426 NASA ER-2 airborne observations from five research flights spanning two field campaigns. Using rigorous per-flight cross-validation that accounts for temporal autocorrelation, gradient boosting with 10 ERA5-derived features achieves R$^2$ = 0.744 (MAE = 117.4 m) within flights where models are trained and tested on independent temporal segments. Feature importance analysis identifies surface temperature (t2m) as the dominant predictor (72\% importance), consistent with lifting condensation level thermodynamics. We introduce 28 physics-based engineered features including virtual temperature and stability-moisture interactions, which become top predictors in the enhanced model. However, leave-one-flight-out cross-validation reveals catastrophic domain shift: mean R$^2$ = -15.4, indicating predictions worse than a constant baseline when generalizing across atmospheric regimes. To address this critical limitation, we evaluate five domain adaptation methods. Few-shot learning emerges as the most practical solution: with just 50 labeled samples from a target flight, R$^2$ recovers to 0.57--0.85 depending on target regime similarity. Uncertainty quantification via split conformal prediction achieves only 27\% coverage (target: 90\%) due to exchangeability violations from temporal autocorrelation, but per-flight calibration recovers 86\% coverage with 277 m prediction intervals. Our results demonstrate that atmospheric features substantially outperform image-based approaches, within-flight deployment is production-ready (0.28 ms inference, 1.3 MB model, CPU-only), but cross-regime generalization requires explicit domain adaptation. We provide an honest assessment of when this approach succeeds (within-regime, with calibration data) and when it fails (cross-regime without adaptation), establishing realistic expectations for operational deployment. We release CloudMLPublic, a fully reproducible framework with validated data pipelines and comprehensive uncertainty quantification.
 \end{abstract}
 
 \section{Introduction}
@@ -79,7 +79,7 @@ This work addresses four key research questions:
 Our key contributions are:
 
 \begin{itemize}[leftmargin=*]
-	\item \textbf{Rigorous validation methodology:} We demonstrate that pooled K-fold cross-validation inflates R$^2$ from 0.715 to 0.924 due to temporal autocorrelation (lag-1 $\rho$ = 0.94). We advocate for per-flight validation as the honest metric and document performance across four validation strategies.
+	\item \textbf{Rigorous validation methodology:} We demonstrate that pooled K-fold cross-validation inflates R$^2$ from 0.744 to 0.924 due to temporal autocorrelation (lag-1 $\rho$ = 0.94). We advocate for per-flight validation as the honest metric and document performance across four validation strategies.
 
 	\item \textbf{Quantified domain shift:} Leave-one-flight-out validation reveals catastrophic generalization failure (R$^2$ = -15.4), representing the most severe domain shift reported in atmospheric ML literature. We characterize shift sources via Maximum Mean Discrepancy (MMD) analysis.
 
@@ -227,7 +227,7 @@ To potentially improve prediction, we engineer 28 additional features grounded i
 	\item \textbf{Interaction (8):} t2m\_x\_tcwv, blh\_x\_lcl, stability\_x\_tcwv, t2m\_x\_sza\_cos, blh\_x\_stability, t2m\_squared, blh\_squared, lcl\_squared, dpd\_squared -- polynomial and cross-term interactions
 \end{itemize}
 
-Feature importance analysis on the enhanced 38-feature set reveals that \textbf{virtual\_temperature} (33\% importance) and \textbf{stability\_x\_tcwv} (22\%) become top predictors, suggesting thermodynamic moisture-stability interactions are key drivers beyond the original feature set. The original t2m remains important (14\%), consistent with LCL physics.
+Feature importance analysis on the enhanced 38-feature set reveals that \textbf{virtual\_temperature} (33\% importance) and \textbf{stability\_x\_tcwv} (22\%) become top predictors, suggesting thermodynamic moisture-stability interactions are key drivers beyond the original feature set. The original t2m remains important (17\%), consistent with LCL physics.
 
 \subsubsection{Image Preprocessing}
 
@@ -302,7 +302,7 @@ We employ four validation strategies to provide a comprehensive assessment of mo
 \begin{enumerate}[leftmargin=*]
 	\item \textbf{Pooled K-fold (inflated):} Standard 5-fold CV across all samples. This produces R$^2$ = 0.924 but is \textit{artificially inflated} by temporal autocorrelation (lag-1 $\rho$ = 0.94). Adjacent samples in time are highly correlated; when they appear in different folds, information leaks from train to test. \textbf{We report this metric only to document the inflation problem.}
 
-	\item \textbf{Per-flight shuffled K-fold (moderate):} 5-fold CV performed independently within each flight, then averaged. This partially controls autocorrelation but still allows some temporal leakage within flights. Achieves R$^2$ = 0.715, MAE = 49.0 m. \textbf{This is our primary within-flight metric.}
+	\item \textbf{Per-flight shuffled K-fold (moderate):} 5-fold CV performed independently within each flight, then averaged. This partially controls autocorrelation but still allows some temporal leakage within flights. Achieves R$^2$ = 0.744, MAE = 117.4 m. \textbf{This is our primary within-flight metric.}
 
 	\item \textbf{Per-flight time-ordered K-fold (strict):} Train on first 80\% of each flight, test on last 20\%. This is an honest temporal holdout with no autocorrelation leakage. Achieves R$^2$ = -0.055, indicating the model struggles to extrapolate forward in time even within the same flight.
 
@@ -367,7 +367,7 @@ All experiments use Python 3.10 with PyTorch 2.0 and scikit-learn 1.3. Training 
 
 \subsection{Validation Strategy Comparison}
 
-Table~\ref{tab:validation_comparison} presents the critical finding that validation methodology dramatically affects reported performance. Temporal autocorrelation inflates pooled K-fold R$^2$ by 0.21 (from 0.715 to 0.924), while cross-regime generalization shows catastrophic failure.
+Table~\ref{tab:validation_comparison} presents the critical finding that validation methodology dramatically affects reported performance. Temporal autocorrelation inflates pooled K-fold R$^2$ by 0.18 (from 0.744 to 0.924), while cross-regime generalization shows catastrophic failure.
 
 \begin{table}[h]
 	\centering
@@ -378,7 +378,7 @@ Table~\ref{tab:validation_comparison} presents the critical finding that validat
 		\textbf{Validation Strategy} & \textbf{R$^2$} & \textbf{MAE (m)} & \textbf{Assessment}        \\
 		\midrule
 		Pooled K-fold                & 0.924          & 49.7             & Inflated (autocorrelation) \\
-		Per-flight shuffled          & \textbf{0.715} & \textbf{49.0}    & Primary metric             \\
+		Per-flight shuffled          & \textbf{0.744} & \textbf{117.4}   & Primary metric             \\
 		Per-flight time-ordered      & -0.055         & 129.8            & Strict temporal holdout    \\
 		Leave-one-flight-out         & -15.4 to -18.7 & 345--515         & Cross-regime failure       \\
 		\bottomrule
@@ -395,7 +395,7 @@ When expanded to the 38-feature enhanced model:
 \begin{itemize}[leftmargin=*]
 	\item \textbf{virtual\_temperature} becomes dominant (33\% importance)
 	\item \textbf{stability\_x\_tcwv} is second (22\%) -- capturing stability-moisture interaction
-	\item \textbf{t2m} drops to third (14\%) as derived features capture its signal
+	\item \textbf{t2m} drops to third (17\%) as derived features capture its signal
 	\item \textbf{saturation\_vapor\_pressure} (4.4\%) and \textbf{tcwv} (2.7\%) round out top-5
 \end{itemize}
 
@@ -407,12 +407,12 @@ To ensure fair comparison beyond the simple CNN baseline, we trained state-of-th
 
 ResNet-18 trained from scratch achieved R$^2$=0.617±0.064 (MAE=150.9±10.0 m), substantially better than the simple CNN (R$^2$=0.320) but still worse than GBDT on MAE. Surprisingly, ImageNet pre-training degraded performance (R$^2$=0.581±0.110), likely due to domain mismatch between natural images and overhead cloud imagery combined with our limited dataset size. Data augmentation (horizontal flip, color jitter) further reduced performance (R$^2$=0.370±0.034), suggesting overfitting to augmented patterns.
 
-EfficientNet-B0 with pre-training achieved moderate performance (R$^2$=0.469±0.052, MAE=179.0m), while training from scratch yielded poor results with high variance (R$^2$=0.229±0.395). The best vision model (ResNet-18 scratch) still underperforms GBDT (R$^2$=0.715, per-flight shuffled) by 14\% on R$^2$ and 22.7\% on MAE, confirming that atmospheric features outperform learned image representations even with state-of-the-art deep learning architectures and proper training techniques.
+EfficientNet-B0 with pre-training achieved moderate performance (R$^2$=0.469±0.052, MAE=179.0m), while training from scratch yielded poor results with high variance (R$^2$=0.229±0.395). The best vision model (ResNet-18 scratch) still underperforms GBDT (R$^2$=0.744, per-flight shuffled) by 17\% on R$^2$ and 22.2\% on MAE, confirming that atmospheric features outperform learned image representations even with state-of-the-art deep learning architectures and proper training techniques.
 
 \begin{figure}[h]
 	\centering
 	\includegraphics[width=0.95\textwidth]{../outputs/figures/vision_baseline_comparison.png}
-	\caption{Vision baseline performance comparison across 6 model variants. ResNet-18 from scratch (R$^2$=0.617) is the best vision model but still underperforms GBDT (R$^2$=0.715, red dashed line) by 14\% on R$^2$ and 22.2\% on MAE. Pre-training and augmentation unexpectedly degrade performance, likely due to domain mismatch and small dataset size (n=1,426).}
+	\caption{Vision baseline performance comparison across 6 model variants. ResNet-18 from scratch (R$^2$=0.617) is the best vision model but still underperforms GBDT (R$^2$=0.744, red dashed line) by 17\% on R$^2$ and 22.2\% on MAE. Pre-training and augmentation unexpectedly degrade performance, likely due to domain mismatch and small dataset size (n=1,426).}
 	\label{fig:vision_baseline_comparison}
 \end{figure}
 
@@ -439,7 +439,7 @@ SHAP analysis \cite{Lundberg2020} identifies the most influential features for C
 
 \input{../outputs/feature_ablation/reports/feature_ablation_table.tex}
 
-\textbf{Baseline performance} (all 10 base + 28 derived features = 38 features): R$^2$ = 0.715 $\pm$ 0.04 (per-flight shuffled), MAE = 49.0 m.
+\textbf{Baseline performance} (all 10 base + 28 derived features = 38 features): R$^2$ = 0.744 $\pm$ 0.04 (per-flight shuffled), MAE = 117.4 m.
 
 \textbf{Top-5 SHAP features by importance:}
 \begin{enumerate}[leftmargin=*]
@@ -585,7 +585,7 @@ We evaluate four uncertainty quantification methods, revealing a fundamental cha
 
 To quantify distribution shift across flight campaigns, we performed leave-one-flight-out (LOFO) cross-validation and computed Kolmogorov-Smirnov (K-S) divergence for each feature pair. Flight 18Feb25 (n=44) was excluded due to insufficient sample size for reliable metrics ($<$60 samples).
 
-\textbf{Catastrophic domain shift observed:} LOFO validation reveals complete failure to generalize across flight campaigns, with all test flights yielding negative R$^2$ values (Table~\ref{tab:lofo_results}). Mean LOFO performance is R$^2$=-15.4, MAE=422 m, representing catastrophic degradation compared to within-campaign performance (R$^2$=0.715, per-flight shuffled). This indicates models predict substantially worse than a constant mean baseline when tested on unseen atmospheric regimes.
+\textbf{Catastrophic domain shift observed:} LOFO validation reveals complete failure to generalize across flight campaigns, with all test flights yielding negative R$^2$ values (Table~\ref{tab:lofo_results}). Mean LOFO performance is R$^2$=-15.4, MAE=422 m, representing catastrophic degradation compared to within-campaign performance (R$^2$=0.744, per-flight shuffled). This indicates models predict substantially worse than a constant mean baseline when tested on unseen atmospheric regimes.
 
 \begin{table}[h]
 	\centering
@@ -657,7 +657,7 @@ GBDT offers:
 	\item \textbf{Edge computing:} GBDT is the only feasible option for low-power edge devices (Raspberry Pi, embedded CPUs) due to CPU-only inference and minimal memory footprint.
 \end{enumerate}
 
-For operational systems, GBDT provides the optimal accuracy-efficiency trade-off: near-state-of-the-art performance (R$^2$=0.715, per-flight shuffled validation) with inference costs 5-26× lower than vision alternatives. The lack of GPU dependency simplifies deployment and reduces operational costs.
+For operational systems, GBDT provides the optimal accuracy-efficiency trade-off: near-state-of-the-art performance (R$^2$=0.744, per-flight shuffled validation) with inference costs 5-26× lower than vision alternatives. The lack of GPU dependency simplifies deployment and reduces operational costs.
 
 \subsection{Domain Adaptation}
 \label{sec:domain_adaptation}
@@ -906,7 +906,7 @@ The domain shift problem is critical for operational deployment: if models train
 
 \textbf{Important distinction:} The severe domain shift observed in LOFO validation applies specifically to \textit{cross-regime generalization}---deploying models trained on one meteorological regime (e.g., fall WHYMSIE 2024) to entirely different atmospheric conditions (e.g., winter GLOVE 2025). This does \textit{not} preclude successful operational deployment within the same campaign or meteorological regime.
 
-\textbf{Within-campaign deployment is production-ready:} Our within-campaign cross-validation results (R$^2$ = 0.715, MAE = 49.0 m, per-flight shuffled) demonstrate that models achieve operational accuracy when applied to the same atmospheric regime they were trained on. For practical applications:
+\textbf{Within-campaign deployment is production-ready:} Our within-campaign cross-validation results (R$^2$ = 0.744, MAE = 117.4 m, per-flight shuffled) demonstrate that models achieve operational accuracy when applied to the same atmospheric regime they were trained on. For practical applications:
 
 \begin{itemize}[leftmargin=*]
 	\item \textbf{Intra-season deployment:} A model trained on October 2024 WHYMSIE flights can reliably predict CBH for subsequent October 2024 flights in the same geographic region, as these share similar atmospheric conditions.
@@ -939,13 +939,13 @@ Our approach occupies a middle ground: better accuracy than passive satellite me
 Our findings provide several lessons for ML applications in atmospheric science:
 
 \begin{enumerate}[leftmargin=*]
-	\item \textbf{Physics-informed features outperform vision:} Domain knowledge for feature engineering captures cloud formation physics more effectively than end-to-end learning. GBDT with 15 atmospheric features achieves 22.7\% lower MAE than ResNet-18 despite deep learning's theoretical capacity for arbitrary representation learning.
+	\item \textbf{Physics-informed features outperform vision:} Domain knowledge for feature engineering captures cloud formation physics more effectively than end-to-end learning. GBDT with 15 atmospheric features achieves 22.2\% lower MAE than ResNet-18 despite deep learning's theoretical capacity for arbitrary representation learning.
 
 	\item \textbf{Computational efficiency enables deployment:} GBDT's 0.28ms inference and CPU-only requirements make real-time aircraft deployment feasible, whereas vision models demand GPU infrastructure. For operational systems, the 5-26× computational advantage often outweighs minor accuracy differences.
 
 	\item \textbf{Negative results are valuable:} Documenting when ensembles and images \textit{don't} help guides resource allocation. Our finding that multi-modal fusion provides <1\% R$^2$ gain suggests practitioners can avoid the engineering complexity of image pipelines.
 
-	\item \textbf{Generalization requires attention:} High within-distribution performance (R$^2$=0.715) masks severe domain shift (R$^2$=-15.4 on out-of-distribution flights). Models must be validated across atmospheric regimes before deployment.
+	\item \textbf{Generalization requires attention:} High within-distribution performance (R$^2$=0.744) masks severe domain shift (R$^2$=-15.4 on out-of-distribution flights). Models must be validated across atmospheric regimes before deployment.
 
 	\item \textbf{Uncertainty quantification is essential:} Conformal prediction provides operational decision support by flagging uncertain predictions. The 91\% coverage achieved at the 90\% target level demonstrates practical calibration.
 
@@ -969,7 +969,7 @@ Geographic coverage is limited to NASA ER-2 flight paths from two campaigns (GLO
 
 Our CNN architecture is intentionally simple to avoid overfitting. More sophisticated approaches (ResNet-50, Vision Transformers, temporal modeling) may better exploit image information but require more training data.
 
-\textbf{Vision model architecture:} We evaluated state-of-the-art vision models including ResNet-18 and EfficientNet-B0 with ImageNet pre-training. Our best vision model, ResNet-18 from scratch (R$^2$ = 0.617, MAE = 150.9 m), still underperforms atmospheric features (R$^2$ = 0.715, MAE = 49.0 m, per-flight shuffled) substantially. More complex architectures (ResNet-50, Vision Transformers) may provide incremental improvements but are unlikely to close this fundamental performance gap, as literature on cloud property retrieval \cite{Matsuoka2018, Zantedeschi2019} shows sophisticated architectures yield 10-20\% relative gains rather than order-of-magnitude advances.
+\textbf{Vision model architecture:} We evaluated state-of-the-art vision models including ResNet-18 and EfficientNet-B0 with ImageNet pre-training. Our best vision model, ResNet-18 from scratch (R$^2$ = 0.617, MAE = 150.9 m), still underperforms atmospheric features (R$^2$ = 0.744, MAE = 117.4 m, per-flight shuffled) substantially. More complex architectures (ResNet-50, Vision Transformers) may provide incremental improvements but are unlikely to close this fundamental performance gap, as literature on cloud property retrieval \cite{Matsuoka2018, Zantedeschi2019} shows sophisticated architectures yield 10-20\% relative gains rather than order-of-magnitude advances.
 
 Uncertainty quantification via split conformal prediction fails dramatically (27\% coverage vs 90\% target) due to exchangeability violations from temporal autocorrelation (lag-1 $\rho$ = 0.94) and domain shift. Per-flight calibration recovers 86\% coverage but requires flight-specific labeled data.
 
@@ -1041,9 +1041,9 @@ Cross-flight validation assesses one axis of distribution shift (meteorological 
 We have presented a systematic comparison of atmospheric feature-based and image-based machine learning approaches for cloud base height retrieval using 1,426 NASA ER-2 airborne observations from 3 research flights spanning 2 field campaigns. Our key findings are:
 
 \begin{enumerate}[leftmargin=*]
-	\item \textbf{Atmospheric features dominate:} GBDT models using 10 base ERA5-derived features achieve R$^2$ = 0.715 (MAE = 49.0 m) under rigorous per-flight shuffled validation, outperforming CNNs on imagery by substantial margins. With 28 engineered physics-based features (38 total), virtual\_temperature (33\%) and stability\_x\_tcwv (22\%) become top predictors.
+	\item \textbf{Atmospheric features dominate:} GBDT models using 10 base ERA5-derived features achieve R$^2$ = 0.744 (MAE = 117.4 m) under rigorous per-flight shuffled validation, outperforming CNNs on imagery by substantial margins. With 28 engineered physics-based features (38 total), virtual\_temperature (33\%) and stability\_x\_tcwv (22\%) become top predictors.
 
-	\item \textbf{Validation methodology is critical:} Pooled K-fold CV reports R$^2$ = 0.924, but this is inflated by temporal autocorrelation (lag-1 $\rho$ = 0.94). Per-flight shuffled validation (R$^2$ = 0.715) provides honest within-regime metrics. Time-ordered holdout (R$^2$ = -0.055) reveals difficulty extrapolating forward in time.
+	\item \textbf{Validation methodology is critical:} Pooled K-fold CV reports R$^2$ = 0.924, but this is inflated by temporal autocorrelation (lag-1 $\rho$ = 0.94). Per-flight shuffled validation (R$^2$ = 0.744) provides honest within-regime metrics. Time-ordered holdout (R$^2$ = -0.055) reveals difficulty extrapolating forward in time.
 
 	\item \textbf{Domain shift is catastrophic:} Leave-one-flight-out validation reveals mean R$^2$ = -15.4, indicating predictions substantially worse than a constant baseline when generalizing across atmospheric regimes. This represents the most severe domain shift reported in atmospheric ML literature.
 
@@ -1059,7 +1059,7 @@ We have presented a systematic comparison of atmospheric feature-based and image
 \textbf{Honest assessment of when this approach works and fails:}
 
 \begin{itemize}[leftmargin=*]
-	\item \textbf{Works:} Within-flight deployment with shuffled train/test splits (R$^2$ = 0.715), and cross-regime deployment with few-shot adaptation (50 samples $\rightarrow$ R$^2$ = 0.57--0.85).
+	\item \textbf{Works:} Within-flight deployment with shuffled train/test splits (R$^2$ = 0.744), and cross-regime deployment with few-shot adaptation (50 samples $\rightarrow$ R$^2$ = 0.57--0.85).
 	\item \textbf{Fails:} Cross-regime generalization without adaptation (R$^2$ = -15.4), temporal extrapolation within flights (R$^2$ = -0.055), and conformal prediction under exchangeability violations (27\% coverage).
 \end{itemize}
 
