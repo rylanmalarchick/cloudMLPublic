@@ -74,11 +74,11 @@ This model predicts Cloud Base Height (CBH) in meters above ground level using a
 | Validation Strategy | R² | MAE (m) | Assessment |
 |--------------------|-----|---------|------------|
 | Pooled K-fold | 0.924 | 49.7 | **Inflated** (temporal autocorrelation ρ=0.94) |
-| Per-flight shuffled | **0.715** | **49.0** | **Primary honest metric** |
+| Per-flight shuffled | **0.744** | **117.4** | **Primary honest metric** |
 | Per-flight time-ordered | -0.055 | 129.8 | Strict temporal holdout |
 | Leave-one-flight-out | **-15.4** | 422 | **Catastrophic domain shift** |
 
-**Critical insight**: The 0.21 R² inflation from pooled to per-flight validation demonstrates that temporal autocorrelation (lag-1 ρ = 0.94) invalidates standard cross-validation.
+**Critical insight**: The 0.18 R² inflation from pooled to per-flight validation demonstrates that temporal autocorrelation (lag-1 ρ = 0.94) invalidates standard cross-validation.
 
 ### Feature Importance (Enhanced Model)
 1. **virtual_temperature**: 33%
@@ -138,7 +138,7 @@ This model predicts Cloud Base Height (CBH) in meters above ground level using a
    - **Mitigation**: Few-shot adaptation with 50 samples recovers R² = 0.57-0.85
 
 2. **Temporal Autocorrelation Inflation** (lag-1 ρ = 0.94)
-   - Standard cross-validation inflates R² from 0.715 to 0.924
+   - Standard cross-validation inflates R² from 0.744 to 0.924
    - Adjacent samples are nearly identical, causing information leakage
    - **Mitigation**: Use per-flight validation as honest metric
 
