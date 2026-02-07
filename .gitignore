@@ -262,3 +262,13 @@ preprint_repo_audit.txt
 
 # External reference repositories
 research-code-principles/
+
+# LaTeX build artifacts
+*.aux
+*.bbl
+*.blg
+*.out
+*.toc
+*.fls
+*.fdb_latexmk
+*.synctex.gz

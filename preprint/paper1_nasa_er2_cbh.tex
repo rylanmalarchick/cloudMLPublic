@@ -1,0 +1,389 @@
+\documentclass[11pt,letterpaper]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{caption}
+\usepackage{multirow}
+\usepackage[numbers,sort&compress]{natbib}
+
+% Colors
+\definecolor{darkblue}{RGB}{0,51,102}
+\definecolor{darkred}{RGB}{153,0,0}
+\definecolor{darkgreen}{RGB}{0,102,51}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=darkblue,
+    citecolor=darkblue,
+    urlcolor=darkblue
+}
+
+\title{\textbf{Deep Learning for Cloud Base Height Retrieval from Thermal Infrared Imagery: A NASA ER-2 Case Study}}
+
+\author{
+    Rylan Malarchick$^{1}$ \\
+    \\
+    $^{1}$Embry-Riddle Aeronautical University, Daytona Beach, FL 32114 \\
+    \texttt{malarchr@my.erau.edu}
+}
+
+\date{February 2026}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+We investigate the feasibility of cloud base height (CBH) retrieval from thermal infrared imagery using convolutional neural networks (CNNs). Using downward-looking thermal IR camera observations (2--6 $\mu$m) from the NASA ER-2 high-altitude research aircraft, we train ResNet-18 and EfficientNet-B0 architectures to predict CBH validated against co-located Cloud Physics Lidar (CPL) measurements. Using 380 labeled samples from seven research flights across two field campaigns with 5-fold cross-validation, the best-performing model (ResNet-18 with ImageNet pretraining) achieves R$^2$ = 0.432 $\pm$ 0.095 with mean absolute error of 172.7 $\pm$ 17.6 m. While ImageNet pretraining provides marginal benefit for ResNet-18 (R$^2$ = 0.432 vs.\ 0.414 from scratch), data augmentation consistently degrades performance across all architectures, likely due to the unique spatial structure of small (20$\times$22 pixel) thermal IR observations. While current accuracy remains limited compared to active lidar measurements, this work establishes baseline CNN performance for passive thermal CBH retrieval across diverse marine cloud regimes spanning 210--1500 m altitude.
+\end{abstract}
+
+\textbf{Keywords:} cloud base height, deep learning, convolutional neural networks, thermal infrared, NASA ER-2, atmospheric remote sensing
+
+\section{Introduction}
+
+\subsection{Motivation and Background}
+
+Cloud base height (CBH)---the altitude of the lowest cloud layer bottom---is a critical atmospheric parameter for aviation safety, climate modeling, and weather prediction \cite{Martucci2010, Stephens2012}. Accurate CBH measurements support flight planning in instrument meteorological conditions \cite{WMO2018}, validation of climate model cloud parameterizations \cite{Boucher2013}, and understanding of cloud radiative forcing \cite{Ramanathan1989}.
+
+Active lidar instruments such as the Cloud Physics Lidar (CPL) provide accurate CBH measurements ($\sim$30 m precision) but require specialized hardware and power. Passive imaging offers potential advantages: lower cost, reduced power consumption, and broader spatial coverage. However, inferring cloud base height from imagery alone is fundamentally challenging---passive sensors observe cloud top brightness without direct information about vertical cloud structure.
+
+This work investigates whether convolutional neural networks can extract CBH-predictive features from thermal infrared imagery collected aboard the NASA ER-2 high-altitude research aircraft.
+
+\subsection{Research Objectives}
+
+This work pursues three primary objectives:
+\begin{enumerate}
+    \item Establish baseline CNN performance for CBH retrieval from small-format thermal IR imagery
+    \item Compare architectures (ResNet-18, EfficientNet-B0) and training strategies (scratch vs. pretrained, with/without augmentation)
+    \item Identify key challenges and future research directions for passive CBH retrieval
+\end{enumerate}
+
+\subsection{Paper Organization}
+
+Section~\ref{sec:data} describes the NASA ER-2 platform, instruments, and dataset. Section~\ref{sec:methods} presents our deep learning methodology. Section~\ref{sec:results} reports validation results. Section~\ref{sec:discussion} interprets findings and discusses limitations. Section~\ref{sec:conclusion} summarizes contributions and future directions.
+
+\section{Data and Instruments}
+\label{sec:data}
+
+\subsection{NASA ER-2 Platform}
+
+The NASA ER-2 is a high-altitude research aircraft operating at altitudes up to 21 km, providing a unique vantage point above cloud layers for atmospheric observation \cite{McGill2002}. Flying above the tropopause, the ER-2 enables simultaneous active lidar profiling and passive imagery of cloud systems below.
+
+\subsection{Infrared Array Imager (IRAI)}
+
+The downward-looking thermal infrared camera captures cloud thermal emission in the 2--6 $\mu$m spectral range. After preprocessing including vignetting correction and swath extraction, each observation yields a 20$\times$22 pixel thermal brightness image (440 total pixels). The small image size reflects the instrument's narrow field of view focused on the nadir column coincident with the CPL lidar beam.
+
+Key instrument characteristics:
+\begin{itemize}
+    \item \textbf{Spectral range:} 2--6 $\mu$m thermal infrared
+    \item \textbf{Processed image size:} 20$\times$22 pixels
+    \item \textbf{Frame rate:} Approximately 1 Hz
+    \item \textbf{Spatial correspondence:} Aligned with CPL nadir beam
+\end{itemize}
+
+\subsection{Cloud Physics Lidar (CPL)}
+
+The Cloud Physics Lidar is an active 532 nm backscatter lidar providing vertical profiles of cloud structure with 30 m vertical resolution \cite{McGill2002}. CPL retrievals serve as ground truth for CBH labels in our supervised learning framework. We use the Layer\_Base\_Altitude product for single-layer cloud scenes over ocean surfaces.
+
+\subsection{Dataset Summary}
+
+Our dataset comprises 380 labeled samples from seven NASA ER-2 research flights across two field campaigns:
+
+\begin{table}[h]
+    \centering
+    \caption{Flight dataset summary. Samples represent temporally-matched IR images with valid CPL CBH measurements over ocean. Seven flights were processed; six yielded matched samples after quality filtering.}
+    \label{tab:flights}
+    \begin{tabular}{lccc}
+        \toprule
+        \textbf{Flight} & \textbf{Campaign} & \textbf{Matched Samples} & \textbf{Date} \\
+        \midrule
+        30Oct24 & WHySMIE 2024 & 234 & 2024-10-30 \\
+        04Nov24 & WHySMIE 2024 & 24 & 2024-11-04 \\
+        23Oct24 & WHySMIE 2024 & 2 & 2024-10-23 \\
+        10Feb25 & GLOVE 2025 & 75 & 2025-02-10 \\
+        12Feb25 & GLOVE 2025 & 59 & 2025-02-12 \\
+        18Feb25 & GLOVE 2025 & 7 & 2025-02-18 \\
+        \midrule
+        \textbf{Total} & -- & \textbf{401$^*$} & -- \\
+        \bottomrule
+    \end{tabular}
+
+    \smallskip
+    \footnotesize{$^*$380 of 401 matched samples had corresponding IRAI imagery and were used for model training and validation. One additional flight (22Oct24) yielded zero samples after filtering.}
+\end{table}
+
+Cloud base heights in the matched dataset range from 210 to 1500 m, spanning low-level marine boundary layer clouds across diverse meteorological conditions. Figure~\ref{fig:cbh_dist} shows the CBH distribution.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.85\textwidth]{paperfigures/paper1_fig_cbh_distribution.png}
+    \caption{Distribution of CPL-derived cloud base heights in the training dataset. Mean CBH = 913 m with standard deviation of 319 m, spanning the 210--1500 m range across two distinct campaign regimes (WHySMIE 2024 and GLOVE 2025).}
+    \label{fig:cbh_dist}
+\end{figure}
+
+\textbf{Data quality controls:} Samples were filtered to include only: (1) single-layer cloud detections, (2) ocean surfaces (DEM $\leq$ 0 m), (3) temporal matching within 0.5 seconds between IR frame and CPL profile, and (4) CBH within 0.1--2.0 km physical range.
+
+\section{Methods}
+\label{sec:methods}
+
+\subsection{Image Preprocessing}
+
+Thermal IR images undergo the following preprocessing:
+\begin{enumerate}
+    \item \textbf{Vignetting correction:} Flat-field correction using median reference
+    \item \textbf{Swath extraction:} Center 440 pixels extracted and reshaped to 20$\times$22
+    \item \textbf{Channel replication:} Single-channel IR replicated to 3 channels for compatibility with RGB-pretrained architectures
+    \item \textbf{Z-score normalization:} Per-image standardization to zero mean and unit variance
+\end{enumerate}
+
+\subsection{CNN Architectures}
+
+We evaluate two standard architectures adapted for our small input images:
+
+\textbf{ResNet-18} \cite{He2016}: The residual network architecture with 18 layers and 11.2M parameters. We modify the first convolutional layer (3$\times$3 kernel, stride 1, no max pooling) to accommodate 20$\times$22 inputs rather than standard 224$\times$224.
+
+\textbf{EfficientNet-B0} \cite{Tan2019}: Compound-scaled architecture with 5.3M parameters, designed for efficiency. The classifier head is replaced with a regression output.
+
+Both architectures output a single scalar CBH prediction.
+
+\subsection{Training Configurations}
+
+We evaluate six configurations spanning two axes of variation:
+
+\begin{table}[h]
+    \centering
+    \caption{Training configurations evaluated. ``Scratch'' denotes random initialization; ``Pretrained'' uses ImageNet weights; ``Augmented'' adds geometric transforms.}
+    \label{tab:configs}
+    \begin{tabular}{lcc}
+        \toprule
+        \textbf{Configuration} & \textbf{Initialization} & \textbf{Augmentation} \\
+        \midrule
+        ResNet-18 (scratch) & Random & None \\
+        ResNet-18 (pretrained) & ImageNet & None \\
+        ResNet-18 (pretrained+aug) & ImageNet & Geometric \\
+        EfficientNet-B0 (scratch) & Random & None \\
+        EfficientNet-B0 (pretrained) & ImageNet & None \\
+        EfficientNet-B0 (pretrained+aug) & ImageNet & Geometric \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Data augmentation includes random horizontal/vertical flips, 15$^\circ$ rotation, translation (10\%), and Gaussian blur---geometric transforms that preserve CBH labels while increasing effective training set diversity.
+
+\subsection{Training Protocol}
+
+\begin{itemize}
+    \item \textbf{Optimizer:} Adam with learning rate $10^{-4}$
+    \item \textbf{Loss function:} Mean squared error
+    \item \textbf{Early stopping:} Patience of 10 epochs monitoring validation loss
+    \item \textbf{Maximum epochs:} 100
+    \item \textbf{Batch size:} 16
+\end{itemize}
+
+\subsection{Validation Strategy}
+
+We employ stratified 5-fold cross-validation with CBH-based stratification bins. For each fold:
+\begin{enumerate}
+    \item 80\% of samples (304) used for training
+    \item 20\% of samples (76) held out for validation
+    \item Model trained to convergence with early stopping
+    \item Validation metrics computed on held-out fold
+\end{enumerate}
+
+Final performance is reported as mean $\pm$ standard deviation across all 5 folds, providing estimates of both expected performance and variability.
+
+\section{Results}
+\label{sec:results}
+
+\subsection{Model Performance Comparison}
+
+Table~\ref{tab:performance} presents validation results across all configurations.
+
+\begin{table}[h]
+    \centering
+    \caption{Model performance under 5-fold cross-validation. Best results in bold. Negative R$^2$ indicates predictions worse than mean baseline.}
+    \label{tab:performance}
+    \begin{tabular}{lccc}
+        \toprule
+        \textbf{Model} & \textbf{R$^2$} & \textbf{MAE (m)} & \textbf{RMSE (m)} \\
+        \midrule
+        \textbf{ResNet-18 (pretrained)} & \textbf{0.432 $\pm$ 0.095} & \textbf{172.7 $\pm$ 17.6} & \textbf{239.5 $\pm$ 23.7} \\
+        ResNet-18 (scratch) & 0.414 $\pm$ 0.127 & 169.5 $\pm$ 15.8 & 242.7 $\pm$ 28.4 \\
+        EfficientNet-B0 (pretrained) & 0.311 $\pm$ 0.109 & 201.4 $\pm$ 26.9 & 263.9 $\pm$ 26.3 \\
+        ResNet-18 (pretrained+aug) & 0.056 $\pm$ 0.070 & 242.6 $\pm$ 8.9 & 309.3 $\pm$ 13.0 \\
+        EfficientNet-B0 (pretrained+aug) & $-$0.060 $\pm$ 0.069 & 256.6 $\pm$ 15.1 & 328.0 $\pm$ 18.0 \\
+        EfficientNet-B0 (scratch) & $-$0.118 $\pm$ 0.805 & 218.8 $\pm$ 55.8 & 319.2 $\pm$ 105.3 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Figure~\ref{fig:comparison} visualizes the performance comparison across configurations.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.95\textwidth]{paperfigures/paper1_fig_model_comparison.png}
+    \caption{Model comparison showing R$^2$ (left) and MAE (right) across configurations. ResNet-18 architectures outperform EfficientNet-B0. Data augmentation consistently degrades performance across all configurations.}
+    \label{fig:comparison}
+\end{figure}
+
+\subsection{Best Model: ResNet-18 (Pretrained)}
+
+Figure~\ref{fig:scatter} shows the scatter plot of predictions versus CPL ground truth for the best-performing configuration.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.85\textwidth]{paperfigures/paper1_fig_scatter_cnn_vs_cpl.png}
+    \caption{Scatter plot comparing ResNet-18 (pretrained) predictions to CPL lidar ground truth across all validation folds. The model captures the general CBH trend but exhibits substantial scatter, particularly at high CBH values. R$^2$ = 0.432 indicates moderate predictive skill across the 210--1500 m range.}
+    \label{fig:scatter}
+\end{figure}
+
+\subsection{Cross-Validation Fold Variability}
+
+Figure~\ref{fig:folds} shows performance variability across the 5 cross-validation folds.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.95\textwidth]{paperfigures/paper1_fig_fold_performance.png}
+    \caption{Validation performance by cross-validation fold for ResNet-18 (pretrained). Fold R$^2$ ranges from 0.31 to 0.56, indicating moderate but consistent predictive skill across data partitions.}
+    \label{fig:folds}
+\end{figure}
+
+\subsection{Residual Analysis}
+
+Figure~\ref{fig:residuals} presents residual diagnostics.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.95\textwidth]{paperfigures/paper1_fig_residual_analysis.png}
+    \caption{Residual analysis for ResNet-18 (pretrained). Left: Residuals vs. predicted values show heteroscedasticity with larger errors at extreme predictions. Right: Residual distribution is approximately symmetric with a slight negative bias (mean residual $\approx$ $-$43 m), indicating mild underprediction on average.}
+    \label{fig:residuals}
+\end{figure}
+
+\subsection{Computational Cost}
+
+Table~\ref{tab:compute} summarizes computational requirements.
+
+\begin{table}[h]
+    \centering
+    \caption{Computational cost comparison across architectures.}
+    \label{tab:compute}
+    \begin{tabular}{lccc}
+        \toprule
+        \textbf{Model} & \textbf{Train Time (s/fold)} & \textbf{Inference (ms)} & \textbf{Size (MB)} \\
+        \midrule
+        ResNet-18 & 75.2 $\pm$ 14.5 & 5.2 $\pm$ 0.0 & 43.1 \\
+        EfficientNet-B0 & 120.4 $\pm$ 36.1 & 9.1 $\pm$ 0.1 & 16.7 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\section{Discussion}
+\label{sec:discussion}
+
+\subsection{Transfer Learning and Augmentation Effects}
+
+Our results reveal a nuanced picture of transfer learning for thermal IR imagery. For ResNet-18, ImageNet pretraining provides a marginal benefit (R$^2$ = 0.432 vs.\ 0.414 from scratch), suggesting that low-level features learned from natural images transfer partially to thermal IR despite the domain gap. However, this benefit does not extend to EfficientNet-B0 (R$^2$ = 0.311 pretrained vs.\ $-$0.118 scratch), where the pretrained model substantially outperforms a highly unstable scratch-trained variant.
+
+The most consistent finding is that \textbf{data augmentation degrades performance across all configurations}. Adding geometric transforms (flips, rotation, translation, blur) to pretrained models reduces R$^2$ from 0.432 to 0.056 (ResNet-18) and from 0.311 to $-$0.060 (EfficientNet-B0). We hypothesize this occurs because the 20$\times$22 pixel thermal IR images have meaningful spatial structure tied to the instrument's optical geometry and the nadir viewing angle. Geometric augmentations destroy this structure---a rotated thermal IR image does not represent a physically plausible observation.
+
+\subsection{Architecture Comparison}
+
+ResNet-18 consistently outperforms EfficientNet-B0 across all training strategies. We attribute this to the architectural modifications made for small inputs: ResNet-18's first convolutional layer was adapted with a 3$\times$3 kernel and stride 1 (removing max pooling), preserving spatial information in the small 20$\times$22 input. EfficientNet-B0's compound scaling was designed for larger inputs and may not transfer efficiently to this scale.
+
+\subsection{Challenges for Passive CBH Retrieval}
+
+Our results reveal fundamental challenges in passive CBH retrieval from imagery:
+
+\textbf{Information content:} Thermal IR imagery observes cloud top brightness temperature, which depends on cloud top altitude, not cloud base. Inferring CBH requires learning indirect relationships (e.g., cloud type, thickness) that may not be reliably present in small images.
+
+\textbf{CBH range effects:} The expanded dataset spans 210--1500 m, a wider range than marine stratocumulus alone. This increased diversity improves model robustness (tighter fold-to-fold variance: $\pm$0.095 vs.\ $\pm$0.271 in preliminary 2-flight experiments) but increases absolute error as the prediction task becomes harder.
+
+\textbf{Small image size:} The 20$\times$22 pixel format severely limits spatial context. Larger field-of-view imagery might provide additional cloud structure information.
+
+\subsection{Comparison to Active Lidar}
+
+For context, the CPL lidar achieves $\sim$30 m CBH accuracy---substantially better than our CNN's 172.7 m MAE. This performance gap is expected: lidar directly measures vertical cloud structure, while passive imagery requires inferring vertical information from horizontal brightness patterns.
+
+The relevant comparison is whether CNN predictions provide value beyond simple baselines. Our R$^2$ = 0.432 indicates the CNN extracts meaningful CBH-predictive information from thermal imagery, explaining 43\% of CBH variance across diverse cloud regimes.
+
+\subsection{Limitations}
+
+\textbf{Sample distribution:} The dataset is dominated by one flight (30Oct24, 62\% of samples), which may bias learned features toward that flight's meteorological conditions.
+
+\textbf{Ocean-only:} Filtering to ocean surfaces limits applicability over land.
+
+\textbf{CBH discretization:} Only 44 unique CBH values exist across 380 samples, reflecting the spatial correlation of cloud base within flight segments.
+
+\section{Conclusion}
+\label{sec:conclusion}
+
+We have established baseline CNN performance for cloud base height retrieval from NASA ER-2 thermal infrared imagery using 380 samples from seven research flights across two field campaigns:
+
+\begin{itemize}
+    \item \textbf{Best model:} ResNet-18 with ImageNet pretraining achieves R$^2$ = 0.432 $\pm$ 0.095, MAE = 172.7 $\pm$ 17.6 m
+    \item \textbf{Augmentation hurts:} Data augmentation consistently degrades performance, likely because geometric transforms violate the instrument's spatial structure
+    \item \textbf{Moderate skill:} The CNN explains 43\% of CBH variance across 210--1500 m, demonstrating that thermal imagery contains CBH-predictive information despite the fundamental challenge of inferring vertical structure from top-down observations
+    \item \textbf{Robust across folds:} Fold R$^2$ ranges from 0.31 to 0.56, indicating consistent rather than spurious predictive skill
+\end{itemize}
+
+Future work should prioritize: (1) addressing sample imbalance across flights with stratified sampling, (2) investigating larger field-of-view imagery, (3) exploring physics-informed architectures that incorporate radiative transfer constraints, and (4) multi-modal fusion with other available sensors.
+
+\section*{Acknowledgments}
+
+This work was conducted during the author's NASA OSTEM internship (May--August 2025) with the NASA Goddard Space Flight Center. The author thanks Dr. Dong Wu for mentorship and the NASA ER-2 flight team for data access.
+
+\section*{Data Availability}
+
+Code and trained models are available at \url{https://github.com/rylanmalarchick/CloudMLPublic}. NASA ER-2 data are available through the High Altitude Research Program.
+
+\bibliographystyle{plain}
+\begin{thebibliography}{10}
+
+\bibitem[Boucher et al.(2013)]{Boucher2013}
+Boucher, O., et al. (2013).
+\newblock Clouds and aerosols. In \textit{Climate Change 2013: The Physical Science Basis}.
+\newblock Cambridge University Press.
+
+\bibitem[He et al.(2016)]{He2016}
+He, K., Zhang, X., Ren, S., \& Sun, J. (2016).
+\newblock Deep residual learning for image recognition.
+\newblock \textit{Proc. CVPR}, 770--778.
+
+\bibitem[Martucci et al.(2010)]{Martucci2010}
+Martucci, G., Milroy, C., \& O'Dowd, C.D. (2010).
+\newblock Detection of cloud-base height using Jenoptik CHM15K ceilometer.
+\newblock \textit{J. Atmos. Ocean. Technol.}, 27(2), 305--318.
+
+\bibitem[McGill et al.(2002)]{McGill2002}
+McGill, M., et al. (2002).
+\newblock Airborne validation of spatial properties measured by the GLAS lidar.
+\newblock \textit{J. Geophys. Res.}, 107(D13), 4283.
+
+\bibitem[Ramanathan et al.(1989)]{Ramanathan1989}
+Ramanathan, V., et al. (1989).
+\newblock Cloud-radiative forcing and climate.
+\newblock \textit{Science}, 243(4887), 57--63.
+
+\bibitem[Stephens et al.(2012)]{Stephens2012}
+Stephens, G.L., et al. (2012).
+\newblock An update on Earth's energy balance in light of CloudSat observations.
+\newblock \textit{Nat. Geosci.}, 5(10), 691--696.
+
+\bibitem[Tan \& Le(2019)]{Tan2019}
+Tan, M., \& Le, Q. (2019).
+\newblock EfficientNet: Rethinking model scaling for convolutional neural networks.
+\newblock \textit{Proc. ICML}, 6105--6114.
+
+\bibitem[WMO(2018)]{WMO2018}
+World Meteorological Organization (2018).
+\newblock \textit{Guide to Instruments and Methods of Observation}.
+\newblock WMO-No. 8, Geneva.
+
+\end{thebibliography}
+
+\end{document}
