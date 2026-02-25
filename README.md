@@ -1,188 +1,175 @@
-# Cloud Base Height Retrieval from Airborne Observations
+# Cloud Base Height Retrieval from NASA ER-2 Airborne Observations
 
-Machine learning system for cloud base height (CBH) retrieval using NASA ER-2 aircraft data, featuring rigorous validation methodology and honest assessment of performance across atmospheric regimes.
+Machine learning for cloud base height (CBH) retrieval using NASA ER-2 aircraft data from the WHySMIE (Oct 2024) and GLOVE (Feb 2025) campaigns, with honest assessment of performance and failure modes across atmospheric regimes.
 
 **Author:** Rylan Malarchick | Embry-Riddle Aeronautical University  
 **Contact:** malarchr@my.erau.edu
 
 ---
 
-## Key Findings
+## Two Papers
 
-This project demonstrates that **atmospheric features substantially outperform image-based approaches** for CBH retrieval, while documenting critical limitations in cross-regime generalization.
+This repository supports two complementary papers:
 
-### Performance Summary
+### Paper 1: CNN-Based CBH from Thermal IR Imagery
+- **Approach:** ResNet-18 and EfficientNet-B0 on 20×22px thermal IR cutouts
+- **Dataset:** 380 samples from 7 flights (2 campaigns), 80/20 train/val 5-fold CV
+- **Best result:** ResNet-18 pretrained, R² = 0.432 ± 0.094, MAE = 172.7 ± 17.6 m
+- **Key finding:** CNNs on small thermal crops struggle — limited spatial context and small sample size yield modest performance
 
-| Validation Strategy | R² | MAE | Assessment |
-|--------------------|----|-----|------------|
-| Pooled K-fold | 0.924 | 49.7 m | **Inflated** (temporal autocorrelation) |
-| Per-flight shuffled | **0.744** | **117.4 m** | Primary honest metric |
-| Per-flight time-ordered | -0.055 | 129.8 m | Strict temporal holdout |
-| Leave-one-flight-out (LOFO) | **-15.4** | 422 m | **Catastrophic domain shift** |
-
-### Why This Matters
-
-1. **Validation methodology is critical:** Pooled K-fold inflates R² by 0.18 due to lag-1 temporal autocorrelation of 0.94
-2. **Domain shift is catastrophic:** Models trained on one atmospheric regime fail completely when deployed to another (R² = -15.4)
-3. **Few-shot adaptation works:** 50 labeled samples from a target flight recovers R² = 0.57-0.85
-4. **Conformal prediction fails:** Split conformal achieves only 27% coverage (target: 90%) due to exchangeability violations
+### Paper 2: ERA5 Feature Engineering & Domain Shift
+- **Approach:** GBDT on 34 ERA5-derived features (5 base + 29 thermodynamic)
+- **Dataset:** 5,500 ocean-only BL cloud observations from 6 flights
+- **Key finding:** Catastrophic domain shift — LOFO R² = −5.36 across flights
+- **Adaptation:** Few-shot (50 samples) recovers R² = +0.35; other methods fail
 
 ---
 
-## Project Highlights
+## Key Findings
 
-### What Works
-- **Within-flight deployment:** R² = 0.744, MAE = 117.4 m (per-flight shuffled validation)
-- **Few-shot domain adaptation:** 50 samples → R² = 0.57 (mean), up to 0.85 for similar regimes
-- **Per-flight uncertainty calibration:** 86% coverage with 277 m intervals
-- **Real-time inference:** 0.28 ms per prediction, 1.3 MB model, CPU-only
+### Performance Summary (Paper 2)
 
-### What Fails
-- **Cross-regime generalization:** R² = -15.4 without adaptation
-- **Temporal extrapolation:** R² = -0.055 on time-ordered holdout within flights
-- **Split conformal prediction:** 27% coverage (exchangeability violated by autocorrelation)
-- **Vision baselines:** ResNet-18 achieves R² = 0.617, underperforming GBDT
+| Validation Strategy | R² | MAE | Assessment |
+|--------------------|----|-----|------------|
+| Pooled 5-fold CV | −2.05 | — | Inflated (cross-flight leakage) |
+| Within-flight 5-fold CV | −0.51 | — | Per-flight mean, high variance |
+| Leave-one-flight-out (LOFO) | **−5.36** | **518 m** | True cross-regime performance |
+| Few-shot (50 samples) | **+0.35** | — | Best adaptation method |
+
+### Performance Summary (Paper 1)
+
+| Model | R² | MAE (m) | RMSE (m) |
+|-------|----|---------|----------|
+| ResNet-18 pretrained | **0.432 ± 0.094** | **172.7 ± 17.6** | 239.5 ± 23.7 |
+| ResNet-18 scratch | 0.414 ± 0.127 | 169.5 ± 15.8 | 242.7 ± 28.4 |
+| EfficientNet-B0 pretrained | 0.311 ± 0.109 | 201.4 ± 26.9 | 263.9 ± 26.3 |
+
+### Why This Matters
+
+1. **Domain shift is catastrophic:** Models trained on one atmospheric regime fail completely on another (LOFO R² = −5.36); all 6 held-out flights produce negative R²
+2. **Validation methodology is critical:** Pooled CV (R² = −2.05) substantially overestimates cross-regime performance relative to LOFO (R² = −5.36)
+3. **Few-shot adaptation works:** 50 labeled samples from a target flight recovers R² = +0.35 (from −5.36)
+4. **Conformal prediction fails under shift:** Cross-flight coverage = 34% (target: 90%); within-flight calibration recovers 90%
+5. **Feature engineering aids interpretation, not accuracy:** 34 features vs 5 base: per-flight CV R² = −0.51 vs −2.04 (marginal, both negative)
 
 ---
 
 ## Dataset
 
-- **Samples:** 1,426 CPL-aligned observations from 3 research flights
-- **Campaigns:** GLOVE 2025 (Feb), WHYMSIE 2024 (Oct)
-- **Features:** 10 base ERA5 variables + 28 physics-based derived features (38 total)
-- **Target:** Cloud base height from CPL lidar (0.21-1.95 km)
-- **Key insight:** Surface temperature (t2m) dominates base model predictions (72% importance), consistent with lifting condensation level physics
+### Paper 2 (ERA5 Tabular)
+- **Samples:** 5,500 ocean-only boundary-layer cloud observations
+- **Flights:** 6 flights across 2 campaigns
+- **Features:** 5 base ERA5 (t2m, d2m, sp, blh, tcwv) + 29 derived = **34 total**
+- **Target:** CBH from CPL lidar (≤ 2 km, ocean only)
 
-### Flight Distribution
-| Flight | Campaign | Samples | CBH (km) |
-|--------|----------|---------|----------|
-| Flight 1 | GLOVE 2025 | 1,021 | 1.34 ± 0.22 |
-| Flight 2 | GLOVE 2025 | 129 | 0.85 ± 0.16 |
-| Flight 3 | WHYMSIE 2024 | 276 | 0.88 ± 0.23 |
+| Flight | Campaign | Samples | CBH Mean (m) |
+|--------|----------|---------|-------------|
+| Oct 23, 2024 | WHySMIE | 857 | 138 |
+| Oct 30, 2024 | WHySMIE | 1,808 | 941 |
+| Nov 4, 2024 | WHySMIE | 1,388 | 89 |
+| Feb 10, 2025 | GLOVE | 608 | 380 |
+| Feb 12, 2025 | GLOVE | 654 | 783 |
+| Feb 18, 2025 | GLOVE | 185 | 94 |
+
+### Paper 1 (Vision)
+- **Samples:** 380 from 7 flights (5-fold CV, 304 train / 76 val)
+- **Input:** 20×22 pixel thermal IR cutouts
+- **Models:** ResNet-18, EfficientNet-B0 (pretrained/scratch, with/without augmentation)
 
 ---
 
-## Technical Approach
+## Domain Shift Analysis (Paper 2)
 
-### Feature Engineering
-Physics-based derived features from 10 base ERA5 variables:
-- **Thermodynamic:** virtual temperature, potential temperature, saturation vapor pressure
-- **Stability:** stability-moisture interactions, stability anomaly
-- **Moisture:** dew point depression, relative humidity, mixing ratio
-- **Solar/Temporal:** solar geometry transformations, diurnal cycle encodings
+### K-S Divergence (Oct 23 vs Feb 10)
+14 of 34 features show K-S = 1.0 (completely non-overlapping distributions). Only solar angle features (sza, saa) show K-S = 0.0.
 
-Top predictors in enhanced model:
-1. `virtual_temperature` (33% importance)
-2. `stability_x_tcwv` (22%)
-3. `t2m` (14%)
+### Adaptation Methods
 
-### Domain Adaptation
-Evaluated 5 methods for cross-regime generalization:
-- **Few-shot learning** (recommended): 50 samples → R² = 0.57-0.85
-- **TrAdaBoost:** R² = -0.41 (modest improvement)
-- **Instance weighting:** R² = -19.9 to -21.4 (fails)
-- **MMD alignment:** R² = -39.4 (destroys signal)
+| Method | Mean R² | Assessment |
+|--------|---------|------------|
+| No adaptation (LOFO) | −5.36 | Baseline |
+| Instance weighting (KNN) | −3.5 | Marginal improvement |
+| Instance weighting (density) | −5.5 | Comparable to baseline |
+| MMD alignment | −7.9 | Worse |
+| Feature selection | −6.9 | Worse |
+| TrAdaBoost | +0.04 | Marginal positive |
+| **Few-shot (50 samples)** | **+0.35** | **Effective** |
 
-### Uncertainty Quantification
+### Feature Importance (Full 34-Feature Model)
+| Feature | Importance |
+|---------|-----------|
+| blh_sq | 32.3% |
+| blh | 16.9% |
+| stability_tcwv | 8.0% |
+| moisture_gradient | 8.0% |
+| blh_lcl_ratio | 4.4% |
+
+---
+
+## Uncertainty Quantification
+
 | Method | Coverage | Target | Width (m) |
 |--------|----------|--------|-----------|
-| Split Conformal | 27% | 90% | 278 |
-| Adaptive Conformal | 11% | 90% | 58 |
-| Quantile Regression | 58% | 90% | 510 |
-| **Per-flight Calibration** | **86%** | 90% | 313 |
+| Split conformal (cross-flight) | 34% | 90% | 557 |
+| **Per-flight calibration** | **90%** | 90% | 538 |
 
----
-
-## Known Limitations
-
-### Data & Methodology
-1. **Temporal autocorrelation:** Lag-1 ρ = 0.94 invalidates pooled cross-validation
-2. **Limited regime diversity:** 3 flights from 2 campaigns; generalization to tropical/polar/oceanic regimes unvalidated
-3. **ERA5 resolution:** 25 km horizontal grid cannot capture fine-scale boundary layer variability
-
-### Sensor & Processing
-4. **Camera auto-scaling:** Automatic exposure adjustment creates inconsistent brightness across frames, complicating shadow detection
-5. **Shadow detection thresholds:** Brightness-based detection fails in complex illumination (thin clouds, low solar elevation)
-6. **CPL ground truth uncertainty:** ~30 m vertical resolution, cloud edge detection ambiguity
-
-### Model & Deployment
-7. **Domain shift:** Catastrophic failure (R² = -15.4) when deployed to unseen atmospheric regimes without adaptation
-8. **Conformal prediction assumptions:** Exchangeability violated by temporal structure and domain shift
-9. **Vision model limitations:** CNNs underperform tabular models despite comparable sample sizes
+Conformal prediction fails across flights due to exchangeability violations. Within-flight calibration recovers the 90% target.
 
 ---
 
 ## Repository Structure
 
 ```
-cloudMLPublic/
-├── preprint/                    # Academic preprint (LaTeX)
-├── src/cbh_retrieval/           # Production model code
-├── scripts/                     # Training & analysis scripts
+programDirectory/
+├── preprint/                           # Both papers (LaTeX)
+│   ├── paper1_nasa_er2_cbh.tex        # Paper 1: CNN vision
+│   └── paper2_era5_domain_shift.tex   # Paper 2: ERA5 domain shift
+├── scripts/
+│   ├── paper2_rerun_v2.py             # Paper 2 reproducible pipeline
+│   ├── feature_engineering.py         # Feature derivation
+│   └── train_image_model.py           # Paper 1 training
+├── results/
+│   └── paper2_rerun_v2/               # Paper 2 v2 rerun results
 ├── outputs/
-│   ├── feature_engineering/     # Enhanced features dataset
-│   ├── domain_adaptation/       # LOFO & few-shot results
-│   ├── uncertainty/             # Conformal prediction results
-│   └── tabular_model/           # Training results
-├── tests/cbh/                   # Test suite
-└── docs/cbh/                    # Documentation
-```
-
----
-
-## Quick Start
-
-```bash
-# Clone repository
-git clone https://github.com/rylanmalarchick/CloudMLPublic.git
-cd CloudMLPublic
-
-# Create virtual environment
-python3 -m venv venv
-source venv/bin/activate
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Run training with per-flight validation
-python scripts/train_tabular_model.py
-
-# Run domain adaptation experiments
-python scripts/run_domain_adaptation.py
-
-# Run uncertainty quantification
-python scripts/run_uncertainty_quantification.py
+│   └── vision_baselines/reports/      # Paper 1 results (380-sample)
+└── data/ (../data/)                   # CPL HDF5 flight data
 ```
 
 ---
 
 ## Reproducibility
 
-All experiments are fully reproducible:
-- **Random seed:** 42 (fixed throughout)
-- **Validated dataset:** `outputs/feature_engineering/Enhanced_Features.hdf5` (1,426 × 38 features)
-- **Results JSON files:** All metrics traceable to source
+All experiments use `np.random.seed(42)` and are fully reproducible from raw data.
+
+### Paper 2 Rerun
+```bash
+# Requires ERA5 data on desktop at /mnt/two/research/NASA/ERA5_data_root/surface/
+ssh desktop "cd /path/to/programDirectory && python3 -u scripts/paper2_rerun_v2.py"
+# Results → results/paper2_rerun_v2/paper2_all_results_v2.json
+```
 
 ### Key Result Files
 | File | Contents |
 |------|----------|
-| `outputs/tabular_model/training_results.json` | Per-flight CV metrics |
-| `outputs/domain_adaptation/domain_adaptation_results.json` | LOFO & few-shot results |
-| `outputs/uncertainty/uncertainty_quantification_results.json` | UQ method comparison |
-| `outputs/feature_engineering/ablation_study_results.json` | Feature importance |
+| `results/paper2_rerun_v2/paper2_all_results_v2.json` | All Paper 2 metrics (v2 audit) |
+| `outputs/vision_baselines/reports/*.json` | Paper 1 per-model results (380 samples) |
 
 ---
 
 ## Citation
 
-If you use this work, please cite:
-
 ```bibtex
-@article{malarchick2026cbh,
-  title={Atmospheric Features Outperform Images for Cloud Base Height Retrieval: 
-         A Systematic Comparison Using NASA Airborne Observations},
+@article{malarchick2026cbh_vision,
+  title={CNN-Based Cloud Base Height Retrieval from Thermal Infrared Imagery: 
+         Lessons from NASA ER-2 Observations},
   author={Malarchick, Rylan},
-  journal={arXiv preprint},
+  year={2026}
+}
+
+@article{malarchick2026cbh_domain,
+  title={Physics-Informed Feature Engineering and Domain Shift Challenges 
+         for Atmospheric Machine Learning},
+  author={Malarchick, Rylan},
   year={2026}
 }
 ```
@@ -191,24 +178,15 @@ If you use this work, please cite:
 
 ## Acknowledgments
 
-This work builds upon methods developed during a NASA OSTEM internship (May-August 2025) with NASA Goddard Space Flight Center High Altitude Research Program. Thanks to Dr. Dong Wu and the NASA ER-2 flight team for data access and technical discussions.
-
-**Data Sources:**
-- ERA5 reanalysis: ECMWF Copernicus Climate Data Store
-- CPL lidar: NASA Goddard Space Flight Center
-- ER-2 imagery: NASA High Altitude Research Program
-
----
+This work was conducted independently following the author's NASA OSTEM internship (May–August 2025) with NASA Goddard Space Flight Center. ERA5 data from ECMWF Copernicus Climate Data Store. CPL lidar data from NASA Goddard.
 
 ## License
 
-MIT License - See [LICENSE](LICENSE) for details.
-
----
+MIT License — See [LICENSE](LICENSE) for details.
 
 ## Contact
 
 **Rylan Malarchick**  
 Embry-Riddle Aeronautical University  
-Email: malarchr@my.erau.edu | rylan1012@gmail.com  
+Email: malarchr@my.erau.edu  
 GitHub: [@rylanmalarchick](https://github.com/rylanmalarchick)
