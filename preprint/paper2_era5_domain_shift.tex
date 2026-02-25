@@ -409,7 +409,7 @@ Figure~\ref{fig:scatter_comparison} directly visualizes the domain shift through
 
 \subsubsection{Why Standard CV Fails}
 
-Temporal autocorrelation ($\rho$ = 0.94 at lag-1) means adjacent samples have nearly identical CBH values. When pooled K-fold CV splits consecutive samples across train/test folds, information leaks between folds. With 5,500 observations from six flights, pooled CV reports R$^2$ = -2.05 while LOFO reports R$^2$ = -5.36---both catastrophically negative, but the gap demonstrates that even pooled CV underestimates the severity of cross-regime failure.
+Temporal autocorrelation ($\rho$ = 0.89 mean at lag-1, ranging 0.82--0.97 across flights) means adjacent samples have highly correlated CBH values. When pooled K-fold CV splits consecutive samples across train/test folds, information leaks between folds. With 5,500 observations from six flights, pooled CV reports R$^2$ = -2.05 while LOFO reports R$^2$ = -5.36---both catastrophically negative, but the gap demonstrates that even pooled CV underestimates the severity of cross-regime failure.
 
 \textbf{Lesson:} Always use temporally-aware validation for atmospheric time series. Pooled CV dramatically overestimates real-world performance.
 
@@ -530,9 +530,9 @@ Split conformal prediction \cite{Lei2018} guarantees coverage under exchangeabil
 
 \subsection{Why Conformal Fails}
 
-Two exchangeability violations explain the coverage failure. The first is temporal autocorrelation, with $\rho$ = 0.94 at lag-1 indicating that adjacent samples have nearly identical CBH values. Calibration residuals from temporally-clustered data therefore underestimate test-time errors. The second violation is domain shift itself: when calibration data come from different flights than test data, residual distributions are non-representative of the true error distribution at deployment.
+Two exchangeability violations explain the coverage failure. The first is temporal autocorrelation, with $\rho$ = 0.89 mean at lag-1 (ranging 0.82--0.97 across flights) indicating that adjacent samples have highly correlated CBH values. Calibration residuals from temporally-clustered data therefore underestimate test-time errors. The second violation is domain shift itself: when calibration data come from different flights than test data, residual distributions are non-representative of the true error distribution at deployment.
 
-Adaptive conformal (which adjusts intervals based on local density) performs even worse (11\% coverage) because density estimation fails under distribution shift.
+Adaptive conformal (which adjusts the quantile online as test samples arrive) performs even worse (20\% mean coverage across flights) because the initial domain-shifted errors cause the quantile to collapse rapidly, producing degenerate near-zero-width intervals on most flights.
 
 \subsection{Per-Flight Calibration}
 
