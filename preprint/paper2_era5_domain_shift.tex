@@ -32,14 +32,14 @@
     \texttt{malarchr@my.erau.edu}
 }
 
-\date{February 2026}
+\date{February 2026 --- Iteration 2 (Audit Reconciled)}
 
 \begin{document}
 
 \maketitle
 
 \begin{abstract}
-We investigate physics-informed feature engineering and domain shift challenges for atmospheric machine learning, using cloud base height (CBH) retrieval as a case study. Starting from 10 base ERA5 reanalysis variables, we derive 28 thermodynamic features grounded in cloud formation physics, including virtual temperature, stability-moisture interactions, and lifting condensation level variants. Feature importance analysis reveals that engineered features (virtual temperature: 33\%, stability$\times$tcwv: 22\%) outperform raw variables when available, though the base model achieves comparable performance (R$^2$ = 0.744) through implicit feature learning. More critically, we document catastrophic domain shift: leave-one-flight-out cross-validation yields R$^2$ = -15.4, indicating predictions worse than a constant baseline when generalizing across atmospheric regimes. This represents among the most severe domain shifts reported in atmospheric ML literature. We systematically evaluate five domain adaptation methods, finding that few-shot learning (50 samples) recovers R$^2$ = 0.57--0.85 while instance weighting and MMD alignment fail completely. Conformal prediction achieves only 27\% coverage (target: 90\%) due to exchangeability violations from temporal autocorrelation ($\rho$ = 0.94), but per-flight calibration recovers 86\% coverage. Our findings establish that (1) physics-informed features provide interpretability advantages but limited accuracy gains over well-tuned base models, (2) domain shift is the critical challenge for atmospheric ML deployment, and (3) few-shot adaptation with 20--50 local samples is the most practical solution. We provide honest documentation of failure modes to guide practitioners toward realistic expectations for cross-regime generalization.
+We investigate physics-informed feature engineering and domain shift challenges for atmospheric machine learning, using cloud base height (CBH) retrieval as a case study. Starting from 5 base ERA5 reanalysis variables (t2m, d2m, sp, blh, tcwv), we derive 29 thermodynamic features grounded in cloud formation physics, including virtual temperature, stability-moisture interactions, and lifting condensation level variants, yielding 34 total features. More critically, we document catastrophic domain shift: leave-one-flight-out cross-validation across 5,500 ocean-only boundary-layer observations from six ER-2 flights yields R$^2$ = -5.36, indicating predictions worse than a constant baseline when generalizing across atmospheric regimes. This represents among the most severe domain shifts reported in atmospheric ML literature. We systematically evaluate five domain adaptation methods, finding that few-shot learning (50 samples) recovers R$^2$ = +0.35 while instance weighting and MMD alignment fail completely. Conformal prediction achieves only 34\% coverage (target: 90\%) due to exchangeability violations across flights, but within-flight calibration recovers 90\% coverage. Our findings establish that (1) physics-informed features provide interpretability advantages but limited accuracy gains over well-tuned base models, (2) domain shift is the critical challenge for atmospheric ML deployment, and (3) few-shot adaptation with 20--50 local samples is the most practical solution. We provide honest documentation of failure modes to guide practitioners toward realistic expectations for cross-regime generalization.
 \end{abstract}
 
 \textbf{Keywords:} domain adaptation, feature engineering, atmospheric machine learning, ERA5 reanalysis, conformal prediction, transfer learning
@@ -56,7 +56,7 @@ We use cloud base height (CBH) retrieval from NASA ER-2 observations as a case s
 
 \subsection{Contributions}
 
-This work makes five key contributions. In the area of physics-based feature engineering, we derive 28 thermodynamic features from 10 base ERA5 variables, including virtual temperature, stability indices, and moisture-stability interactions, and analyze which features emerge as important and why. Regarding quantified domain shift, we document catastrophic generalization failure with R$^2$ = -15.4 across flight campaigns, characterize shift sources via K-S divergence and MMD analysis, and explain why standard cross-validation dramatically overestimates real-world performance. For domain adaptation evaluation, we systematically compare five adaptation methods including few-shot learning, instance weighting, TrAdaBoost, MMD alignment, and feature selection, identifying few-shot learning as the only effective approach. On uncertainty quantification under violation, we demonstrate that conformal prediction fails with only 27\% coverage when exchangeability assumptions are violated, and propose per-flight calibration as a practical alternative achieving 86\% coverage. Finally, through honest failure documentation, we provide explicit guidance on when this approach works, when it fails, and what practitioners should expect for cross-regime deployment.
+This work makes five key contributions. In the area of physics-based feature engineering, we derive 29 thermodynamic features from 5 base ERA5 variables, including virtual temperature, stability indices, and moisture-stability interactions, and analyze which features emerge as important and why. Regarding quantified domain shift, we document catastrophic generalization failure with R$^2$ = -5.36 across flight campaigns, characterize shift sources via K-S divergence and MMD analysis, and explain why standard cross-validation dramatically overestimates real-world performance. For domain adaptation evaluation, we systematically compare five adaptation methods including few-shot learning, instance weighting, TrAdaBoost, MMD alignment, and feature selection, identifying few-shot learning as the only effective approach. On uncertainty quantification under violation, we demonstrate that conformal prediction fails with only 34\% coverage when exchangeability assumptions are violated, and propose within-flight calibration achieving 90\% coverage. Finally, through honest failure documentation, we provide explicit guidance on when this approach works, when it fails, and what practitioners should expect for cross-regime deployment.
 
 \subsection{Paper Organization}
 
@@ -96,7 +96,7 @@ where $q$ is calibrated from held-out residuals. The key assumption is that cali
 
 \subsection{Base ERA5 Features}
 
-We extract 10 base features from ERA5 reanalysis \cite{Hersbach2020}:
+We extract 5 base features from ERA5 reanalysis \cite{Hersbach2020}, matched to CPL observation locations via nearest grid point and nearest hour:
 
 \begin{table}[h]
     \centering
@@ -111,22 +111,20 @@ We extract 10 base features from ERA5 reanalysis \cite{Hersbach2020}:
         sp (surface pressure) & Pa & Altitude reference \\
         blh (boundary layer height) & m & Mixing depth \\
         tcwv (total column water) & kg/m$^2$ & Column moisture \\
-        lcl (lifting condensation level) & m & Theoretical cloud base \\
-        stability\_index & -- & Atmospheric stratification \\
-        moisture\_gradient & -- & Vertical moisture structure \\
-        sza\_deg (solar zenith) & degrees & Diurnal heating \\
-        saa\_deg (solar azimuth) & degrees & Sun position \\
         \bottomrule
     \end{tabular}
 \end{table}
 
-\subsection{Derived Thermodynamic Features}
+Solar zenith angle (SZA) and solar azimuth angle (SAA) are obtained from CPL geolocation fields; these are used in derived features (Section~\ref{sec:derived}) but are not ERA5 variables.
 
-We engineer 28 additional features grounded in cloud formation physics:
+\subsection{Derived Thermodynamic Features}
+\label{sec:derived}
+
+We engineer 29 additional features grounded in cloud formation physics, for a total of 34 features (5 base ERA5 + 29 derived):
 
 \subsubsection{LCL-Based Features (2)}
 
-We derive two LCL-based features that capture deviations from simple thermodynamic predictions. The lcl\_deficit, computed as CBH minus LCL, measures the deviation from simple thermodynamic prediction. The lcl\_ratio, computed as CBH divided by LCL, captures the relative cloud base position. These features identify when actual cloud base differs from parcel theory predictions due to entrainment, stability, or multi-layer effects.
+We derive two LCL-based features from the standard lifting condensation level approximation (LCL $\approx$ 125~$\times$~(T$_{2m}$ -- T$_d$)). The lcl feature provides the estimated cloud base from parcel theory. The lcl\_deficit (BLH~--~LCL) measures the relationship between boundary layer depth and expected cloud base, identifying when mixing extends above or below the condensation level.
 
 \subsubsection{Thermodynamic Features (8)}
 
@@ -140,23 +138,23 @@ Eight thermodynamic features capture the atmospheric state relevant to cloud for
         \toprule
         \textbf{Feature} & \textbf{Physical Interpretation} \\
         \midrule
-        dew\_point\_depression & Direct LCL driver (t2m - d2m) \\
-        relative\_humidity\_2m & Surface saturation fraction \\
-        mixing\_ratio & Mass ratio of water vapor to dry air \\
-        potential\_temperature & Temperature corrected to reference pressure \\
-        virtual\_temperature & Temperature with moisture buoyancy effects \\
-        saturation\_vapor\_pressure & Clausius-Clapeyron saturation \\
-        vapor\_pressure & Actual water vapor partial pressure \\
-        vapor\_pressure\_deficit & Saturation minus actual vapor pressure \\
+        t\_virtual & Temperature with moisture buoyancy effects \\
+        dewpoint\_depression & Direct LCL driver (t2m -- d2m) \\
+        rh & Surface relative humidity \\
+        stability\_index & Atmospheric stratification ((t2m -- d2m) / 10) \\
+        moisture\_gradient & Vertical moisture structure \\
+        pressure\_altitude & Hypsometric altitude from surface pressure \\
+        theta\_e & Equivalent potential temperature \\
+        blh\_lcl\_ratio & Boundary layer height to LCL ratio \\
         \bottomrule
     \end{tabular}
 \end{table}
 
 Virtual temperature ($T_v$) is particularly important:
 \begin{equation}
-    T_v = T \times (1 + 0.61 \times r)
+    T_v = T \times (1 + 0.61 \times w)
 \end{equation}
-where $r$ is mixing ratio. This captures how moisture affects air density and buoyancy, critical for convective cloud formation.
+where $w$ is mixing ratio (computed from dewpoint and surface pressure via the Clausius-Clapeyron relation). This captures how moisture affects air density and buoyancy, critical for convective cloud formation.
 
 \subsubsection{Stability Features (4)}
 
@@ -170,19 +168,19 @@ Four stability features capture interaction effects between atmospheric stratifi
         \toprule
         \textbf{Feature} & \textbf{Formulation} \\
         \midrule
-        stability\_dpd\_product & Stability $\times$ dew point depression \\
-        stability\_anomaly & Deviation from mean stability \\
-        stability\_moisture\_ratio & Stability / moisture gradient \\
-        stability\_x\_tcwv & Stability $\times$ total column water vapor \\
+        stability\_tcwv & Stability index $\times$ total column water vapor \\
+        dd\_blh & Dewpoint depression $\times$ BLH / 1000 \\
+        t2m\_d2m\_ratio & Temperature to dewpoint ratio \\
+        inversion\_strength & BLH $\times$ stability index \\
         \bottomrule
     \end{tabular}
 \end{table}
 
 These interaction terms capture how atmospheric stratification modulates moisture effects on cloud formation.
 
-\subsubsection{Solar/Temporal Features (6)}
+\subsubsection{Solar/Temporal Features (7)}
 
-Six solar and temporal features encode diurnal and geometric effects, as shown in Table~\ref{tab:solar_features}.
+Seven solar and temporal features encode diurnal and geometric effects, as shown in Table~\ref{tab:solar_features}.
 
 \begin{table}[h]
     \centering
@@ -212,67 +210,66 @@ Eight interaction features capture nonlinear relationships between base variable
         \toprule
         \textbf{Feature} & \textbf{Interaction Type} \\
         \midrule
-        t2m\_x\_tcwv & Temperature-moisture interaction \\
-        blh\_x\_lcl & Boundary layer-cloud base interaction \\
-        t2m\_x\_sza\_cos & Temperature-solar interaction \\
-        blh\_x\_stability & Mixing-stratification interaction \\
-        t2m\_squared & Quadratic temperature term \\
-        blh\_squared & Quadratic boundary layer term \\
-        lcl\_squared & Quadratic LCL term \\
-        dpd\_squared & Quadratic dew point depression term \\
+        t2m\_tcwv & Temperature-moisture interaction \\
+        rh\_blh & Humidity-boundary layer interaction \\
+        lcl\_sq & Quadratic LCL term \\
+        blh\_sq & Quadratic boundary layer term \\
+        t2m\_sp & Temperature-pressure interaction \\
+        lat\_abs & Absolute latitude (geographic proxy) \\
+        lon\_abs & Absolute longitude (geographic proxy) \\
+        lat\_lon & Latitude-longitude interaction \\
         \bottomrule
     \end{tabular}
 \end{table}
 
 \subsection{Feature Importance Analysis}
 
-\subsubsection{Base Model (10 Features)}
+\subsubsection{Base Model (5 Features)}
 
-GBDT trained on base features identifies t2m as overwhelmingly dominant:
+GBDT trained on the 5 base ERA5 features identifies blh (boundary layer height) as overwhelmingly dominant:
 
 \begin{table}[h]
     \centering
-    \caption{Feature importance for base 10-feature model.}
+    \caption{Feature importance for base 5-feature ERA5 model (pooled training across all flights).}
     \label{tab:base_importance}
     \begin{tabular}{lc}
         \toprule
         \textbf{Feature} & \textbf{Importance (\%)} \\
         \midrule
-        t2m & 72.0 \\
-        d2m & 6.5 \\
-        tcwv & 4.3 \\
-        blh & 4.1 \\
-        sp & 3.8 \\
-        Others & 9.3 \\
+        blh & 63.3 \\
+        d2m & 11.2 \\
+        sp & 10.9 \\
+        tcwv & 10.3 \\
+        t2m & 4.4 \\
         \bottomrule
     \end{tabular}
 \end{table}
 
-The temperature dominance reflects LCL physics: cloud base is primarily determined by the temperature-dewpoint spread, which GBDT learns implicitly from t2m and d2m.
+The blh dominance reflects boundary layer dynamics: cloud base height in the marine boundary layer is primarily constrained by the mixing depth, which GBDT captures directly from the boundary layer height variable.
 
-\subsubsection{Enhanced Model (38 Features)}
+\subsubsection{Enhanced Model (34 Features)}
 
 With derived features, importance redistributes:
 
 \begin{table}[h]
     \centering
-    \caption{Feature importance for enhanced 38-feature model.}
+    \caption{Feature importance for enhanced 34-feature model (pooled training across all flights).}
     \label{tab:enhanced_importance}
     \begin{tabular}{lc}
         \toprule
         \textbf{Feature} & \textbf{Importance (\%)} \\
         \midrule
-        virtual\_temperature & 33.0 \\
-        stability\_x\_tcwv & 22.0 \\
-        t2m & 17.0 \\
-        saturation\_vapor\_pressure & 4.4 \\
-        tcwv & 2.7 \\
-        Others & 20.9 \\
+        blh\_sq & 32.3 \\
+        blh & 16.9 \\
+        stability\_tcwv & 8.0 \\
+        moisture\_gradient & 8.0 \\
+        blh\_lcl\_ratio & 4.4 \\
+        Others (29 features) & 30.4 \\
         \bottomrule
     \end{tabular}
 \end{table}
 
-Three key observations emerge from this analysis. First, virtual temperature dominates the enhanced model, as incorporating moisture's buoyancy effect provides a better predictor than raw temperature alone. Second, stability-moisture interaction emerges as the second most important feature, with the product stability$\times$tcwv capturing how atmospheric stratification modulates moisture effects---a physically meaningful relationship. Third, raw t2m drops to third place in the enhanced model, indicating that derived features capture the temperature signal more effectively than the raw variable.
+Three key observations emerge from this analysis. First, blh-derived features dominate the enhanced model, with blh\_sq (quadratic boundary layer height) capturing nonlinear mixing effects and blh itself retaining importance, together accounting for nearly 50\% of total importance. Second, stability-moisture interaction emerges as the third most important feature, with the product stability\_index$\times$tcwv capturing how atmospheric stratification modulates moisture effects---a physically meaningful relationship. Third, the moisture gradient feature captures vertical moisture structure relevant to cloud formation, complementing the column-integrated tcwv measurement.
 
 \subsubsection{Ablation Study}
 
@@ -280,22 +277,24 @@ Despite importance redistribution, removing individual features causes minimal p
 
 \begin{table}[h]
     \centering
-    \caption{Ablation study: Impact of removing top features.}
+    \caption{Ablation study: Impact of removing top features. ``Pooled CV'' is shuffled 5-fold CV across all flights; ``Per-flight CV'' is the mean of within-flight shuffled CV across flights (stricter, no cross-flight leakage).}
     \label{tab:ablation}
-    \begin{tabular}{lcc}
+    \begin{tabular}{lccc}
         \toprule
-        \textbf{Configuration} & \textbf{R$^2$} & \textbf{$\Delta$R$^2$} \\
+        \textbf{Configuration} & \textbf{Pooled CV R$^2$} & \textbf{Per-Flight CV R$^2$} & \textbf{$\Delta$ Per-Flight} \\
         \midrule
-        All 38 features & 0.744 & -- \\
-        Remove virtual\_temp & 0.738 & -0.006 \\
-        Remove stability\_x\_tcwv & 0.740 & -0.004 \\
-        Remove t2m & 0.743 & -0.001 \\
-        Base 10 features only & 0.744 & 0.000 \\
+        All 34 features & -2.053 & -0.505 & -- \\
+        Remove blh\_sq & -2.290 & -0.610 & -0.105 \\
+        Remove blh & -2.409 & -0.602 & -0.097 \\
+        Remove stability\_tcwv & -2.483 & -0.800 & -0.295 \\
+        Remove moisture\_gradient & -3.372 & -0.615 & -0.110 \\
+        Remove blh\_lcl\_ratio & -2.371 & -0.578 & -0.073 \\
+        Base 5 features only & -0.564 & -2.042 & -1.537 \\
         \bottomrule
     \end{tabular}
 \end{table}
 
-\textbf{Critical finding:} The base 10-feature model achieves identical R$^2$ to the 38-feature enhanced model. Feature engineering provides \textit{interpretability} (understanding which physics matter) but not \textit{accuracy gains} (GBDT learns equivalent representations from raw variables).
+\textbf{Critical finding:} Individual feature removal causes modest degradation in per-flight CV (up to $\Delta$R$^2$ = -0.295 for stability\_tcwv), but dropping from 34 to 5 base features dramatically worsens per-flight performance ($\Delta$R$^2$ = -1.537). Interestingly, pooled CV shows the opposite pattern: base-5 features achieve better pooled CV (R$^2$ = -0.564) than 34 features (R$^2$ = -2.053), suggesting derived features may overfit to flight-specific patterns in the pooled setting while genuinely capturing generalizable structure within flights. Neither achieves positive R$^2$ due to inter-flight variability, confirming that domain shift---not feature engineering---is the dominant challenge.
 
 This suggests gradient boosting effectively performs implicit feature engineering, learning nonlinear combinations of base variables that capture the same thermodynamic relationships we explicitly derived.
 
@@ -305,21 +304,20 @@ To verify the model learns physically consistent relationships, we evaluate agai
 
 \begin{table}[h]
     \centering
-    \caption{Physical constraint validation.}
+    \caption{Physical constraint validation. CBH bounds apply to the training/test data (which are filtered to ocean-only BL clouds $\leq$2 km by construction). LOFO predictions may exceed these bounds due to domain shift.}
     \label{tab:physics}
     \begin{tabular}{lccc}
         \toprule
-        \textbf{Constraint} & \textbf{Expected} & \textbf{Observed} & \textbf{Violations} \\
+        \textbf{Constraint} & \textbf{Expected} & \textbf{Observed} & \textbf{Notes} \\
         \midrule
-        CBH $\leq$ 12,000 m & 100\% & 100\% & 0/1426 \\
-        CBH $\geq$ 0 m & 100\% & 100\% & 0/1426 \\
-        Corr(LCL, CBH$_{\text{pred}}$) & Positive & r = 0.26* & -- \\
-        Corr(BLH, CBH$_{\text{pred}}$) & Positive & r = 0.14* & -- \\
+        Data CBH $\leq$ 2,000 m & 100\% & 100\% & Filtered by design \\
+        Data CBH $>$ 0 m & 100\% & 100\% & Filtered by design \\
+        LOFO pred $<$ 0 m & 0\% & 1.7\% & 91/5500 negative predictions \\
         \bottomrule
     \end{tabular}
 \end{table}
 
-Zero predictions violate physical bounds. Positive correlations with LCL and boundary layer height confirm the model captures expected thermodynamic relationships.
+The training data satisfies physical bounds by construction (ocean-only, BL clouds $\leq$ 2 km). However, 1.7\% of LOFO predictions are negative, a consequence of models trained on one atmospheric regime producing unphysical extrapolations when applied to a different regime---further evidence of the domain shift problem.
 
 \section{Domain Shift and Adaptation}
 \label{sec:domain_shift}
@@ -331,39 +329,42 @@ The fundamental challenge we document is catastrophic performance degradation wh
 \begin{figure}[h]
     \centering
     \includegraphics[width=0.95\textwidth]{paperfigures/paper2_fig1_domain_comparison_backscatter.png}
-    \caption{Side-by-side comparison of CPL backscatter curtains from October 23, 2024 (WHYMSIE, continental) and February 10, 2025 (GLOVE, marine). Note the fundamentally different cloud structure, vertical extent, and backscatter intensity between regimes.}
+    \caption{Official CPL 532 nm attenuated total backscatter curtains from October 23, 2024 (WHySMIE, flight 259004) and February 10, 2025 (GLOVE, flight 259015). Each panel shows outbound and return legs at 1-second horizontal resolution, 0--20 km altitude. Note the fundamentally different cloud structure: WHySMIE shows shallow marine boundary layer clouds below $\sim$2 km, while GLOVE shows multi-layer clouds extending to $\sim$10 km with more complex vertical structure.}
     \label{fig:domain_comparison}
 \end{figure}
 
 \subsubsection{Leave-One-Flight-Out Validation}
 
-Standard cross-validation (pooled K-fold) reports R$^2$ = 0.924, but this is inflated by temporal autocorrelation. Leave-one-flight-out (LOFO) validation---training on all flights except one, testing on the held-out flight---reveals catastrophic generalization failure:
+Standard cross-validation (pooled K-fold) reports R$^2$ = -2.05, but even this is inflated relative to the true cross-flight performance. Leave-one-flight-out (LOFO) validation---training on all flights except one, testing on the held-out flight---reveals even more severe generalization failure:
 
 \begin{table}[h]
     \centering
-    \caption{Leave-one-flight-out cross-validation results. All held-out flights achieve negative R$^2$.}
+    \caption{Leave-one-flight-out cross-validation results across all six flights. Results from a single reproducible pipeline: CPL L2 ocean-only BL clouds ($\leq$ 2 km), nearest-hour ERA5 matching, 34 features, GBDT (200 trees).}
     \label{tab:lofo}
     \begin{tabular}{lccc}
         \toprule
         \textbf{Held-Out Flight} & \textbf{n\_test} & \textbf{R$^2$} & \textbf{MAE (m)} \\
         \midrule
-        Flight 1 (GLOVE, Feb) & 1,021 & -6.61 & 577 \\
-        Flight 2 (GLOVE, Feb) & 129 & +0.15 & 119 \\
-        Flight 3 (WHYMSIE, Oct) & 276 & -0.80 & 210 \\
+        Oct 23, 2024 (WHySMIE) & 857 & -8.99 & 729 \\
+        Oct 30, 2024 (WHySMIE) & 1808 & -0.61 & 633 \\
+        Nov 4, 2024 (WHySMIE) & 1388 & -19.41 & 502 \\
+        Feb 10, 2025 (GLOVE) & 608 & -1.97 & 543 \\
+        Feb 12, 2025 (GLOVE) & 654 & -0.93 & 614 \\
+        Feb 18, 2025 (GLOVE) & 185 & -0.26 & 86 \\
         \midrule
-        \textbf{Mean} & -- & \textbf{-15.4} & \textbf{422} \\
+        \textbf{Mean} & -- & \textbf{-5.36} & \textbf{518} \\
         \bottomrule
     \end{tabular}
 \end{table}
 
-\textbf{Mean R$^2$ = -15.4} indicates predictions are substantially worse than a constant mean baseline. This represents among the most severe domain shifts reported in atmospheric ML literature.
+\textbf{Mean R$^2$ = -5.36} indicates predictions are substantially worse than a constant mean baseline. All six held-out flights produce negative R$^2$, with the most severe failure occurring on the Nov~4 WHySMIE flight (R$^2$ = -19.4, n=1388).
 
 Figure~\ref{fig:cbh_distribution} shows the CBH distribution differences between flights that underlie this domain shift.
 
 \begin{figure}[h]
     \centering
     \includegraphics[width=0.85\textwidth]{paperfigures/paper2_fig2_cbh_distribution_comparison.png}
-    \caption{Cloud base height distributions for October 23, 2024 (WHYMSIE) and February 10, 2025 (GLOVE) flights. The distributions show minimal overlap, explaining the catastrophic domain shift when generalizing between campaigns.}
+    \caption{Cloud base height distributions for October 23, 2024 (WHySMIE, n=857 ocean-only, mean=138 m) and February 10, 2025 (GLOVE, n=608 ocean-only, mean=380 m) flights. Both distributions are right-skewed with a dominant low-CBH mode, but GLOVE shows a broader spread with secondary modes at 600--1400 m, reflecting its more complex multi-layer cloud structure.}
     \label{fig:cbh_distribution}
 \end{figure}
 
@@ -373,22 +374,27 @@ Kolmogorov-Smirnov (K-S) divergence quantifies feature distribution differences 
 
 \begin{table}[h]
     \centering
-    \caption{K-S divergence for most shifted features (Flight 1 vs Flight 3).}
+    \caption{K-S divergence for most shifted features (Oct 23 WHySMIE vs Feb 10 GLOVE). With 857 and 608 samples respectively, all p-values are effectively zero.}
     \label{tab:ks}
     \begin{tabular}{lcc}
         \toprule
         \textbf{Feature} & \textbf{K-S Statistic} & \textbf{p-value} \\
         \midrule
-        tcwv & 0.80 & <0.001 \\
-        lcl & 0.75 & <0.001 \\
-        t2m & 0.72 & <0.001 \\
-        d2m & 0.68 & <0.001 \\
-        stability\_index & 0.61 & <0.001 \\
+        t2m & 1.000 & <0.001 \\
+        d2m & 1.000 & <0.001 \\
+        blh & 1.000 & <0.001 \\
+        t\_virtual & 1.000 & <0.001 \\
+        moisture\_gradient & 1.000 & <0.001 \\
+        theta\_e & 1.000 & <0.001 \\
+        tcwv & 0.944 & <0.001 \\
+        lcl & 0.954 & <0.001 \\
+        stability\_index & 0.954 & <0.001 \\
+        sp & 0.834 & <0.001 \\
         \bottomrule
     \end{tabular}
 \end{table}
 
-K-S statistics exceeding 0.7 for key thermodynamic variables indicate fundamentally different atmospheric regimes between the campaigns. GLOVE 2025, conducted in February, sampled a marine environment characterized by high moisture and moderate temperatures. WHYMSIE 2024, conducted in October, sampled a continental environment with lower moisture and variable stability conditions.
+K-S statistics of 1.0 for key thermodynamic variables indicate completely non-overlapping distributions between the campaigns---a near-total shift in the feature space. Of the 34 features, 14 achieve the maximum K-S statistic of 1.0, and the lowest K-S statistic among base ERA5 variables is sp = 0.834. Only the solar angle features (sza\_cos, sza\_sin, saa\_cos, saa\_sin) show K-S = 0.0, since both campaigns operated at similar solar geometries. GLOVE 2025, conducted in February, flew northward along the California--Oregon coast and out over the northeast Pacific, sampling a marine environment with multi-layer cloud structures extending to $\sim$10 km. WHySMIE 2024, conducted in October, flew southward along the California--Baja California coast over the eastern Pacific, sampling a subtropical marine boundary layer environment with shallow clouds below $\sim$2 km. Despite both campaigns being primarily marine, the seasonal and latitudinal differences produce fundamentally different thermodynamic conditions.
 
 PCA visualization confirms flights occupy non-overlapping regions of feature space (PC1 explains 36\% variance, separates campaigns).
 
@@ -397,13 +403,13 @@ Figure~\ref{fig:scatter_comparison} directly visualizes the domain shift through
 \begin{figure}[h]
     \centering
     \includegraphics[width=0.95\textwidth]{paperfigures/paper2_fig3_scatter_comparison.png}
-    \caption{Leave-one-flight-out scatter plots demonstrating domain shift. Left: October 23, 2024 predictions (R$^2$ = 0.003, near-random). Right: February 10, 2025 predictions (R$^2$ = -4.02, worse than constant baseline). Compare to within-flight GBDT R$^2$ = 0.908.}
+    \caption{Leave-one-flight-out scatter plots demonstrating domain shift. Left: October 23, 2024 (R$^2$ = -8.99, n = 857). Right: February 10, 2025 (R$^2$ = -1.97, n = 608). Both show predictions substantially worse than a constant baseline (red dotted line), consistent with the LOFO mean R$^2$ = -5.36 documented in Table~\ref{tab:lofo}.}
     \label{fig:scatter_comparison}
 \end{figure}
 
 \subsubsection{Why Standard CV Fails}
 
-Temporal autocorrelation ($\rho$ = 0.94 at lag-1) means adjacent samples have nearly identical CBH values. When pooled K-fold CV splits consecutive samples across train/test folds, information leaks, inflating R$^2$ from 0.744 (per-flight) to 0.924 (pooled).
+Temporal autocorrelation ($\rho$ = 0.94 at lag-1) means adjacent samples have nearly identical CBH values. When pooled K-fold CV splits consecutive samples across train/test folds, information leaks between folds. With 5,500 observations from six flights, pooled CV reports R$^2$ = -2.05 while LOFO reports R$^2$ = -5.36---both catastrophically negative, but the gap demonstrates that even pooled CV underestimates the severity of cross-regime failure.
 
 \textbf{Lesson:} Always use temporally-aware validation for atmospheric time series. Pooled CV dramatically overestimates real-world performance.
 
@@ -412,7 +418,7 @@ Figure~\ref{fig:flight_comparison} shows the geographic context of both flights.
 \begin{figure}[h]
     \centering
     \includegraphics[width=0.95\textwidth]{paperfigures/paper2_fig4_flight_path_comparison.png}
-    \caption{Flight path comparison showing geographic context of domain shift. October 23, 2024 (WHYMSIE, left) covered continental regions while February 10, 2025 (GLOVE, right) sampled marine environments with fundamentally different atmospheric characteristics.}
+    \caption{Flight path comparison showing geographic context of domain shift. October 23, 2024 (WHySMIE, left) flew southward along the California--Baja coast over the eastern Pacific. February 10, 2025 (GLOVE, right) flew northward along the California--Oregon coast and out over the northeast Pacific. Colored points show ocean-only CBH observations used for analysis; gray points indicate over-land transit data that were excluded from the marine cloud study (WHySMIE: 106 excluded, GLOVE: 287 excluded).}
     \label{fig:flight_comparison}
 \end{figure}
 
@@ -426,30 +432,33 @@ Fine-tune the base model on $k$ labeled samples from the target flight:
 
 \begin{table}[h]
     \centering
-    \caption{Few-shot adaptation performance (R$^2$) by shot count.}
+    \caption{Few-shot adaptation performance (mean R$^2$ $\pm$ std across 20 random trials) by shot count.}
     \label{tab:fewshot}
     \begin{tabular}{lcccc}
         \toprule
-        \textbf{Target} & \textbf{5-shot} & \textbf{10-shot} & \textbf{20-shot} & \textbf{50-shot} \\
+        \textbf{Target Flight} & \textbf{5-shot} & \textbf{10-shot} & \textbf{20-shot} & \textbf{50-shot} \\
         \midrule
-        Flight 1 & 0.47 & 0.76 & 0.81 & 0.85 \\
-        Flight 2 & 0.14 & 0.22 & 0.39 & 0.64 \\
-        Flight 3 & -0.37 & -0.14 & 0.02 & 0.23 \\
+        Oct 23 (WHySMIE) & -1.06 & -0.09 & +0.29 & +0.40 \\
+        Oct 30 (WHySMIE) & +0.37 & +0.55 & +0.60 & +0.69 \\
+        Nov 4 (WHySMIE) & -2.73 & -1.40 & -0.38 & -0.03 \\
+        Feb 10 (GLOVE) & -0.33 & +0.02 & +0.22 & +0.37 \\
+        Feb 12 (GLOVE) & +0.03 & +0.21 & +0.43 & +0.59 \\
+        Feb 18 (GLOVE) & -0.08 & -0.02 & +0.02 & +0.08 \\
         \midrule
-        \textbf{Mean} & 0.08 & 0.28 & 0.41 & \textbf{0.57} \\
+        \textbf{Mean} & -0.63 & -0.12 & +0.20 & \textbf{+0.35} \\
         \bottomrule
     \end{tabular}
 \end{table}
 
-Few-shot learning recovers substantial performance with minimal labeling effort. With 50 samples, mean R$^2$ improves from -15.4 to +0.57.
+Few-shot learning recovers substantial performance with minimal labeling effort. With 50 samples, mean R$^2$ improves from -5.36 to +0.35.
 
-\textbf{Variance across targets:} Flight 1 (similar to training distribution) recovers to R$^2$ = 0.85; Flight 3 (most different) only reaches R$^2$ = 0.23. Adaptation effectiveness depends on regime similarity.
+\textbf{Variance across targets:} Oct 30 WHySMIE (closest to training distribution) recovers to R$^2$ = 0.69; Nov 4 WHySMIE (most different regime) only reaches R$^2$ = -0.03 even with 50 shots. Adaptation effectiveness depends on regime similarity.
 
 \subsubsection{Instance Weighting (Failed)}
 
 Reweight source samples to match target distribution using two approaches. The KNN-based method weights samples by distance to nearest target samples. The density ratio method estimates $p_{\text{target}}(x) / p_{\text{source}}(x)$ directly.
 
-Results: Mean R$^2$ = -21.4 (KNN), -19.9 (density)---\textit{worse than baseline}.
+Results: Mean R$^2$ = -3.5 (KNN), -5.5 (density)---\textit{worse than or comparable to the LOFO baseline}.
 
 \textbf{Why it fails:} No source samples are sufficiently similar to target regime. Reweighting amplifies noise without improving representation.
 
@@ -457,13 +466,13 @@ Results: Mean R$^2$ = -21.4 (KNN), -19.9 (density)---\textit{worse than baseline
 
 Transfer learning via boosting that down-weights poorly-transferring source samples \cite{Dai2007}.
 
-Result: Mean R$^2$ = -0.41, modest improvement over baseline (-15.4) but still negative.
+Result: Mean R$^2$ = +0.04, marginal improvement over baseline (-5.36), barely positive.
 
 \subsubsection{MMD Feature Alignment (Failed)}
 
 Project features to minimize Maximum Mean Discrepancy between source and target \cite{Long2015}.
 
-Result: Mean R$^2$ = -39.4---\textit{catastrophically worse}. Alignment reduces MMD by 9.4\% but destroys predictive signal.
+Result: Mean R$^2$ = -7.9---\textit{worse than the LOFO baseline}. Alignment destroys predictive signal.
 
 \textbf{Why it fails:} The features that differ most across domains (t2m, tcwv) are also most predictive. Aligning distributions removes the signal.
 
@@ -471,25 +480,25 @@ Result: Mean R$^2$ = -39.4---\textit{catastrophically worse}. Alignment reduces 
 
 Select features with lowest cross-domain divergence.
 
-Result: Mean R$^2$ = -8.2, improvement over baseline but still negative.
+Result: Mean R$^2$ = -6.9, worse than the LOFO baseline. Selecting low-divergence features (primarily solar angles) removes the most predictive variables.
 
 \subsection{Domain Adaptation Summary}
 
 \begin{table}[h]
     \centering
-    \caption{Domain adaptation method comparison.}
+    \caption{Domain adaptation method comparison (mean R$^2$ across 6 held-out flights).}
     \label{tab:adaptation_summary}
     \begin{tabular}{lcc}
         \toprule
         \textbf{Method} & \textbf{Mean R$^2$} & \textbf{Assessment} \\
         \midrule
-        No adaptation (LOFO) & -15.4 & Baseline \\
-        Instance weighting (KNN) & -21.4 & Worse \\
-        Instance weighting (density) & -19.9 & Worse \\
-        MMD alignment & -39.4 & Much worse \\
-        Feature selection & -8.2 & Marginal \\
-        TrAdaBoost & -0.41 & Marginal \\
-        \textbf{Few-shot (50 samples)} & \textbf{+0.57} & \textbf{Effective} \\
+        No adaptation (LOFO) & -5.36 & Baseline \\
+        Instance weighting (KNN) & -3.5 & Marginal improvement \\
+        Instance weighting (density) & -5.5 & Comparable to baseline \\
+        MMD alignment & -7.9 & Worse \\
+        Feature selection & -6.9 & Worse \\
+        TrAdaBoost & +0.04 & Marginal positive \\
+        \textbf{Few-shot (50 samples)} & \textbf{+0.35} & \textbf{Effective} \\
         \bottomrule
     \end{tabular}
 \end{table}
@@ -505,21 +514,19 @@ Split conformal prediction \cite{Lei2018} guarantees coverage under exchangeabil
 
 \begin{table}[h]
     \centering
-    \caption{Uncertainty quantification method comparison.}
+    \caption{Uncertainty quantification method comparison (cross-flight evaluation). Within-flight split conformal achieves 90.0\% coverage, but cross-flight evaluation degrades dramatically due to exchangeability violations.}
     \label{tab:uq}
     \begin{tabular}{lccc}
         \toprule
         \textbf{Method} & \textbf{Coverage} & \textbf{Target} & \textbf{Width (m)} \\
         \midrule
-        Split conformal & 27\% & 90\% & 278 \\
-        Adaptive conformal & 11\% & 90\% & 58 \\
-        Quantile regression & 58\% & 90\% & 510 \\
-        \textbf{Per-flight calibration} & \textbf{86\%} & 90\% & 313 \\
+        Split conformal (cross-flight) & 34\% & 90\% & 557 \\
+        \textbf{Per-flight calibration (within-flight)} & \textbf{90\%} & 90\% & 538 \\
         \bottomrule
     \end{tabular}
 \end{table}
 
-\textbf{Split conformal achieves only 27\% coverage} (target: 90\%)---a catastrophic failure.
+\textbf{Cross-flight split conformal achieves only 34\% coverage} (target: 90\%)---a catastrophic failure. In contrast, within-flight split conformal achieves 90.0\% coverage, confirming that the failure stems from exchangeability violations across flights rather than from the method itself.
 
 \subsection{Why Conformal Fails}
 
@@ -533,22 +540,25 @@ We propose per-flight calibration: calibrate within each flight independently, e
 
 \begin{table}[h]
     \centering
-    \caption{Per-flight calibration results.}
+    \caption{Within-flight conformal prediction results (split conformal, 90\% target).}
     \label{tab:perflight_uq}
     \begin{tabular}{lccc}
         \toprule
         \textbf{Flight} & \textbf{Coverage} & \textbf{Width (m)} & \textbf{R$^2$} \\
         \midrule
-        Flight 1 & 86\% & 197 & 0.93 \\
-        Flight 2 & 85\% & 352 & 0.67 \\
-        Flight 3 & 87\% & 392 & 0.48 \\
+        Oct 23 (WHySMIE) & 89.5\% & 146 & 0.49 \\
+        Oct 30 (WHySMIE) & 91.7\% & 956 & 0.83 \\
+        Nov 4 (WHySMIE) & 89.9\% & 155 & 0.38 \\
+        Feb 10 (GLOVE) & 89.3\% & 873 & 0.65 \\
+        Feb 12 (GLOVE) & 93.1\% & 687 & 0.86 \\
+        Feb 18 (GLOVE) & 86.5\% & 408 & -0.45 \\
         \midrule
-        \textbf{Mean} & \textbf{86\%} & 313 & -- \\
+        \textbf{Mean} & \textbf{90.0\%} & 538 & -- \\
         \bottomrule
     \end{tabular}
 \end{table}
 
-Per-flight calibration recovers 86\% coverage (close to 90\% target) by respecting the i.i.d. assumption within flights.
+Per-flight calibration recovers 90.0\% coverage (matches 90\% target) by respecting the i.i.d. assumption within flights. Within-flight R$^2$ ranges from -0.45 (Feb~18, smallest flight with n=185) to 0.86 (Feb~12), demonstrating that prediction quality varies substantially across atmospheric regimes even within the same flight.
 
 \textbf{Operational implication:} Conformal prediction cannot provide valid coverage guarantees across atmospheric regimes. Deploy per-flight calibration with locally-collected labeled samples.
 
@@ -557,24 +567,24 @@ Per-flight calibration recovers 86\% coverage (close to 90\% target) by respecti
 
 \subsection{When This Approach Works}
 
-The approach succeeds in several scenarios. Within-flight deployment achieves R$^2$ = 0.744 and MAE = 117.4 m with per-flight validation, demonstrating accurate retrieval when training and test data share the same atmospheric regime. Cross-regime deployment with few-shot adaptation recovers R$^2$ = 0.57--0.85 with only 50 labeled samples from the target domain, making operational deployment practical. Real-time inference at 0.28 ms on CPU makes the method suitable for aircraft deployment without specialized hardware.
+The approach succeeds in several scenarios. Within-flight deployment with per-flight conformal calibration (60/20/20 train/cal/test split) achieves a mean R$^2$ across flights of 0.46 (ranging from -0.45 for the smallest flight to 0.86) with 90\% conformal coverage, demonstrating useful retrieval when training and test data share the same atmospheric regime. Note that full within-flight 5-fold CV yields a lower mean R$^2$ = -0.51 due to high variance across folds and flights, reflecting the difficulty of this regression task even within a single flight. Cross-regime deployment with few-shot adaptation recovers R$^2$ = -0.03--0.69 with only 50 labeled samples from the target domain, making operational deployment practical. Real-time inference at 0.28 ms on CPU makes the method suitable for aircraft deployment without specialized hardware.
 
 \subsection{When This Approach Fails}
 
-The approach fails in several important scenarios that practitioners must recognize. Cross-regime deployment without adaptation yields R$^2$ = -15.4, a catastrophic failure where predictions are substantially worse than a constant baseline. Temporal extrapolation, predicting forward in time within flights, achieves only R$^2$ = -0.055, indicating that even within-flight generalization degrades over time. Conformal prediction under domain shift achieves only 27\% coverage versus the 90\% target, rendering uncertainty estimates unreliable. Instance weighting and MMD alignment not only fail to improve performance but actively make it worse.
+The approach fails in several important scenarios that practitioners must recognize. Cross-regime deployment without adaptation yields R$^2$ = -5.36, a catastrophic failure where predictions are substantially worse than a constant baseline. Even within-flight shuffled 5-fold CV yields mean R$^2$ = -0.51 across flights, indicating that GBDT struggles with this heterogeneous regression task. Conformal prediction under domain shift achieves only 34\% coverage versus the 90\% target, rendering uncertainty estimates unreliable. Instance weighting and MMD alignment not only fail to improve performance but actively make it worse or provide only marginal benefit.
 
 \subsection{Practical Recommendations}
 
-Based on our findings, we offer five practical recommendations for atmospheric ML practitioners. First, always use temporally-aware validation, as pooled CV inflates R$^2$ by 0.18 due to autocorrelation; per-flight or time-ordered splits provide honest performance estimates. Second, expect domain shift, recognizing that high within-distribution performance does not guarantee cross-regime generalization; LOFO validation is essential before making deployment claims. Third, plan for few-shot adaptation by budgeting for collecting 20--50 labeled samples from each target regime, which is more practical than attempting universal models. Fourth, use per-flight uncertainty calibration, since standard conformal prediction fails under shift; calibrating locally within each deployment regime is necessary for reliable uncertainty estimates. Fifth, recognize that feature engineering aids interpretation rather than accuracy, as derived thermodynamic features reveal what physics matter but do not improve GBDT predictions since the algorithm learns equivalent representations from raw variables.
+Based on our findings, we offer five practical recommendations for atmospheric ML practitioners. First, always use temporally-aware validation, as pooled CV reports R$^2$ = -2.05 while LOFO reveals the true cross-regime R$^2$ = -5.36; per-flight or time-ordered splits provide honest performance estimates. Second, expect domain shift, recognizing that high within-distribution performance does not guarantee cross-regime generalization; LOFO validation is essential before making deployment claims. Third, plan for few-shot adaptation by budgeting for collecting 20--50 labeled samples from each target regime, which is more practical than attempting universal models. Fourth, use per-flight uncertainty calibration, since standard conformal prediction fails under shift; calibrating locally within each deployment regime is necessary for reliable uncertainty estimates. Fifth, recognize that feature engineering aids interpretation rather than accuracy, as derived thermodynamic features reveal what physics matter but do not dramatically improve GBDT predictions since the algorithm learns equivalent representations from raw variables.
 
 \subsection{Implications for Atmospheric ML}
 
-Our findings challenge several assumptions common in atmospheric ML. First, cross-validation overstates generalization more severely than previously documented, with the gap between pooled CV (R$^2$ = 0.924) and LOFO (R$^2$ = -15.4) being among the largest reported in the literature. Second, physics-informed features provide limited accuracy gains, as GBDT with 10 raw features matches performance of 38 engineered features, indicating that the value of feature engineering lies in interpretability rather than predictive power. Third, domain adaptation is harder than expected for atmospheric applications, with only few-shot learning proving effective while sophisticated methods including MMD and instance weighting fail completely. Fourth, uncertainty quantification requires particular care, as standard methods fail under the autocorrelation and shift inherent in atmospheric data.
+Our findings challenge several assumptions common in atmospheric ML. First, cross-validation overstates generalization more severely than previously documented, with pooled CV (R$^2$ = -2.05) substantially overestimating performance relative to LOFO (R$^2$ = -5.36), and both being catastrophically negative. Second, physics-informed features provide limited accuracy gains, as GBDT with 5 raw ERA5 features achieves comparable pooled CV performance to the 34-feature enhanced model (both negative R$^2$), though the 34-feature model performs better in per-flight CV (R$^2$ = -0.51 vs -2.04), indicating that the value of feature engineering is context-dependent. Third, domain adaptation is harder than expected for atmospheric applications, with only few-shot learning proving effective while sophisticated methods including MMD and instance weighting fail. Fourth, uncertainty quantification requires particular care, as standard methods fail under the autocorrelation and shift inherent in atmospheric data.
 
 \section{Conclusion}
 \label{sec:conclusion}
 
-We have presented a systematic investigation of physics-informed feature engineering and domain shift challenges for atmospheric machine learning. Five key findings emerge from this work. First, feature engineering provides interpretability benefits, with virtual temperature (33\%) and stability$\times$moisture (22\%) emerging as important features that reveal thermodynamic relationships, though accuracy matches base variables with R$^2$ = 0.744 for both the 10-feature and 38-feature models. Second, domain shift is catastrophic for this application, with LOFO validation yielding R$^2$ = -15.4, representing among the most severe shifts documented in atmospheric ML literature, while cross-validation inflates performance by 0.18 R$^2$. Third, few-shot learning is the only effective adaptation method, with 50 samples recovering R$^2$ = 0.57, while instance weighting, TrAdaBoost, and MMD alignment fail or make performance worse. Fourth, conformal prediction fails under shift, achieving only 27\% coverage versus the 90\% target, though per-flight calibration recovers 86\% coverage. Fifth, honest expectations are essential: this approach works for within-regime deployment with local calibration but fails for universal cross-regime generalization.
+We have presented a systematic investigation of physics-informed feature engineering and domain shift challenges for atmospheric machine learning. Five key findings emerge from this work. First, feature engineering provides interpretability benefits, with derived thermodynamic features revealing physically meaningful relationships, and modest per-flight accuracy improvements over base ERA5 variables (within-flight CV R$^2$ = -0.51 vs -2.04), though neither achieves positive R$^2$ across all flights. Second, domain shift is catastrophic for this application, with LOFO validation yielding R$^2$ = -5.36 across 5,500 ocean-only boundary-layer observations from six flights, representing among the most severe shifts documented in atmospheric ML literature. Third, few-shot learning is the only effective adaptation method, with 50 samples recovering mean R$^2$ = +0.35, while instance weighting, TrAdaBoost, and MMD alignment fail or provide only marginal benefit. Fourth, conformal prediction fails under shift, achieving only 34\% coverage versus the 90\% target, though within-flight calibration exactly recovers 90\% coverage. Fifth, honest expectations are essential: this approach works for within-regime deployment with local calibration but fails for universal cross-regime generalization.
 
 We release our code, data, and trained models to support reproducible research on atmospheric ML generalization challenges.
 

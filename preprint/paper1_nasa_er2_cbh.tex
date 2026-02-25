@@ -32,14 +32,14 @@
     \texttt{malarchr@my.erau.edu}
 }
 
-\date{February 2026}
+\date{February 2026 --- Iteration 2 (Audit Reconciled)}
 
 \begin{document}
 
 \maketitle
 
 \begin{abstract}
-We investigate the feasibility of cloud base height (CBH) retrieval from thermal infrared imagery using convolutional neural networks (CNNs). Using downward-looking thermal IR camera observations (2--6 $\mu$m) from the NASA ER-2 high-altitude research aircraft, we train ResNet-18 and EfficientNet-B0 architectures to predict CBH validated against co-located Cloud Physics Lidar (CPL) measurements. Using 380 labeled samples from seven research flights across two field campaigns with 5-fold cross-validation, the best-performing model (ResNet-18 with ImageNet pretraining) achieves R$^2$ = 0.432 $\pm$ 0.095 with mean absolute error of 172.7 $\pm$ 17.6 m. While ImageNet pretraining provides marginal benefit for ResNet-18 (R$^2$ = 0.432 vs.\ 0.414 from scratch), data augmentation consistently degrades performance across all architectures, likely due to the unique spatial structure of small (20$\times$22 pixel) thermal IR observations. While current accuracy remains limited compared to active lidar measurements, this work establishes baseline CNN performance for passive thermal CBH retrieval across diverse marine cloud regimes spanning 210--1500 m altitude.
+We investigate the feasibility of cloud base height (CBH) retrieval from thermal infrared imagery using convolutional neural networks (CNNs). Using downward-looking thermal IR camera observations (2--6 $\mu$m) from the NASA ER-2 high-altitude research aircraft, we train ResNet-18 and EfficientNet-B0 architectures to predict CBH validated against co-located Cloud Physics Lidar (CPL) measurements. Using 380 labeled samples from seven research flights across two field campaigns with 5-fold cross-validation, the best-performing model (ResNet-18 with ImageNet pretraining) achieves R$^2$ = 0.432 $\pm$ 0.094 with mean absolute error of 172.7 $\pm$ 17.6 m. While ImageNet pretraining provides marginal benefit for ResNet-18 (R$^2$ = 0.432 vs.\ 0.414 from scratch), data augmentation consistently degrades performance across all architectures, likely due to the unique spatial structure of small (20$\times$22 pixel) thermal IR observations. While current accuracy remains limited compared to active lidar measurements, this work establishes baseline CNN performance for passive thermal CBH retrieval across diverse marine cloud regimes spanning 210--1500 m altitude.
 \end{abstract}
 
 \textbf{Keywords:} cloud base height, deep learning, convolutional neural networks, thermal infrared, NASA ER-2, atmospheric remote sensing
@@ -74,6 +74,15 @@ Section~\ref{sec:data} describes the NASA ER-2 platform, instruments, and datase
 
 The NASA ER-2 is a high-altitude research aircraft operating at altitudes up to 21 km, providing a unique vantage point above cloud layers for atmospheric observation \cite{McGill2002}. Flying above the tropopause, the ER-2 enables simultaneous active lidar profiling and passive imagery of cloud systems below.
 
+Figure~\ref{fig:backscatter} shows a representative CPL 532 nm backscatter curtain from the WHySMIE 2024 campaign, illustrating the vertical cloud structure observed during a research flight. The boundary layer cloud tops and bases are clearly visible in the lidar returns, demonstrating the type of active sensing measurements used as ground truth in this work.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.95\textwidth]{paperfigures/imgsum_259004_23oct24_532.png}
+    \caption{CPL 532 nm attenuated total backscatter curtain from WHySMIE Oct 23, 2024 (flight 259004). The two panels show the outbound and return legs of the ER-2 sortie over the eastern Pacific. Low marine boundary layer clouds are visible as enhanced backscatter returns below $\sim$2 km altitude. The lidar resolves cloud top and base altitudes at 30 m vertical resolution, providing the ground truth CBH measurements used to train our CNN models.}
+    \label{fig:backscatter}
+\end{figure}
+
 \subsection{Infrared Array Imager (IRAI)}
 
 The downward-looking thermal infrared camera captures cloud thermal emission in the 2--6 $\mu$m spectral range. After preprocessing including vignetting correction and swath extraction, each observation yields a 20$\times$22 pixel thermal brightness image (440 total pixels). The small image size reflects the instrument's narrow field of view focused on the nadir column coincident with the CPL lidar beam.
@@ -89,6 +98,15 @@ Key instrument characteristics:
 \subsection{Cloud Physics Lidar (CPL)}
 
 The Cloud Physics Lidar is an active 532 nm backscatter lidar providing vertical profiles of cloud structure with 30 m vertical resolution \cite{McGill2002}. CPL retrievals serve as ground truth for CBH labels in our supervised learning framework. We use the Layer\_Base\_Altitude product for single-layer cloud scenes over ocean surfaces.
+
+Figure~\ref{fig:cbh_timeseries} shows the CPL-derived cloud base height time series for the same flight, illustrating the temporal variability of CBH across different cloud regimes encountered during a single sortie.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.95\textwidth]{paperfigures/paper1_fig2_cbh_timeseries.png}
+    \caption{Cloud base height time series from CPL retrievals during WHySMIE Oct 23, 2024. CBH varies from near-surface ($<$100 m) to above 3 km across different cloud regimes, illustrating the wide range of conditions encountered during ER-2 flights. Our filtered dataset retains only single-layer ocean scenes with CBH in the 0.1--2.0 km range.}
+    \label{fig:cbh_timeseries}
+\end{figure}
 
 \subsection{Dataset Summary}
 
@@ -212,7 +230,7 @@ Table~\ref{tab:performance} presents validation results across all configuration
         \toprule
         \textbf{Model} & \textbf{R$^2$} & \textbf{MAE (m)} & \textbf{RMSE (m)} \\
         \midrule
-        \textbf{ResNet-18 (pretrained)} & \textbf{0.432 $\pm$ 0.095} & \textbf{172.7 $\pm$ 17.6} & \textbf{239.5 $\pm$ 23.7} \\
+        \textbf{ResNet-18 (pretrained)} & \textbf{0.432 $\pm$ 0.094} & \textbf{172.7 $\pm$ 17.6} & \textbf{239.5 $\pm$ 23.7} \\
         ResNet-18 (scratch) & 0.414 $\pm$ 0.127 & 169.5 $\pm$ 15.8 & 242.7 $\pm$ 28.4 \\
         EfficientNet-B0 (pretrained) & 0.311 $\pm$ 0.109 & 201.4 $\pm$ 26.9 & 263.9 $\pm$ 26.3 \\
         ResNet-18 (pretrained+aug) & 0.056 $\pm$ 0.070 & 242.6 $\pm$ 8.9 & 309.3 $\pm$ 13.0 \\
@@ -260,7 +278,7 @@ Figure~\ref{fig:residuals} presents residual diagnostics.
 \begin{figure}[h]
     \centering
     \includegraphics[width=0.95\textwidth]{paperfigures/paper1_fig_residual_analysis.png}
-    \caption{Residual analysis for ResNet-18 (pretrained). Left: Residuals vs. predicted values show heteroscedasticity with larger errors at extreme predictions. Right: Residual distribution is approximately symmetric with a slight negative bias (mean residual $\approx$ $-$43 m), indicating mild underprediction on average.}
+    \caption{Residual analysis for ResNet-18 (pretrained). Left: Residuals vs. predicted values show heteroscedasticity with larger errors at extreme predictions. Right: Residual distribution is roughly centered near zero with a slight negative bias (mean residual $\approx$ $-$43 m), indicating mild underprediction on average.}
     \label{fig:residuals}
 \end{figure}
 
@@ -276,8 +294,8 @@ Table~\ref{tab:compute} summarizes computational requirements.
         \toprule
         \textbf{Model} & \textbf{Train Time (s/fold)} & \textbf{Inference (ms)} & \textbf{Size (MB)} \\
         \midrule
-        ResNet-18 & 75.2 $\pm$ 14.5 & 5.2 $\pm$ 0.0 & 43.1 \\
-        EfficientNet-B0 & 120.4 $\pm$ 36.1 & 9.1 $\pm$ 0.1 & 16.7 \\
+        ResNet-18 & 70.4 $\pm$ 12.2 & 5.2 $\pm$ 0.0 & 43.1 \\
+        EfficientNet-B0 & 137.8 $\pm$ 29.1 & 9.1 $\pm$ 0.1 & 16.7 \\
         \bottomrule
     \end{tabular}
 \end{table}
@@ -301,7 +319,7 @@ Our results reveal fundamental challenges in passive CBH retrieval from imagery:
 
 \textbf{Information content:} Thermal IR imagery observes cloud top brightness temperature, which depends on cloud top altitude, not cloud base. Inferring CBH requires learning indirect relationships (e.g., cloud type, thickness) that may not be reliably present in small images.
 
-\textbf{CBH range effects:} The expanded dataset spans 210--1500 m, a wider range than marine stratocumulus alone. This increased diversity improves model robustness (tighter fold-to-fold variance: $\pm$0.095 vs.\ $\pm$0.271 in preliminary 2-flight experiments) but increases absolute error as the prediction task becomes harder.
+\textbf{CBH range effects:} The expanded dataset spans 210--1500 m, a wider range than marine stratocumulus alone. This increased diversity improves model robustness (tighter fold-to-fold variance: $\pm$0.094 vs.\ $\pm$0.271 in preliminary 2-flight experiments) but increases absolute error as the prediction task becomes harder.
 
 \textbf{Small image size:} The 20$\times$22 pixel format severely limits spatial context. Larger field-of-view imagery might provide additional cloud structure information.
 
@@ -325,7 +343,7 @@ The relevant comparison is whether CNN predictions provide value beyond simple b
 We have established baseline CNN performance for cloud base height retrieval from NASA ER-2 thermal infrared imagery using 380 samples from seven research flights across two field campaigns:
 
 \begin{itemize}
-    \item \textbf{Best model:} ResNet-18 with ImageNet pretraining achieves R$^2$ = 0.432 $\pm$ 0.095, MAE = 172.7 $\pm$ 17.6 m
+    \item \textbf{Best model:} ResNet-18 with ImageNet pretraining achieves R$^2$ = 0.432 $\pm$ 0.094, MAE = 172.7 $\pm$ 17.6 m
     \item \textbf{Augmentation hurts:} Data augmentation consistently degrades performance, likely because geometric transforms violate the instrument's spatial structure
     \item \textbf{Moderate skill:} The CNN explains 43\% of CBH variance across 210--1500 m, demonstrating that thermal imagery contains CBH-predictive information despite the fundamental challenge of inferring vertical structure from top-down observations
     \item \textbf{Robust across folds:} Fold R$^2$ ranges from 0.31 to 0.56, indicating consistent rather than spurious predictive skill

@@ -1,0 +1,136 @@
+# Pending Publications - CloudML Project
+# For Goldwater Application and CV
+# Generated: January 23, 2026
+# Source: Jan 7, 2026 preprint (Rylan-cloudml_academic_preprint.pdf)
+
+================================================================================
+CITATION FORMAT (Conference/Poster Style)
+================================================================================
+
+Malarchick R. Cloud Base Height Retrieval from NASA ER-2 Airborne Observations 
+using Machine Learning. Manuscript in preparation; 2026.
+
+Malarchick R. Physics-Informed Feature Engineering for Atmospheric Remote 
+Sensing: Domain Shift and Uncertainty Quantification Challenges. Manuscript 
+in preparation; 2026.
+
+================================================================================
+PAPER 1: NASA ER-2 Airborne CBH Retrieval
+================================================================================
+
+Working Title: 
+  Cloud Base Height Retrieval from NASA ER-2 Airborne Observations using 
+  Machine Learning
+
+Authors: Malarchick R
+
+Status: In preparation
+
+Narrative Focus:
+  "We developed ML methods to retrieve cloud base height from NASA ER-2 
+  high-altitude observations, validating against CPL lidar ground truth"
+
+Key Content (from Jan 7 preprint):
+  - NASA ER-2 platform: CPL lidar (532nm, 30m vertical resolution), 
+    downward-looking camera (1024x1024), flight metadata (1 Hz GPS)
+  - Campaigns: GLOVE 2025 (Feb), WHYMSIE 2024 (Oct)
+  - Dataset: 1,426 samples from 3 flights (Flight 1: 1,021, Flight 2: 129, 
+    Flight 3: 276)
+  - CBH range: 210-1,950m (mean 1,197m)
+  - Within-campaign performance: R² = 0.744, MAE = 117.4m
+  - Production deployment: 0.28ms inference, 1.3MB model, CPU-only
+  - Physical validation: Zero constraint violations, LCL correlation r=0.26
+
+Acknowledgments to include:
+  - NASA OSTEM internship (May-August 2025)
+  - NASA Goddard Space Flight Center High Altitude Research Program
+  - Dr. Dong Wu and NASA ER-2 flight team
+  - NASA HAR data portal (https://har.gsfc.nasa.gov/)
+  - CPL team (https://cpl.gsfc.nasa.gov/)
+
+================================================================================
+PAPER 2: ERA5 Feature Engineering for Atmospheric ML
+================================================================================
+
+Working Title:
+  Physics-Informed Feature Engineering for Atmospheric Remote Sensing: 
+  Domain Shift and Uncertainty Quantification Challenges
+
+Authors: Malarchick R
+
+Status: In preparation
+
+Narrative Focus:
+  "We systematically compare physics-informed ERA5 features vs. image-based 
+  deep learning for atmospheric remote sensing, revealing critical domain 
+  shift challenges and proposing practical solutions"
+
+Key Content (from Jan 7 preprint):
+  - ERA5 reanalysis: 0.25° resolution, 37 pressure levels, hourly
+  - Feature engineering: 10 base features + 28 physics-based derived = 38 total
+    * Base: t2m, d2m, sp, blh, tcwv, lcl, stability_index, moisture_gradient, 
+      sza_deg, saa_deg
+    * Derived: virtual_temperature (33% importance), stability_x_tcwv (22%), 
+      thermodynamic interactions, LCL-based features
+  - Model comparison: GBDT vs SimpleCNN vs ResNet-18 vs EfficientNet-B0
+    * GBDT: R²=0.744, MAE=117.4m (per-flight shuffled)
+    * ResNet-18 scratch: R²=0.617, MAE=150.9m (best vision model)
+    * GBDT outperforms by 22.2% on MAE
+  - Validation methodology critique:
+    * Pooled K-fold inflated: R²=0.924 (temporal autocorrelation ρ=0.94)
+    * Per-flight shuffled (honest): R²=0.744
+    * Time-ordered holdout: R²=-0.055
+  - Domain shift analysis:
+    * LOFO-CV: mean R²=-15.4 (catastrophic failure)
+    * K-S divergence shows d2m, t2m, sp most divergent (K-S > 0.4)
+    * PCA: flights cluster by campaign (PC1: 36%, PC2: 14.4%)
+  - Domain adaptation methods (5 evaluated):
+    * Few-shot learning: 50 samples → R²=0.57-0.85 (RECOMMENDED)
+    * Instance weighting: R²=-21.4 (worse than baseline)
+    * TrAdaBoost: R²=-0.41 (modest improvement)
+    * MMD alignment: R²=-39.4 (destroys signal)
+  - Uncertainty quantification:
+    * Split conformal: 27% coverage (target 90%) - FAILS
+    * Per-flight calibration: 86% coverage, 313m intervals - WORKS
+  - Computational efficiency:
+    * GBDT: 0.28ms inference, 1.3MB, CPU-only
+    * ResNet-18: 2.62ms, 42.7MB, GPU preferred
+    * 9.3x faster, 33x smaller
+
+Acknowledgments to include:
+  - ECMWF Copernicus Climate Data Store (ERA5)
+  - Embry-Riddle Aeronautical University
+  - CloudMLPublic open-source framework
+
+================================================================================
+WORK PLAN - Paper Development
+================================================================================
+
+Status: WAITING for Dr. Dong Wu's annotations on preprint
+
+Next Steps:
+  [ ] Receive and review Dr. Dong's annotations
+  [ ] Clarify which content belongs to which paper per NASA team input
+  [ ] Draft Paper 1 (ER-2 focus) - methods paper framing
+  [ ] Draft Paper 2 (ERA5 focus) - methods paper framing  
+  [ ] Identify target journals/conferences for each
+  [ ] Update .tex files in repo
+  [ ] Compile and verify PDFs match intended content
+
+Content Split Guidelines (pending Dong's feedback):
+  - Paper 1 emphasizes: ER-2 platform capabilities, CPL validation, 
+    operational deployment for NASA missions
+  - Paper 2 emphasizes: ML methodology, validation critique, domain 
+    adaptation, uncertainty quantification generalizable to other 
+    atmospheric sensing problems
+
+Notes:
+  - Both papers are "methods papers" not "dataset papers"
+  - Paper 1: "here's our limited airborne data, here are methods we 
+    developed and applied for NASA remote sensing"
+  - Paper 2: "here's why physics-informed features beat deep learning for 
+    atmospheric ML, and the domain shift problem everyone needs to address"
+  - The .tex in repo currently matches Jan 6 version (933 samples, 18 features)
+  - Need to update .tex to match Jan 7 version before splitting
+
+================================================================================
