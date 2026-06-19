@@ -1,5 +1,7 @@
 # Cloud Base Height Retrieval from NASA ER-2 Airborne Observations
 
+> **Status:** not actively maintained. Left up as a reference.
+
 Machine learning for cloud base height (CBH) retrieval using NASA ER-2 aircraft data from the WHySMIE (Oct 2024) and GLOVE (Feb 2025) campaigns, with honest assessment of performance and failure modes across atmospheric regimes.
 
 **Author:** Rylan Malarchick | Embry-Riddle Aeronautical University  
