@@ -66,10 +66,12 @@ Vision: 380 thermal-IR cutouts (20x22 px) from 7 flights.
 ## Layout
 
 ```
-preprint/   both papers (LaTeX)
-scripts/    paper2_rerun_v2.py, feature_engineering.py, train_image_model.py
-results/    paper2_rerun_v2/ metrics (JSON)
-outputs/    vision_baselines/reports/ metrics (JSON)
+src/        models, datasets, validation (cbh_retrieval package)
+scripts/    data pipeline, training, and analysis entry points
+configs/    experiment configs (YAML)
+outputs/    figures and result tables
+docs/cbh/   model card, reproducibility and deployment guides
+tests/      pytest suite
 ```
 
 ## Reproducing

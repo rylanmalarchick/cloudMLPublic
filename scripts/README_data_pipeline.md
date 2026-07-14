@@ -352,14 +352,6 @@ configs/
 ├── data_expansion_phase1.yaml      # +Low clouds (~2,306)
 ├── data_expansion_phase2.yaml      # +Multi-layer (~1,235)
 └── data_expansion_max.yaml         # Maximum (~5,756)
-
-archive/data_creation/
-├── hdf5_dataset.py                 # Archived: Original CPL filtering
-├── main_utils.py                   # Archived: Utility functions
-├── create_integrated_features.py   # Archived: Original integration
-├── wp1_geometric_features.py       # Archived: Shadow features
-├── wp2_atmospheric_features.py     # Archived: ERA5 features
-└── README.md                       # Archive documentation
 ```
 
 ## Differences from Original Pipeline
@@ -409,16 +401,3 @@ These simplified features can be added later if needed.
 
 4. **Retrain models**: Use expanded datasets to train improved CBH retrieval models
 
-## References
-
-- Original filtering logic: `archive/data_creation/hdf5_dataset.py` (lines 148-185)
-- Data clarification report: `data_clarification_report.md`
-- Expansion analysis: `EXPANSION_SUMMARY.md`
-
-## Support
-
-For questions or issues:
-1. Check this documentation
-2. Review the configuration file comments
-3. Examine the archived code in `archive/data_creation/`
-4. Check the data analysis reports (`data_clarification_report.md`, `EXPANSION_SUMMARY.md`)
