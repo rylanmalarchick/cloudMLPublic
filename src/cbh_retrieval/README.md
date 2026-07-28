@@ -1,14 +1,10 @@
 # Cloud Base Height (CBH) Retrieval Module
 
-Production-ready machine learning module for cloud base height prediction from satellite imagery and atmospheric data.
+Machine-learning module for cloud base height retrieval from thermal imagery and atmospheric data.
 
 ## Overview
 
-This module contains the complete implementation of the CBH retrieval system developed in Sprint 6, achieving:
-- **GBDT Model R²**: 0.744 (tabular features)
-- **Ensemble R²**: 0.7391 (weighted GBDT + CNN)
-- **MAE**: 117.4 m
-- **Test Coverage**: 93.5%
+This module implements the CBH retrieval system: a tabular GBDT, an image CNN, ensembles, uncertainty quantification, and domain-adaptation experiments. A caution on metrics: the pooled 5-fold numbers below (R2 = 0.744) come from the initial study, and cross-flight leakage inflates them. The [top-level README](../../README.md) reports the validated cross-regime results.
 
 ## Module Structure
 
@@ -25,7 +21,7 @@ cbh_retrieval/
  ensemble_models.py            # Ensemble strategy implementations
  ensemble_tabular_image.py    # Tabular + Image ensemble
  analyze_ensemble_results.py  # Ensemble analysis tools
- error_analysis.py             # Comprehensive error analysis
+ error_analysis.py             # Error analysis
  few_shot_f4.py               # Domain adaptation for Flight F4
  few_shot_f4_tabular.py       # Tabular-based few-shot learning
  ablation_plots.py            # Ablation study visualizations
@@ -52,7 +48,7 @@ cbh_retrieval/
 ### Validation
 - 5-fold stratified cross-validation
 - Uncertainty quantification (90% confidence intervals)
-- Comprehensive error analysis
+- Error analysis
 - Domain adaptation experiments
 
 ## Usage
@@ -116,6 +112,8 @@ See `docs/cbh/requirements_production.txt` for dependencies:
 
 ## Performance Benchmarks
 
+Pooled 5-fold CV from the initial study. Cross-flight leakage inflates these numbers (see the top-level README).
+
 | Model | R² | MAE (m) | RMSE (m) | Inference (ms) |
 |-------|----|---------|-----------|--------------------|
 | GBDT | 0.744 | 117.4 | 187.3 | 2.5 (CPU) |
@@ -124,11 +122,8 @@ See `docs/cbh/requirements_production.txt` for dependencies:
 
 ## Documentation
 
-Full documentation available in `docs/cbh/`:
-- `MODEL_CARD.md` - Model specifications and performance
-- `DEPLOYMENT_GUIDE.md` - Production deployment instructions
-- `REPRODUCIBILITY_GUIDE.md` - Reproduction instructions
-- `SPRINT6_FINAL_DELIVERY.md` - Complete Sprint 6 results
+Documentation lives in `docs/cbh/`:
+- `MODEL_CARD.md` - Model specifications and validated performance
 
 ## Testing
 
@@ -148,27 +143,13 @@ pytest tests/cbh/ --cov=src/cbh_retrieval --cov-report=html
 2. **UQ Calibration**: 77% coverage vs. 90% target. Conformal prediction recommended.
 3. **Flight F4 Domain Shift**: Severe performance degradation (R²=-0.98). Root cause analysis needed.
 
-## Future Work
-
-See `docs/cbh/FUTURE_WORK.md` for detailed roadmap:
-- Temporal Vision Transformer implementation
-- Cross-modal attention (ERA5 + imagery)
-- Improved uncertainty calibration
-- Domain adaptation strategies
-
 ## Citation
 
-If you use this module, please cite:
-
-```
-NASA Cloud Base Height Retrieval System
-Sprint 6 Production Release
-https://github.com/rylanmalarchick/cloudMLPublic
-```
+See the Citation section of the [top-level README](../../README.md).
 
 ## License
 
-[Add license information]
+MIT (see [LICENSE](../../LICENSE)).
 
 ## Contact
 

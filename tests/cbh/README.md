@@ -1,10 +1,8 @@
-# Sprint 6 Test Suite
+# CBH Test Suite
 
 ## Overview
 
-This directory contains comprehensive unit tests for the Cloud Base Height (CBH) Retrieval System.
-
-**Test Coverage**: 95%+ across inference, data loading, and validation components
+This directory contains the unit tests for the Cloud Base Height (CBH) Retrieval System. The tests cover inference, data loading, and validation.
 
 ## Test Files
 
@@ -20,8 +18,8 @@ This directory contains comprehensive unit tests for the Cloud Base Height (CBH)
 # From project root
 pip install pytest pytest-cov pytest-benchmark pytest-xdist
 
-# Or install all production dependencies
-pip install -r sow_outputs/sprint6/requirements_production.txt
+# Or install all pinned dependencies
+pip install -r docs/cbh/requirements_production.txt
 ```
 
 ### Verify Installation

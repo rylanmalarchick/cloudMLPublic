@@ -3,7 +3,7 @@
 ## Model Details
 
 ### Model Information
-- **Model Name**: CBH Retrieval Production Model
+- **Model Name**: CBH Retrieval GBDT (validated restudy)
 - **Model Version**: 2.0.0 (Validated Restudy)
 - **Model Type**: Gradient Boosting Decision Tree (GBDT) Regressor
 - **Framework**: scikit-learn 1.7.0
@@ -174,7 +174,7 @@ This model predicts Cloud Base Height (CBH) in meters above ground level using a
 8. **Shadow Detection Assumptions**
    - Brightness thresholds fail in complex illumination
    - Thin clouds, multiple cloud layers, low solar elevation problematic
-   - **Mitigation**: ERA5 features are more robust than shadow-based features
+   - **Mitigation**: ERA5 features are less sensitive to this than shadow-based features
 
 9. **CPL Ground Truth Uncertainty**
    - ~30 m vertical resolution
@@ -230,7 +230,6 @@ This model predicts Cloud Base Height (CBH) in meters above ground level using a
 ### Documentation
 - **Preprint**: `preprint/cloudml_academic_preprint.tex`
 - **README**: Repository root
-- **Deployment Guide**: `docs/cbh/DEPLOYMENT_GUIDE.md`
 
 ---
 

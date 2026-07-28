@@ -1,6 +1,6 @@
 # Cloud Base Height Retrieval from NASA ER-2 Airborne Observations
 
-> Status: not actively maintained. Left up as a reference.
+> Status: complete. Research code behind two papers, kept as a reference. Not under active development.
 
 Machine-learning retrieval of cloud base height (CBH) from NASA ER-2 data taken
 during the WHySMIE (Oct 2024) and GLOVE (Feb 2025) campaigns. The headline result
@@ -12,10 +12,10 @@ Two papers are supported here:
 
 - Vision (thermal IR): ResNet-18 / EfficientNet-B0 on 20x22 px thermal cutouts.
   380 samples, 7 flights, 5-fold CV. Best is ResNet-18 pretrained at R2 = 0.43,
-  MAE = 173 m; small crops and a small sample cap performance.
+  MAE = 173 m. Small crops and a small sample cap performance.
 - ERA5 tabular + domain shift: gradient-boosted trees on 34 ERA5-derived
   features, 5,500 ocean boundary-layer observations, 6 flights. Leave-one-flight-out
-  R2 = -5.36; a 50-sample few-shot fit recovers R2 = +0.35.
+  R2 = -5.36. A 50-sample few-shot fit recovers R2 = +0.35.
 
 ## Results
 
@@ -36,10 +36,10 @@ Vision models (5-fold CV):
 | ResNet-18 scratch | 0.414 +/- 0.127 | 169.5 +/- 15.8 | 242.7 +/- 28.4 |
 | EfficientNet-B0 pretrained | 0.311 +/- 0.109 | 201.4 +/- 26.9 | 263.9 +/- 26.3 |
 
-What the numbers say: domain shift dominates (all six held-out flights give
-negative R2; 14 of 34 features have a K-S statistic of 1.0 between Oct and Feb).
+What the numbers say: domain shift dominates. All six held-out flights give
+negative R2, and 14 of 34 features have a K-S statistic of 1.0 between Oct and Feb.
 Validation choice matters: pooled CV hides the cross-regime gap that LOFO exposes.
-Few-shot adaptation is the only method that recovers positive skill; instance
+Few-shot adaptation is the only method that recovers positive skill. Instance
 weighting, MMD alignment, and feature selection do not. Split-conformal intervals
 miss badly across flights (34% coverage against a 90% target) but calibrate within
 a single flight.
@@ -107,6 +107,6 @@ Per-model vision results are under `outputs/vision_baselines/reports/*.json`.
 ## License and credits
 
 MIT (see [LICENSE](LICENSE)). Rylan Malarchick, Embry-Riddle Aeronautical
-University (malarchr@my.erau.edu). Done independently after a NASA OSTEM
-internship (summer 2025) at Goddard Space Flight Center; ERA5 from ECMWF
-Copernicus, CPL lidar from NASA Goddard.
+University (malarchr@my.erau.edu). Independent work after a NASA OSTEM
+internship (summer 2025) at Goddard Space Flight Center. ERA5 data from ECMWF
+Copernicus. CPL lidar from NASA Goddard.
