@@ -3,10 +3,7 @@
 > Status: complete. Research code behind two papers, kept as a reference. Not under active development.
 
 Machine-learning retrieval of cloud base height (CBH) from NASA ER-2 data taken
-during the WHySMIE (Oct 2024) and GLOVE (Feb 2025) campaigns. The headline result
-is a negative one: models trained on one atmospheric regime do not transfer to
-another. The repo documents that failure and what does and does not recover from
-it, rather than reporting a single optimistic pooled score.
+during the WHySMIE (Oct 2024) and GLOVE (Feb 2025) campaigns. 
 
 Two papers are supported here:
 
@@ -35,14 +32,6 @@ Vision models (5-fold CV):
 | ResNet-18 pretrained | 0.432 +/- 0.094 | 172.7 +/- 17.6 | 239.5 +/- 23.7 |
 | ResNet-18 scratch | 0.414 +/- 0.127 | 169.5 +/- 15.8 | 242.7 +/- 28.4 |
 | EfficientNet-B0 pretrained | 0.311 +/- 0.109 | 201.4 +/- 26.9 | 263.9 +/- 26.3 |
-
-What the numbers say: domain shift dominates. All six held-out flights give
-negative R2, and 14 of 34 features have a K-S statistic of 1.0 between Oct and Feb.
-Validation choice matters: pooled CV hides the cross-regime gap that LOFO exposes.
-Few-shot adaptation is the only method that recovers positive skill. Instance
-weighting, MMD alignment, and feature selection do not. Split-conformal intervals
-miss badly across flights (34% coverage against a 90% target) but calibrate within
-a single flight.
 
 Top features (full 34-feature model): blh_sq 32%, blh 17%, stability_tcwv 8%,
 moisture_gradient 8%, blh_lcl_ratio 4%.
@@ -86,27 +75,9 @@ python3 -u scripts/paper2_rerun_v2.py
 
 Per-model vision results are under `outputs/vision_baselines/reports/*.json`.
 
-## Citation
-
-```bibtex
-@article{malarchick2026cbh_vision,
-  title={CNN-Based Cloud Base Height Retrieval from Thermal Infrared Imagery:
-         Lessons from NASA ER-2 Observations},
-  author={Malarchick, Rylan},
-  year={2026}
-}
-
-@article{malarchick2026cbh_domain,
-  title={Physics-Informed Feature Engineering and Domain Shift Challenges
-         for Atmospheric Machine Learning},
-  author={Malarchick, Rylan},
-  year={2026}
-}
-```
-
 ## License and credits
 
 MIT (see [LICENSE](LICENSE)). Rylan Malarchick, Embry-Riddle Aeronautical
-University (malarchr@my.erau.edu). Independent work after a NASA OSTEM
-internship (summer 2025) at Goddard Space Flight Center. ERA5 data from ECMWF
+University (malarchr@my.erau.edu). OSTEM internship work along with 
+Independent work at Goddard Space Flight Center. ERA5 data from ECMWF
 Copernicus. CPL lidar from NASA Goddard.
