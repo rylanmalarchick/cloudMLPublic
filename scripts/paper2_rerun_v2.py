@@ -5,7 +5,7 @@ Paper 2 Rerun V2: Audit-reconciled version.
 Adds to the original paper2_rerun_all.py:
   1. Feature importance for base-5 and full-34 models (within-flight + LOFO)
   2. Per-sample LOFO predictions (y_true, y_pred per flight) for scatter plots
-  3. Within-flight shuffled 5-fold CV R² per flight (the "honest within-flight" metric)
+  3. Within-flight 5-fold CV R² per flight (unshuffled: each fold is a contiguous block)
   4. Ablation study with correct feature count (34, not 39)
   5. All outputs traceable to paper tables
 
@@ -247,13 +247,15 @@ def make_gbdt(**kwargs):
     return GradientBoostingRegressor(**defaults)
 
 
-# ---------- 1. Within-flight shuffled CV (the "honest within-flight" metric) ----------
+# ---------- 1. Within-flight contiguous-block CV ----------
 
 def run_within_flight_cv(X_by_flight, y_by_flight, flight_keys, feature_names):
-    """Within-flight shuffled 5-fold CV per flight.
-    This is the 'honest within-flight' metric — no cross-flight leakage.
+    """Within-flight 5-fold CV per flight, no cross-flight training data.
+
+    cross_val_score with an integer cv uses KFold(shuffle=False), so each
+    fold is a contiguous time block of the flight.
     """
-    print("\n=== Within-Flight Shuffled 5-Fold CV ===")
+    print("\n=== Within-Flight Contiguous-Block 5-Fold CV ===")
     results = {}
     all_importances = {}
 
@@ -396,8 +398,8 @@ def run_lofo_baseline(X_by_flight, y_by_flight, flight_keys):
 
 def run_ablation_study(X_by_flight, y_by_flight, flight_keys, feature_names):
     """Ablation: remove top features one at a time.
-    Uses within-flight shuffled CV (pooled across flights) to match
-    the R²=0.744-era methodology, but with the 6-flight dataset.
+    Pooled CV is unshuffled 5-fold CV over the stacked flights, so each
+    fold is a contiguous block that can span flight boundaries.
 
     Also reports per-flight CV for cross-reference.
     """
@@ -436,7 +438,7 @@ def run_ablation_study(X_by_flight, y_by_flight, flight_keys, feature_names):
             # Use only these feature indices
             X_use = X_all[:, remove_spec]
 
-        # --- Pooled shuffled CV (comparable to old 0.744 methodology) ---
+        # --- Pooled contiguous-block CV over the stacked flights ---
         scaler_p = StandardScaler()
         X_p = scaler_p.fit_transform(X_use)
         model_p = make_gbdt()
@@ -483,8 +485,8 @@ def run_ablation_study(X_by_flight, y_by_flight, flight_keys, feature_names):
 
     return {
         "ablation_table": ablation_table,
-        "validation_note": "pooled_cv = pooled shuffled 5-fold CV across all flights; "
-                          "per_flight_cv = mean of within-flight shuffled CV across flights",
+        "validation_note": "pooled_cv = unshuffled (contiguous-block) 5-fold CV over the stacked flights; "
+                          "per_flight_cv = mean of within-flight contiguous-block 5-fold CV across flights",
     }
 
 
