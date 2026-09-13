@@ -4,8 +4,8 @@
 This module provides a dataset loader that matches SSL image data (20×22 pixel arrays)
 to labeled CBH samples from the integrated features file.
 
-The SSL data contains 58,846 unlabeled images (440 pixels = 20×22 reshaped).
-The integrated features contain 933 labeled samples with CBH ground truth.
+The extracted image file holds every IRAI frame (440 pixels = 20×22 reshaped).
+The integrated features file holds the labeled samples with CBH ground truth.
 This loader matches them using (flight_id, sample_id) keys.
 
 Classes:
@@ -101,8 +101,6 @@ class ImageCBHDataset(Dataset[Tuple[Tensor, ...]]):
         ...     ssl_images_path="data_ssl/images/train.h5",
         ...     integrated_features_path="data/integrated_features.h5",
         ... )
-        >>> len(dataset)
-        933
         >>> image, cbh, flight_id, sample_id = dataset[0]
         >>> image.shape
         torch.Size([1, 20, 22])

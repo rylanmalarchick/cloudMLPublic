@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Paper 2 Rerun V2: Audit-reconciled version.
+Paper 2 results: every table and figure number in Paper 2 comes from this run.
 
-Adds to the original paper2_rerun_all.py:
+Experiments:
   1. Feature importance for base-5 and full-34 models (within-flight + LOFO)
   2. Per-sample LOFO predictions (y_true, y_pred per flight) for scatter plots
   3. Within-flight 5-fold CV R² per flight (unshuffled: each fold is a contiguous block)
@@ -861,7 +861,7 @@ def run_conformal_prediction(X_by_flight, y_by_flight, flight_keys):
 
 def main():
     print("=" * 80)
-    print("Paper 2 Rerun V2 — Audit Reconciliation")
+    print("Paper 2 Rerun V2")
     print(f"Timestamp: {datetime.now().isoformat()}")
     print(f"Purpose: Regenerate all Paper 2 metrics with correct feature counts (5 base + 29 derived = 34)")
     print(f"         Add feature importance, LOFO predictions, within-flight CV, ablation study")
@@ -947,7 +947,7 @@ def main():
     all_results["ks_divergence"] = run_ks_divergence(X_by_flight, flight_keys, feature_names)
     all_results["conformal"] = run_conformal_prediction(X_by_flight, y_by_flight, flight_keys)
 
-    # NEW: Additional experiments for audit reconciliation
+    # Within-flight CV, feature importance, ablation
     all_results["within_flight_cv"] = run_within_flight_cv(X_by_flight, y_by_flight, flight_keys, feature_names)
     all_results["feature_importance"] = run_feature_importance_comparison(X_by_flight, y_by_flight, flight_keys, feature_names)
     all_results["ablation_study"] = run_ablation_study(X_by_flight, y_by_flight, flight_keys, feature_names)

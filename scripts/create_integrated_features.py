@@ -444,20 +444,20 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # Default: Original 933-sample dataset (ocean, CBH 0.2-2km, 0.5s tolerance)
-  python scripts/create_integrated_features.py --config configs/config.yaml
+  # Default filters: ocean, single-layer, CBH 0.2-2 km, 0.5 s tolerance
+  python scripts/create_integrated_features.py --config configs/vision_baselines_config.yaml
   
   # Expand: Include CBH < 0.2 km
-  python scripts/create_integrated_features.py --config configs/config.yaml --cbh-min 0.0
+  python scripts/create_integrated_features.py --config configs/vision_baselines_config.yaml --cbh-min 0.0
   
   # Expand: Include multi-layer clouds
-  python scripts/create_integrated_features.py --config configs/config.yaml --allow-multilayer
+  python scripts/create_integrated_features.py --config configs/vision_baselines_config.yaml --allow-multilayer
   
   # Expand: Include land samples
-  python scripts/create_integrated_features.py --config configs/config.yaml --include-land
+  python scripts/create_integrated_features.py --config configs/vision_baselines_config.yaml --include-land
   
   # Maximum expansion
-  python scripts/create_integrated_features.py --config configs/config.yaml \\
+  python scripts/create_integrated_features.py --config configs/vision_baselines_config.yaml \\
       --cbh-min 0.0 --cbh-max 10.0 --allow-multilayer --include-land
         """
     )

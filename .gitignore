@@ -257,9 +257,6 @@ tools/
 # Evaluation virtual environment
 .venv_eval/
 
-# Audit files
-preprint_repo_audit.txt
-
 # External reference repositories
 research-code-principles/
 

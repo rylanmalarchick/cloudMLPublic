@@ -13,7 +13,7 @@ Also regenerates supplementary figures:
   - Few-shot learning curve
 
 Author: Rylan Malarchick
-Date: February 2026 (audit reconciliation, iteration 2)
+Date: February 2026
 """
 
 import json
@@ -298,7 +298,7 @@ def fig_feature_importance():
 
 def main():
     print("=" * 60)
-    print("Paper 2 Figure Generator (v2 Audit Reconciliation)")
+    print("Paper 2 Figure Generator")
     print(f"Source: {RESULTS_JSON}")
     print(f"Output: {OUTPUT_DIR}")
     print(f"Metadata: {RESULTS['metadata']['version']}, "
