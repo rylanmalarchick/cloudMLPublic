@@ -121,6 +121,8 @@ def load_cpl_flight(flight_key: str) -> Dict[str, np.ndarray]:
         lon = f["geolocation/CPL_Longitude"][:, 0]
         djd = f["layer_descriptor/Profile_Decimal_Julian_Day"][:, 0]
         cbh_km = f["layer_descriptor/Layer_Base_Altitude"][:, 0]
+        # In these CPL L2 layer files the solar angle fields are all 0.0, so the
+        # sza/saa features below are constant and solar_heating_proxy equals t2m in C.
         sza = f["geolocation/Solar_Zenith_Angle"][:]
         saa = f["geolocation/Solar_Azimuth_Angle"][:]
 
