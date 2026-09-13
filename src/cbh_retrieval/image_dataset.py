@@ -64,10 +64,7 @@ def _get_h5_file(path: str) -> h5py.File:
 def _cleanup_h5_cache() -> None:
     """Close all cached HDF5 file handles on exit."""
     for f in _h5_file_cache.values():
-        try:
-            f.close()
-        except Exception:
-            pass
+        f.close()
     _h5_file_cache.clear()
 
 

@@ -113,7 +113,7 @@ class ImageExtractor:
                 all_images.append(images)
                 all_metadata.append(metadata)
                 self.stats["flights_processed"] += 1
-            except Exception as e:
+            except (OSError, KeyError) as e:
                 print(
                     f"\n   ERROR: Failed to process flight {flight_config.get('name', 'unknown')}"
                 )
@@ -508,12 +508,6 @@ def main():
         extractor.extract_all()
     except KeyboardInterrupt:
         print("\n\n  Extraction interrupted by user")
-        sys.exit(1)
-    except Exception as e:
-        print(f"\n\n ERROR: {str(e)}")
-        import traceback
-
-        traceback.print_exc()
         sys.exit(1)
 
 

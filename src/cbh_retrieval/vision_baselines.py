@@ -195,13 +195,7 @@ class VisionBaselineValidator:
         print("Loading Dataset")
         print("=" * 80)
 
-        # Import here to avoid circular dependencies
-        try:
-            from modules.image_dataset import ImageCBHDataset
-        except ImportError:
-            # Try alternative import path
-            sys.path.insert(0, str(PROJECT_ROOT / "src/cbh_retrieval"))
-            from image_dataset import ImageCBHDataset
+        from src.cbh_retrieval.image_dataset import ImageCBHDataset
 
         base_dataset = ImageCBHDataset(
             ssl_images_path=str(SSL_IMAGES),
