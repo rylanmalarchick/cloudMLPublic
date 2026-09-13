@@ -10,15 +10,16 @@ Uses the same LOFO structure as paper2_rerun_v2.py:
 - Standard conformal: fixed quantile from calibration
 - Adaptive conformal: online quantile adjustment using exponential update
 
-Run on desktop:
-    ssh desktop "cd /home/rylan/dev/research/NASA/cloudML/programDirectory && \
-        nohup ./venv/bin/python3 scripts/verify_adaptive_conformal.py > results/paper2_rerun_v2/adaptive_conformal.log 2>&1 &"
+Usage:
+    CLOUDML_DATA_DIR=/path/to/flights CLOUDML_ERA5_ROOT=/path/to/era5 \
+        python scripts/verify_adaptive_conformal.py
 
 Author: Rylan (audit item 4)
 Date: 2026-02-24
 """
 
 import json
+import os
 import sys
 import warnings
 from datetime import datetime
@@ -33,9 +34,20 @@ from sklearn.preprocessing import StandardScaler
 warnings.filterwarnings("ignore")
 np.random.seed(42)
 
+# === Paths ===
+# CLOUDML_DATA_DIR: directory with one subdirectory per flight (e.g. 23Oct24/)
+#   holding the CPL L2 layer files.
+# CLOUDML_ERA5_ROOT: directory holding era5_surface_YYYYMMDD.nc files.
+def _dir_from_env(name: str) -> Path:
+    value = os.environ.get(name)
+    if not value:
+        sys.exit(f"Set {name} (see the module docstring).")
+    return Path(value)
+
+
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-CPL_DATA_DIR = PROJECT_ROOT.parent / "data"
-ERA5_ROOT = Path("/mnt/two/research/NASA/ERA5_data_root/surface")
+CPL_DATA_DIR = _dir_from_env("CLOUDML_DATA_DIR")
+ERA5_ROOT = _dir_from_env("CLOUDML_ERA5_ROOT")
 OUTPUT_DIR = PROJECT_ROOT / "results" / "paper2_rerun_v2"
 
 FLIGHTS = {

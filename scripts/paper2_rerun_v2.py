@@ -9,15 +9,16 @@ Adds to the original paper2_rerun_all.py:
   4. Ablation study with correct feature count (34, not 39)
   5. All outputs traceable to paper tables
 
-Run on desktop:
-    ssh desktop "cd /home/rylan/dev/research/NASA/cloudML/programDirectory && \
-        nohup python3 scripts/paper2_rerun_v2.py > results/paper2_rerun_v2/rerun_v2.log 2>&1 &"
+Usage:
+    CLOUDML_DATA_DIR=/path/to/flights CLOUDML_ERA5_ROOT=/path/to/era5 \
+        python scripts/paper2_rerun_v2.py
 
 Author: Rylan (audit reconciliation rerun)
 Date: 2026-02-24
 """
 
 import json
+import os
 import sys
 import warnings
 from datetime import datetime, timezone
@@ -37,9 +38,19 @@ warnings.filterwarnings("ignore")
 np.random.seed(42)
 
 # === Paths ===
+# CLOUDML_DATA_DIR: directory with one subdirectory per flight (e.g. 23Oct24/)
+#   holding the CPL L2 layer files.
+# CLOUDML_ERA5_ROOT: directory holding era5_surface_YYYYMMDD.nc files.
+def _dir_from_env(name: str) -> Path:
+    value = os.environ.get(name)
+    if not value:
+        sys.exit(f"Set {name} (see the module docstring).")
+    return Path(value)
+
+
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-CPL_DATA_DIR = PROJECT_ROOT.parent / "data"
-ERA5_ROOT = Path("/mnt/two/research/NASA/ERA5_data_root/surface")
+CPL_DATA_DIR = _dir_from_env("CLOUDML_DATA_DIR")
+ERA5_ROOT = _dir_from_env("CLOUDML_ERA5_ROOT")
 OUTPUT_DIR = PROJECT_ROOT / "results" / "paper2_rerun_v2"
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 

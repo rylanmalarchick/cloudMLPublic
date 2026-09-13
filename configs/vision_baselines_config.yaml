@@ -2,8 +2,8 @@
 # For running CNN experiments (Paper 1: CNN-only, no ERA5)
 
 # --- File Paths ---
-data_directory: "/home/rylan/dev/research/NASA/cloudML/data/"
-output_directory: "/home/rylan/dev/research/NASA/cloudML/programDirectory/outputs/"
+data_directory: "data/"  # directory with one subdirectory per flight
+output_directory: "outputs/"
 
 # --- Preprocessing ---
 swath_slice: [40, 480]
