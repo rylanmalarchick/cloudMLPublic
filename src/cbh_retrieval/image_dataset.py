@@ -30,7 +30,7 @@ from __future__ import annotations
 import atexit
 import json
 import threading
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Tuple, Union
 
 import h5py
 import numpy as np
@@ -160,7 +160,7 @@ class ImageCBHDataset(Dataset[Tuple[Tensor, ...]]):
         self._load_data()
         self._create_mapping()
 
-        print(f"ImageCBHDataset initialized:")
+        print("ImageCBHDataset initialized:")
         print(f"  Total labeled samples: {len(self.labeled_samples)}")
         print(f"  Matched images: {len(self.valid_indices)}")
         print(f"  Image shape: {self.image_shape}")
@@ -193,7 +193,7 @@ class ImageCBHDataset(Dataset[Tuple[Tensor, ...]]):
 
         self.n_labeled = len(self.labeled_cbh_km)
 
-        print(f"Loaded data:")
+        print("Loaded data:")
         print(f"  SSL images: {self.n_ssl_images} total")
         print(f"  Labeled samples: {self.n_labeled}")
         print(f"  Flight mapping: {self.flight_mapping}")
@@ -238,7 +238,7 @@ class ImageCBHDataset(Dataset[Tuple[Tensor, ...]]):
                     }
                 )
 
-        print(f"Mapping complete:")
+        print("Mapping complete:")
         print(f"  Matched samples: {len(self.valid_indices)} / {self.n_labeled}")
         print(f"  Match rate: {100 * len(self.valid_indices) / self.n_labeled:.1f}%")
 
@@ -605,7 +605,7 @@ class TemporalImageDataset(ImageCBHDataset):
                     }
                 )
 
-        print(f"Temporal sequences built:")
+        print("Temporal sequences built:")
         print(f"  Temporal frames: {self.temporal_frames}")
         print(f"  Total sequences: {len(self.temporal_sequences)}")
 

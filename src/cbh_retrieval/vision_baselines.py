@@ -20,9 +20,7 @@ from sklearn.exceptions import ConvergenceWarning
 from datetime import datetime
 from pathlib import Path
 
-import matplotlib.pyplot as plt
 import numpy as np
-import seaborn as sns
 import torch
 import torch.nn as nn
 import torch.optim as optim

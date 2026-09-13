@@ -24,7 +24,6 @@ import sys
 import warnings
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Tuple
 
 import h5py
 import numpy as np
@@ -63,13 +62,20 @@ BASE_FEATURE_NAMES = ["t2m", "d2m", "sp", "blh", "tcwv"]
 
 
 def is_ocean(lat, lon):
-    if lat < 30:   return lon < -117
-    elif lat < 34: return lon < -118.5
-    elif lat < 36: return lon < -120.5
-    elif lat < 38: return lon < -122
-    elif lat < 40: return lon < -123
-    elif lat < 42: return lon < -124
-    else:          return lon < -124.5
+    if lat < 30:
+        return lon < -117
+    elif lat < 34:
+        return lon < -118.5
+    elif lat < 36:
+        return lon < -120.5
+    elif lat < 38:
+        return lon < -122
+    elif lat < 40:
+        return lon < -123
+    elif lat < 42:
+        return lon < -124
+    else:
+        return lon < -124.5
 
 
 def load_cpl_flight(flight_key):

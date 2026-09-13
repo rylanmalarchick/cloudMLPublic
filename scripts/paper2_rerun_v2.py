@@ -21,16 +21,16 @@ import json
 import os
 import sys
 import warnings
-from datetime import datetime, timezone
+from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Tuple, Any
+from typing import Dict, List, Tuple
 
 import h5py
 import numpy as np
 from scipy.stats import ks_2samp
 from sklearn.ensemble import GradientBoostingRegressor, RandomForestRegressor
-from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
-from sklearn.model_selection import cross_val_score, cross_val_predict, KFold
+from sklearn.metrics import r2_score, mean_absolute_error
+from sklearn.model_selection import cross_val_score
 from sklearn.neighbors import NearestNeighbors
 from sklearn.preprocessing import StandardScaler
 
@@ -96,13 +96,20 @@ BASE_FEATURE_NAMES = ["t2m", "d2m", "sp", "blh", "tcwv"]
 # ============================================================================
 
 def is_ocean(lat, lon):
-    if lat < 30:   return lon < -117
-    elif lat < 34: return lon < -118.5
-    elif lat < 36: return lon < -120.5
-    elif lat < 38: return lon < -122
-    elif lat < 40: return lon < -123
-    elif lat < 42: return lon < -124
-    else:          return lon < -124.5
+    if lat < 30:
+        return lon < -117
+    elif lat < 34:
+        return lon < -118.5
+    elif lat < 36:
+        return lon < -120.5
+    elif lat < 38:
+        return lon < -122
+    elif lat < 40:
+        return lon < -123
+    elif lat < 42:
+        return lon < -124
+    else:
+        return lon < -124.5
 
 
 def load_cpl_flight(flight_key: str) -> Dict[str, np.ndarray]:
@@ -863,8 +870,8 @@ def main():
     print("=" * 80)
     print("Paper 2 Rerun V2")
     print(f"Timestamp: {datetime.now().isoformat()}")
-    print(f"Purpose: Regenerate all Paper 2 metrics with correct feature counts (5 base + 29 derived = 34)")
-    print(f"         Add feature importance, LOFO predictions, within-flight CV, ablation study")
+    print("Purpose: Regenerate all Paper 2 metrics with correct feature counts (5 base + 29 derived = 34)")
+    print("         Add feature importance, LOFO predictions, within-flight CV, ablation study")
     print("=" * 80)
 
     # Load all flights

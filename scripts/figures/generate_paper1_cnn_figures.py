@@ -19,7 +19,6 @@ import numpy as np
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-import matplotlib.gridspec as gridspec
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -157,7 +156,7 @@ def fig2_model_comparison(results: dict, output_dir: Path):
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5))
 
     # R² plot
-    bars1 = ax1.bar(x, r2_means, width, yerr=r2_stds, color=bar_colors,
+    ax1.bar(x, r2_means, width, yerr=r2_stds, color=bar_colors,
                     edgecolor="white", capsize=4, alpha=0.85)
     ax1.axhline(0, color="gray", linestyle="-", linewidth=0.8)
     ax1.set_ylabel("R$^2$", fontsize=12)
@@ -167,7 +166,7 @@ def fig2_model_comparison(results: dict, output_dir: Path):
     ax1.grid(True, alpha=0.3, axis="y")
 
     # MAE plot
-    bars2 = ax2.bar(x, mae_means, width, yerr=mae_stds, color=bar_colors,
+    ax2.bar(x, mae_means, width, yerr=mae_stds, color=bar_colors,
                     edgecolor="white", capsize=4, alpha=0.85)
     ax2.set_ylabel("MAE (m)", fontsize=12)
     ax2.set_title("Model Comparison: MAE", fontsize=13)

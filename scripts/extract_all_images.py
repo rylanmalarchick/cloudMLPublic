@@ -94,7 +94,7 @@ class ImageExtractor:
         print("\n" + "=" * 80)
         print("PHASE 1: DATA EXTRACTION FOR SELF-SUPERVISED LEARNING")
         print("=" * 80)
-        print(f"\nConfiguration:")
+        print("\nConfiguration:")
         print(f"  Output directory: {self.output_dir}")
         print(f"  Output format: {self.format}")
         print(f"  Swath slice: [{self.swath_start}:{self.swath_end}]")
@@ -362,7 +362,7 @@ class ImageExtractor:
         with open(stats_path, "w") as f:
             yaml.dump(extended_stats, f, default_flow_style=False)
 
-        print(f"   Saved extraction_stats.yaml")
+        print("   Saved extraction_stats.yaml")
 
     def _print_summary(self):
         """Print extraction summary."""
@@ -382,10 +382,10 @@ class ImageExtractor:
             f"  - Validation: {self.stats['val_images']:,} ({self.stats['val_images'] / self.stats['total_images']:.1%})"
         )
         print(f"\n Output directory: {self.output_dir}")
-        print(f" Files created:")
+        print(" Files created:")
         print(f"  - train.{self.format.replace('hdf5', 'h5')}")
         print(f"  - val.{self.format.replace('hdf5', 'h5')}")
-        print(f"  - extraction_stats.yaml")
+        print("  - extraction_stats.yaml")
         print("=" * 80)
 
 

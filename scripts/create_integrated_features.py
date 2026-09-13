@@ -26,7 +26,7 @@ import argparse
 import yaml
 import h5py
 import numpy as np
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Tuple
 from dataclasses import dataclass
 from datetime import datetime
 import json
@@ -35,7 +35,7 @@ import json
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from src.cplCompareSub import cplTimeConvert
+from src.cplCompareSub import cplTimeConvert  # noqa: E402
 
 
 @dataclass
@@ -312,7 +312,7 @@ class CPLImageMatcher:
     
     def _print_diagnostics(self, diagnostics: Dict):
         """Print filtering cascade statistics"""
-        print(f"\n  Filtering Cascade:")
+        print("\n  Filtering Cascade:")
         print(f"    1. Total CPL profiles:     {diagnostics['total_cpl']:6d} (100.0%)")
         print(f"    2. + Valid cloud return:   {diagnostics['valid_cloud']:6d}")
         print(f"    3. + Filters applied:      {diagnostics['cbh_filtered']:6d}")
@@ -347,7 +347,7 @@ class IntegratedFeatureBuilder:
         """
         if self.verbose:
             print(f"\n{'='*80}")
-            print(f"Building Integrated Features HDF5")
+            print("Building Integrated Features HDF5")
             print(f"{'='*80}")
             print(f"  Output: {self.output_path}")
             print(f"  Total samples: {len(all_matched_samples)}")
@@ -385,9 +385,7 @@ class IntegratedFeatureBuilder:
             
             # Atmospheric features group (placeholder for ERA5 data)
             atmo = f.create_group('atmospheric_features')
-            # These would require ERA5 data processing from WP2
-            feature_names = ['blh', 'lcl', 'inversion_height', 'moisture_gradient',
-                           'stability_index', 't2m', 'd2m', 'sp', 'tcwv']
+            # Zero placeholders: the vision baselines do not use ERA5 features.
             atmo.create_dataset('blh', data=np.zeros(n_samples), dtype=np.float32)
             atmo.create_dataset('lcl', data=np.zeros(n_samples), dtype=np.float32)
             atmo.create_dataset('inversion_height', data=np.zeros(n_samples), dtype=np.float32)
@@ -414,7 +412,7 @@ class IntegratedFeatureBuilder:
             f.attrs['single_layer_only'] = filter_config.single_layer_only
         
         if self.verbose:
-            print(f"  ✓ Integrated features HDF5 created successfully")
+            print("  ✓ Integrated features HDF5 created successfully")
             self._print_summary()
     
     def _print_summary(self):
@@ -424,13 +422,13 @@ class IntegratedFeatureBuilder:
             cbh = f['metadata/cbh_km'][:]
             flight_ids = f['metadata/flight_id'][:]
             
-            print(f"\n  Dataset Summary:")
+            print("\n  Dataset Summary:")
             print(f"    Total samples: {n_samples}")
             print(f"    CBH range: [{cbh.min():.3f}, {cbh.max():.3f}] km")
             print(f"    CBH mean: {cbh.mean():.3f} km")
             print(f"    CBH std: {cbh.std():.3f} km")
             
-            print(f"\n    Per-flight distribution:")
+            print("\n    Per-flight distribution:")
             flight_map = json.loads(f.attrs['flight_mapping'])
             for fid in sorted(set(flight_ids)):
                 count = (flight_ids == fid).sum()
@@ -544,7 +542,7 @@ Examples:
     
     # Print overall statistics
     print(f"\n{'='*80}")
-    print(f"OVERALL STATISTICS")
+    print("OVERALL STATISTICS")
     print(f"{'='*80}")
     total_cpl = sum(d['total_cpl'] for d in all_diagnostics)
     total_matched = len(all_matched_samples)
