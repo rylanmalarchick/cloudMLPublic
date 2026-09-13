@@ -35,9 +35,9 @@ with open(RESULTS_JSON) as f:
     RESULTS = json.load(f)
 
 FLIGHT_LABELS = {
-    "23Oct24": "Oct 23, 2024 (WHySMIE)",
-    "30Oct24": "Oct 30, 2024 (WHySMIE)",
-    "04Nov24": "Nov 4, 2024 (WHySMIE)",
+    "23Oct24": "Oct 23, 2024 (WHyMSIE)",
+    "30Oct24": "Oct 30, 2024 (WHyMSIE)",
+    "04Nov24": "Nov 4, 2024 (WHyMSIE)",
     "10Feb25": "Feb 10, 2025 (GLOVE)",
     "12Feb25": "Feb 12, 2025 (GLOVE)",
     "18Feb25": "Feb 18, 2025 (GLOVE)",
@@ -60,7 +60,7 @@ def fig2_cbh_distribution_comparison():
     fig, ax = plt.subplots(figsize=(10, 6))
     
     for flight_key, color, label_short in [
-        ("23Oct24", "#2196F3", "Oct 23 (WHySMIE)"),
+        ("23Oct24", "#2196F3", "Oct 23 (WHyMSIE)"),
         ("10Feb25", "#F44336", "Feb 10 (GLOVE)"),
     ]:
         y_true_km = np.array(preds[flight_key]["y_true_km"])
@@ -74,7 +74,7 @@ def fig2_cbh_distribution_comparison():
     
     ax.set_xlabel("Cloud Base Height (m)", fontsize=12)
     ax.set_ylabel("Density", fontsize=12)
-    ax.set_title("CBH Distribution: WHySMIE vs GLOVE (Ocean-Only, BL Clouds ≤ 2 km)",
+    ax.set_title("CBH Distribution: WHyMSIE vs GLOVE (Ocean-Only, BL Clouds ≤ 2 km)",
                  fontsize=13)
     ax.set_xlim(0, 2000)
     ax.legend(fontsize=11)
@@ -112,7 +112,7 @@ def fig3_scatter_comparison():
     for ax, flight_key, label_short in zip(
         axes,
         ["23Oct24", "10Feb25"],
-        ["Oct 23 (WHySMIE)", "Feb 10 (GLOVE)"],
+        ["Oct 23 (WHyMSIE)", "Feb 10 (GLOVE)"],
     ):
         y_true = np.array(preds[flight_key]["y_true_km"]) * 1000  # to meters
         y_pred = np.array(preds[flight_key]["y_pred_km"]) * 1000
@@ -243,7 +243,7 @@ def fig_ks_divergence():
     ax.set_yticks(range(len(features)))
     ax.set_yticklabels(features, fontsize=10)
     ax.set_xlabel("K-S Statistic", fontsize=12)
-    ax.set_title("Feature Distribution Shift: Oct 23 (WHySMIE) vs Feb 10 (GLOVE)", fontsize=13)
+    ax.set_title("Feature Distribution Shift: Oct 23 (WHyMSIE) vs Feb 10 (GLOVE)", fontsize=13)
     ax.set_xlim(0, 1.05)
     ax.axvline(0.95, color="red", linestyle="--", linewidth=0.8, alpha=0.5,
                label="Near-total shift (0.95)")

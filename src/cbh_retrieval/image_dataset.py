@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Sprint 6 - Image Dataset Loader.
+"""Image dataset loader for the Paper 1 vision baselines.
 
 This module provides a dataset loader that matches SSL image data (20×22 pixel arrays)
 to labeled CBH samples from the integrated features file.
@@ -21,7 +21,7 @@ Example:
     ... )
     >>> image, cbh, flight_id, sample_id = dataset[0]
 
-Author: Sprint 6 Agent
+Author: Rylan Malarchick
 Date: 2025
 """
 

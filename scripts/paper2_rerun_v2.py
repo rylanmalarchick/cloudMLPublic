@@ -13,7 +13,7 @@ Usage:
     CLOUDML_DATA_DIR=/path/to/flights CLOUDML_ERA5_ROOT=/path/to/era5 \
         python scripts/paper2_rerun_v2.py
 
-Author: Rylan (audit reconciliation rerun)
+Author: Rylan Malarchick
 Date: 2026-02-24
 """
 
@@ -59,17 +59,17 @@ FLIGHTS = {
     "23Oct24": {
         "cpl": "23Oct24/CPL_L2_V1-02_01kmLay_259004_23oct24.hdf5",
         "era5_date": "20241023",
-        "campaign": "WHySMIE",
+        "campaign": "WHyMSIE",
     },
     "30Oct24": {
         "cpl": "30Oct24/CPL_L2_V1-02_01kmLay_259006_30oct24.hdf5",
         "era5_date": "20241030",
-        "campaign": "WHySMIE",
+        "campaign": "WHyMSIE",
     },
     "04Nov24": {
         "cpl": "04Nov24/CPL_L2_V1-02_01kmLay_259008_04nov24.hdf5",
         "era5_date": "20241104",
-        "campaign": "WHySMIE",
+        "campaign": "WHyMSIE",
     },
     "10Feb25": {
         "cpl": "10Feb25/CPL_L2_V1-02_01kmLay_259015_10feb25.hdf5",

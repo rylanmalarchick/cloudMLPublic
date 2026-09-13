@@ -3,7 +3,7 @@
 Adaptive conformal prediction verification.
 
 Runs adaptive conformal (online quantile adjustment) cross-flight
-to verify/replace the unverified 11% coverage claim in Paper 2.
+for the Paper 2 uncertainty section.
 
 Uses the same LOFO structure as paper2_rerun_v2.py:
 - Train on 5 flights, calibrate on held-out portion of source, test on 6th flight
@@ -14,7 +14,7 @@ Usage:
     CLOUDML_DATA_DIR=/path/to/flights CLOUDML_ERA5_ROOT=/path/to/era5 \
         python scripts/verify_adaptive_conformal.py
 
-Author: Rylan (audit item 4)
+Author: Rylan Malarchick
 Date: 2026-02-24
 """
 
@@ -51,9 +51,9 @@ ERA5_ROOT = _dir_from_env("CLOUDML_ERA5_ROOT")
 OUTPUT_DIR = PROJECT_ROOT / "results" / "paper2_rerun_v2"
 
 FLIGHTS = {
-    "23Oct24": {"cpl": "23Oct24/CPL_L2_V1-02_01kmLay_259004_23oct24.hdf5", "era5_date": "20241023", "campaign": "WHySMIE"},
-    "30Oct24": {"cpl": "30Oct24/CPL_L2_V1-02_01kmLay_259006_30oct24.hdf5", "era5_date": "20241030", "campaign": "WHySMIE"},
-    "04Nov24": {"cpl": "04Nov24/CPL_L2_V1-02_01kmLay_259008_04nov24.hdf5", "era5_date": "20241104", "campaign": "WHySMIE"},
+    "23Oct24": {"cpl": "23Oct24/CPL_L2_V1-02_01kmLay_259004_23oct24.hdf5", "era5_date": "20241023", "campaign": "WHyMSIE"},
+    "30Oct24": {"cpl": "30Oct24/CPL_L2_V1-02_01kmLay_259006_30oct24.hdf5", "era5_date": "20241030", "campaign": "WHyMSIE"},
+    "04Nov24": {"cpl": "04Nov24/CPL_L2_V1-02_01kmLay_259008_04nov24.hdf5", "era5_date": "20241104", "campaign": "WHyMSIE"},
     "10Feb25": {"cpl": "10Feb25/CPL_L2_V1-02_01kmLay_259015_10feb25.hdf5", "era5_date": "20250210", "campaign": "GLOVE"},
     "12Feb25": {"cpl": "12Feb25/CPL_L2_V1-02_01kmLay_259016_12feb25.hdf5", "era5_date": "20250212", "campaign": "GLOVE"},
     "18Feb25": {"cpl": "18Feb25/CPL_L2_V1-02_01kmLay_259017_18feb25.hdf5", "era5_date": "20250218", "campaign": "GLOVE"},

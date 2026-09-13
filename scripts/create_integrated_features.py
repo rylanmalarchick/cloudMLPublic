@@ -16,7 +16,7 @@ This consolidates and modernizes the deleted legacy pipeline:
 - archive/data_creation/wp2_atmospheric_features.py (ERA5 features)
 - archive/data_creation/create_integrated_features.py (integration)
 
-Author: OpenCode
+Author: Rylan Malarchick
 Date: 2025-11-18
 """
 

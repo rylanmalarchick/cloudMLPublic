@@ -8,7 +8,7 @@ Implements transfer learning baselines (ResNet-18, EfficientNet-B0) with:
 - Ablation: scratch vs. pre-trained vs. augmented
 - Computational cost benchmarking
 
-Author: Preprint Revision Task 1
+Author: Rylan Malarchick
 Date: 2025
 """
 
