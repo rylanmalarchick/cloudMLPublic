@@ -6,8 +6,10 @@ Machine-learning retrieval of cloud base height (CBH) from NASA ER-2 data taken
 during the WHyMSIE (Oct-Nov 2024) and GLOVE (Feb 2025) campaigns. CBH labels come
 from the Cloud Physics Lidar (CPL).
 
-- Paper 1, thermal IR imagery: ResNet-18 and EfficientNet-B0 on 20x22 px IRAI
-  cutouts. 380 samples from 6 flights (7 processed), stratified 5-fold CV.
+- Paper 1, thermal IR imagery: ResNet-18 and EfficientNet-B0 on IRAI brightness
+  profiles. Each frame's rows 40-479 are averaged across the 640-pixel axis
+  (440 values) and reshaped to 20x22. 380 samples from 6 flights (7 processed),
+  stratified 5-fold CV.
   Best: ResNet-18 pretrained, R2 = 0.43, MAE = 173 m.
 - Paper 2, ERA5 features and domain shift: gradient-boosted trees on 34
   ERA5-derived features. 5,500 ocean boundary-layer samples from 6 flights.
@@ -46,7 +48,7 @@ Features are 5 base ERA5 fields (t2m, d2m, sp, blh, tcwv) plus 29 derived.
 | Feb 12, 2025 | GLOVE | 654 | 783 |
 | Feb 18, 2025 | GLOVE | 185 | 94 |
 
-Vision: 380 IRAI cutouts (20x22 px) with matched CPL CBH.
+Vision: 380 IRAI brightness profiles (440 values, reshaped to 20x22) with matched CPL CBH.
 
 The data are not in this repository. ERA5 comes from the Copernicus Climate
 Data Store. CPL, IRAI, and CRS navigation files come from NASA.

@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """Image dataset loader for the Paper 1 vision baselines.
 
-This module provides a dataset loader that matches SSL image data (20×22 pixel arrays)
+This module provides a dataset loader that matches extracted IRAI profiles (440 values, reshaped to 20×22)
 to labeled CBH samples from the integrated features file.
 
-The extracted image file holds every IRAI frame (440 pixels = 20×22 reshaped).
+The extracted file holds one 440-value brightness profile per IRAI frame (rows 40-479
+averaged across the 640-pixel axis); this loader reshapes each profile to 20×22.
 The integrated features file holds the labeled samples with CBH ground truth.
 This loader matches them using (flight_id, sample_id) keys.
 
@@ -73,7 +74,7 @@ atexit.register(_cleanup_h5_cache)
 
 
 class ImageCBHDataset(Dataset[Tuple[Tensor, ...]]):
-    """Dataset that loads 20×22 pixel images and matches them to CBH labels.
+    """Dataset that loads 440-value IRAI profiles as 20×22 arrays and matches them to CBH labels.
 
     This dataset loads pre-processed images from SSL (Self-Supervised Learning)
     data and matches them to labeled CBH (Cloud Base Height) samples using

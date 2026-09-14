@@ -217,7 +217,7 @@ class ImageExtractor:
                     for i in range(len(chunk)):
                         chunk[i] = linear_vignetting_correction(chunk[i], flat_ref)
 
-                # Average across the 3 pixels dimension (nadir + 2 views)
+                # Average each kept row across the 640-pixel axis: one 440-value profile per frame
                 chunk_avg = np.mean(chunk, axis=2)  # Shape: (chunk_size, H, W)
 
                 images_list.append(chunk_avg)
